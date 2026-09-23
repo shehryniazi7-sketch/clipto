@@ -1,0 +1,843 @@
+/*
+Theme Name: Clipto
+Author: Clipto
+Description: A lightweight, premium editorial WordPress theme built for AI news, tools, guides, tutorials, reviews and comparisons. Engineered for speed, Core Web Vitals, SEO, accessibility and E-E-A-T, with a restrained AI-inspired visual identity.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.6
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: clipto
+Tags: blog, news, one-column, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready, accessibility-ready
+*/
+
+/* =====================================================================
+   1. VARIABLES
+   ===================================================================== */
+:root {
+	--clipto-bg: #ffffff;
+	--clipto-surface: #f6f7fb;
+	--clipto-surface-elevated: #ffffff;
+	--clipto-text: #12141a;
+	--clipto-text-muted: #5c6472;
+	--clipto-accent: #3457ff;
+	--clipto-accent-2: #7c3aed;
+	--clipto-accent-contrast: #ffffff;
+	--clipto-border: #e7e9f0;
+	--clipto-border-strong: #cfd3de;
+	--clipto-shadow-sm: 0 1px 2px rgba(18, 20, 26, 0.05);
+	--clipto-shadow-md: 0 6px 20px rgba(18, 20, 26, 0.08);
+	--clipto-shadow-lg: 0 16px 40px rgba(18, 20, 26, 0.14);
+	--clipto-glow: 0 0 0 1px rgba(52, 87, 255, 0.12), 0 8px 30px rgba(52, 87, 255, 0.16);
+	--clipto-radius-sm: 8px;
+	--clipto-radius-md: 14px;
+	--clipto-radius-lg: 22px;
+	--clipto-container: 1240px;
+	--clipto-content: 740px;
+	--clipto-space-1: 4px;
+	--clipto-space-2: 8px;
+	--clipto-space-3: 12px;
+	--clipto-space-4: 16px;
+	--clipto-space-5: 24px;
+	--clipto-space-6: 32px;
+	--clipto-space-7: 48px;
+	--clipto-space-8: 72px;
+	--clipto-header-height: 76px;
+	--clipto-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--clipto-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+	--clipto-free: #147a4d;
+	--clipto-free-bg: #e4f6ec;
+	--clipto-freemium: #93590a;
+	--clipto-freemium-bg: #fbedd4;
+	--clipto-paid: #6b21c9;
+	--clipto-paid-bg: #f0e6fc;
+	--clipto-rating: #92600a;
+	--clipto-rating-bg: #fbecd2;
+
+	--clipto-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--clipto-duration-fast: 160ms;
+	--clipto-duration-med: 320ms;
+	--clipto-duration-slow: 900ms;
+	--clipto-duration-ambient: 16s;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--clipto-bg: #0b0d12;
+		--clipto-surface: #12151c;
+		--clipto-surface-elevated: #171b24;
+		--clipto-text: #eef1f6;
+		--clipto-text-muted: #a2aab8;
+		--clipto-accent: #7d95ff;
+		--clipto-accent-2: #b78cff;
+		--clipto-accent-contrast: #0b0d12;
+		--clipto-border: #232838;
+		--clipto-border-strong: #323a4d;
+		--clipto-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+		--clipto-shadow-md: 0 10px 26px rgba(0, 0, 0, 0.4);
+		--clipto-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.5);
+		--clipto-glow: 0 0 0 1px rgba(125, 149, 255, 0.25), 0 10px 34px rgba(125, 149, 255, 0.22);
+		--clipto-free: #4fd38b;
+		--clipto-free-bg: rgba(79, 211, 139, 0.12);
+		--clipto-freemium: #e8b35a;
+		--clipto-freemium-bg: rgba(232, 179, 90, 0.12);
+		--clipto-paid: #c298ff;
+		--clipto-paid-bg: rgba(194, 152, 255, 0.14);
+		--clipto-rating: #eab868;
+		--clipto-rating-bg: rgba(234, 184, 104, 0.14);
+	}
+
+	/* Ambient elements read as washed-out on light backgrounds at these
+	   opacities but need a touch more presence against dark surfaces to
+	   feel like a deliberately designed "premium AI interface" rather
+	   than colors that were simply inverted. */
+	.clipto-orb { opacity: 0.65; }
+	.clipto-orb--3 { opacity: 0.45; }
+	.clipto-hero__wash { filter: brightness(1.3); }
+	.clipto-hero__trail { opacity: 0.7; }
+	.clipto-ai-summary::before { filter: brightness(1.4); }
+}
+
+/* =====================================================================
+   2. RESET / BASE
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: var(--clipto-header-height); }
+body {
+	margin: 0;
+	background: var(--clipto-bg);
+	color: var(--clipto-text);
+	font-family: var(--clipto-font-sans);
+	font-size: 17px;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+}
+img, svg, video { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+input, textarea, select { font: inherit; color: inherit; }
+
+/* =====================================================================
+   3. TYPOGRAPHY
+   ===================================================================== */
+h1, h2, h3, h4 { line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 var(--clipto-space-4); }
+h1 { font-size: clamp(2rem, 1.5rem + 2vw, 3.2rem); }
+h2 { font-size: clamp(1.5rem, 1.3rem + 1vw, 2.1rem); }
+h3 { font-size: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem); }
+p { margin: 0 0 var(--clipto-space-4); color: var(--clipto-text); }
+.clipto-section-title { margin-bottom: var(--clipto-space-5); }
+
+/* =====================================================================
+   4. ACCESSIBILITY
+   ===================================================================== */
+.screen-reader-text {
+	position: absolute !important;
+	width: 1px; height: 1px;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+	white-space: nowrap;
+}
+.skip-link {
+	position: absolute;
+	top: -100px;
+	left: var(--clipto-space-4);
+	background: var(--clipto-accent);
+	color: var(--clipto-accent-contrast);
+	padding: var(--clipto-space-3) var(--clipto-space-4);
+	border-radius: var(--clipto-radius-sm);
+	z-index: 1000;
+	transition: top var(--clipto-duration-fast) var(--clipto-ease);
+}
+.skip-link:focus { top: var(--clipto-space-4); }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+	outline: 2px solid var(--clipto-accent);
+	outline-offset: 2px;
+	border-radius: var(--clipto-radius-sm);
+}
+
+/* =====================================================================
+   5. LAYOUT
+   ===================================================================== */
+.clipto-container { max-width: var(--clipto-container); margin-inline: auto; padding-inline: var(--clipto-space-5); }
+.clipto-container--article { max-width: var(--clipto-content); }
+.site-main { display: block; }
+
+/* =====================================================================
+   6. HEADER
+   ===================================================================== */
+.site-header {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	height: var(--clipto-header-height);
+	display: flex;
+	align-items: center;
+	background: color-mix(in srgb, var(--clipto-bg) 88%, transparent);
+	backdrop-filter: saturate(140%) blur(10px);
+	-webkit-backdrop-filter: saturate(140%) blur(10px);
+	border-bottom: 1px solid transparent;
+	transition: box-shadow var(--clipto-duration-med) var(--clipto-ease), border-color var(--clipto-duration-med) var(--clipto-ease), background var(--clipto-duration-med) var(--clipto-ease);
+}
+.site-header.is-scrolled {
+	border-bottom-color: var(--clipto-border);
+	box-shadow: var(--clipto-shadow-sm);
+}
+.site-header__inner { display: flex; align-items: center; gap: var(--clipto-space-5); width: 100%; }
+.site-branding { display: flex; align-items: center; margin-right: auto; transition: transform var(--clipto-duration-med) var(--clipto-ease); transform-origin: left center; }
+.site-header.is-scrolled .site-branding { transform: scale(0.92); }
+.site-branding .custom-logo { max-height: 40px; width: auto; }
+.site-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }
+
+/* =====================================================================
+   7. NAVIGATION
+   ===================================================================== */
+.clipto-nav { display: flex; align-items: center; }
+.clipto-nav-toggle {
+	display: none;
+	width: 40px; height: 40px;
+	border-radius: var(--clipto-radius-sm);
+	align-items: center; justify-content: center;
+	position: relative;
+}
+.clipto-nav-toggle__icon,
+.clipto-nav-toggle__icon::before,
+.clipto-nav-toggle__icon::after {
+	content: "";
+	display: block;
+	width: 20px; height: 2px;
+	background: currentColor;
+	border-radius: 2px;
+	transition: transform var(--clipto-duration-fast) var(--clipto-ease), opacity var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-nav-toggle__icon::before { position: absolute; transform: translateY(-6px); }
+.clipto-nav-toggle__icon::after { position: absolute; transform: translateY(6px); }
+.clipto-nav-toggle[aria-expanded="true"] .clipto-nav-toggle__icon { background: transparent; }
+.clipto-nav-toggle[aria-expanded="true"] .clipto-nav-toggle__icon::before { transform: rotate(45deg); }
+.clipto-nav-toggle[aria-expanded="true"] .clipto-nav-toggle__icon::after { transform: rotate(-45deg); }
+
+.clipto-nav-list { display: flex; align-items: center; gap: var(--clipto-space-5); }
+.clipto-nav-list a {
+	position: relative;
+	font-weight: 600;
+	font-size: 0.95rem;
+	color: var(--clipto-text-muted);
+	padding-block: var(--clipto-space-2);
+	transition: color var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-nav-list a::after {
+	content: "";
+	position: absolute;
+	left: 0; right: 0; bottom: -2px;
+	height: 2px;
+	background: var(--clipto-accent);
+	transform: scaleX(0);
+	transform-origin: left;
+	transition: transform var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-nav-list a:hover,
+.clipto-nav-list a:focus-visible,
+.clipto-nav-list .current-menu-item > a { color: var(--clipto-text); }
+.clipto-nav-list a:hover::after,
+.clipto-nav-list a:focus-visible::after,
+.clipto-nav-list .current-menu-item > a::after { transform: scaleX(1); }
+
+.clipto-search { position: relative; margin-left: var(--clipto-space-3); }
+.clipto-search-toggle {
+	width: 40px; height: 40px;
+	display: flex; align-items: center; justify-content: center;
+	border-radius: var(--clipto-radius-sm);
+	transition: background var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-search-toggle:hover { background: var(--clipto-surface); }
+.clipto-search-form {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	width: min(320px, 80vw);
+	background: var(--clipto-surface-elevated);
+	border-radius: var(--clipto-radius-md);
+	box-shadow: var(--clipto-shadow-lg);
+	padding: var(--clipto-space-3);
+	opacity: 0;
+	transform: translateY(-6px) scale(0.98);
+	pointer-events: none;
+	transition: opacity var(--clipto-duration-fast) var(--clipto-ease), transform var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-search-form.is-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.clipto-search-form .search-form { display: flex; gap: var(--clipto-space-2); }
+.clipto-search-form input[type="search"] {
+	flex: 1;
+	padding: var(--clipto-space-3);
+	border: 1px solid var(--clipto-border);
+	border-radius: var(--clipto-radius-sm);
+	background: var(--clipto-bg);
+}
+.clipto-search-form button {
+	padding: var(--clipto-space-3) var(--clipto-space-4);
+	background: var(--clipto-accent);
+	color: var(--clipto-accent-contrast);
+	border-radius: var(--clipto-radius-sm);
+	font-weight: 600;
+}
+
+@media (max-width: 860px) {
+	.clipto-nav-toggle { display: inline-flex; }
+	.clipto-nav-menu {
+		position: fixed;
+		inset: var(--clipto-header-height) 0 0 0;
+		background: var(--clipto-bg);
+		transform: translateY(-8px);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--clipto-duration-med) var(--clipto-ease), transform var(--clipto-duration-med) var(--clipto-ease);
+		overflow-y: auto;
+		padding: var(--clipto-space-6) var(--clipto-space-5);
+	}
+	.clipto-nav-menu.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+	.clipto-nav-list { flex-direction: column; align-items: flex-start; gap: var(--clipto-space-5); }
+	.clipto-nav-list a { font-size: 1.15rem; }
+	.clipto-nav-list li {
+		opacity: 0;
+		transform: translateY(10px);
+		transition: opacity var(--clipto-duration-med) var(--clipto-ease), transform var(--clipto-duration-med) var(--clipto-ease);
+	}
+	.clipto-nav-menu.is-open .clipto-nav-list li { opacity: 1; transform: translateY(0); }
+	.clipto-nav-list li:nth-child(1) { transition-delay: 40ms; }
+	.clipto-nav-list li:nth-child(2) { transition-delay: 80ms; }
+	.clipto-nav-list li:nth-child(3) { transition-delay: 120ms; }
+	.clipto-nav-list li:nth-child(4) { transition-delay: 160ms; }
+	.clipto-nav-list li:nth-child(5) { transition-delay: 200ms; }
+	.clipto-nav-list li:nth-child(n+6) { transition-delay: 240ms; }
+}
+
+/* =====================================================================
+   8. HERO / AMBIENT AI BACKGROUND
+   ===================================================================== */
+.clipto-hero {
+	position: relative;
+	overflow: hidden;
+	padding-block: var(--clipto-space-8) var(--clipto-space-7);
+	isolation: isolate;
+}
+.clipto-hero__ambient { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+
+/* Layer 1 — a very slow rotating gradient wash beneath everything else.
+   Kept to a single low-opacity radial pair so it reads as atmosphere,
+   not as a visible spinning shape. */
+.clipto-hero__wash {
+	position: absolute;
+	inset: -20%;
+	background:
+		radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--clipto-accent) 16%, transparent), transparent 55%),
+		radial-gradient(circle at 75% 70%, color-mix(in srgb, var(--clipto-accent-2) 12%, transparent), transparent 55%);
+	animation: clipto-wash-rotate calc(var(--clipto-duration-ambient) * 3) linear infinite;
+	will-change: transform;
+}
+@keyframes clipto-wash-rotate {
+	to { transform: rotate(360deg); }
+}
+
+/* Layer 2 — blurred orbs, the most visible ambient element. */
+.clipto-orb {
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(60px);
+	opacity: 0.5;
+	will-change: transform;
+	animation: clipto-drift var(--clipto-duration-ambient) ease-in-out infinite;
+}
+.clipto-orb--1 { width: 420px; height: 420px; top: -140px; left: -100px; background: radial-gradient(circle, var(--clipto-accent), transparent 70%); }
+.clipto-orb--2 { width: 360px; height: 360px; top: -60px; right: -120px; background: radial-gradient(circle, var(--clipto-accent-2), transparent 70%); animation-duration: calc(var(--clipto-duration-ambient) * 1.3); animation-delay: -4s; }
+.clipto-orb--3 { width: 300px; height: 300px; bottom: -160px; left: 30%; background: radial-gradient(circle, var(--clipto-accent), transparent 72%); animation-duration: calc(var(--clipto-duration-ambient) * 0.85); animation-delay: -8s; opacity: 0.35; }
+@keyframes clipto-drift {
+	0%, 100% { transform: translate(0, 0) scale(1); }
+	50% { transform: translate(24px, -28px) scale(1.06); }
+}
+
+/* Layer 3 — a single thin light-trail accent, the most restrained layer;
+   a hairline gradient stroke that slowly sweeps rather than a shape. */
+.clipto-hero__trail {
+	position: absolute;
+	top: 18%;
+	left: -10%;
+	width: 130%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--clipto-accent) 45%, transparent), transparent);
+	opacity: 0.5;
+	animation: clipto-trail-sweep calc(var(--clipto-duration-ambient) * 1.6) ease-in-out infinite;
+	will-change: transform, opacity;
+}
+@keyframes clipto-trail-sweep {
+	0%, 100% { transform: translateX(-4%) scaleX(0.85); opacity: 0.25; }
+	50% { transform: translateX(4%) scaleX(1); opacity: 0.55; }
+}
+
+/* Layer 4 — the fine dot-grid, masked to a soft ellipse so it fades at the edges. */
+.clipto-hero__grid {
+	position: absolute; inset: 0;
+	background-image:
+		linear-gradient(color-mix(in srgb, var(--clipto-text) 6%, transparent) 1px, transparent 1px),
+		linear-gradient(90deg, color-mix(in srgb, var(--clipto-text) 6%, transparent) 1px, transparent 1px);
+	background-size: 42px 42px;
+	mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 80%);
+}
+
+/* Seam — a soft fade from the hero into whatever follows, replacing a
+   hard divider line with a gradient transition. */
+.clipto-hero::after {
+	content: "";
+	position: absolute;
+	inset: auto 0 0 0;
+	height: 120px;
+	background: linear-gradient(to bottom, transparent, var(--clipto-bg));
+	pointer-events: none;
+}
+
+.clipto-hero__content { position: relative; text-align: center; max-width: 760px; }
+.clipto-hero__eyebrow {
+	display: inline-block;
+	font-weight: 700;
+	font-size: 0.8rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--clipto-accent);
+	background: color-mix(in srgb, var(--clipto-accent) 12%, transparent);
+	padding: var(--clipto-space-2) var(--clipto-space-4);
+	border-radius: 999px;
+	margin-bottom: var(--clipto-space-4);
+}
+.clipto-hero__title { margin-bottom: var(--clipto-space-4); font-weight: 800; letter-spacing: -0.02em; }
+.clipto-hero__subtitle { color: var(--clipto-text-muted); font-size: 1.15rem; max-width: 560px; margin-inline: auto; }
+.clipto-hero__ctas { display: flex; gap: var(--clipto-space-4); justify-content: center; margin-top: var(--clipto-space-6); flex-wrap: wrap; }
+
+/* Kicker — a small label used above section headings sitewide to give
+   each section its own quiet rhythm, echoing the hero eyebrow without
+   repeating it verbatim. */
+.clipto-kicker {
+	display: block;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--clipto-accent);
+	margin-bottom: var(--clipto-space-2);
+}
+
+/* =====================================================================
+   9. BUTTONS
+   ===================================================================== */
+.clipto-btn {
+	display: inline-flex; align-items: center; gap: var(--clipto-space-2);
+	padding: var(--clipto-space-3) var(--clipto-space-6);
+	border-radius: 999px;
+	font-weight: 700;
+	font-size: 0.98rem;
+	transition: transform var(--clipto-duration-fast) var(--clipto-ease), box-shadow var(--clipto-duration-fast) var(--clipto-ease), background var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-btn__arrow { display: inline-flex; transition: transform var(--clipto-duration-fast) var(--clipto-ease); }
+.clipto-btn:hover .clipto-btn__arrow, .clipto-btn:focus-visible .clipto-btn__arrow { transform: translateX(3px); }
+.clipto-btn--primary { background: var(--clipto-accent); color: var(--clipto-accent-contrast); box-shadow: var(--clipto-glow); }
+.clipto-btn--primary:hover, .clipto-btn--primary:focus-visible { transform: translateY(-2px); box-shadow: var(--clipto-shadow-lg), var(--clipto-glow); }
+.clipto-btn--secondary { background: var(--clipto-surface-elevated); color: var(--clipto-text); box-shadow: var(--clipto-shadow-sm); }
+.clipto-btn--secondary:hover, .clipto-btn--secondary:focus-visible { transform: translateY(-2px); box-shadow: var(--clipto-shadow-md); }
+
+/* =====================================================================
+   10. STATS STRIP
+   ===================================================================== */
+.clipto-stats-strip { padding-block: var(--clipto-space-6); }
+.clipto-stats-strip__inner {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: var(--clipto-space-5);
+	background: var(--clipto-surface);
+	border-radius: var(--clipto-radius-lg);
+	padding: var(--clipto-space-6);
+}
+.clipto-stat { text-align: center; }
+.clipto-stat__value { display: block; font-size: clamp(1.6rem, 1.3rem + 1vw, 2.4rem); font-weight: 800; color: var(--clipto-accent); }
+.clipto-stat__label { display: block; color: var(--clipto-text-muted); font-size: 0.9rem; margin-top: var(--clipto-space-1); }
+
+/* =====================================================================
+   11. MAIN CONTENT / ARTICLES
+   ===================================================================== */
+.clipto-archive-header { padding-block: var(--clipto-space-6) var(--clipto-space-5); }
+.clipto-archive-title { margin-bottom: var(--clipto-space-2); }
+.clipto-archive-description { color: var(--clipto-text-muted); }
+
+.clipto-article__header { padding-top: var(--clipto-space-6); }
+.clipto-article__title {
+	margin-block: var(--clipto-space-3);
+	font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+	max-width: 18ch;
+}
+.clipto-article__lede { font-size: 1.15rem; color: var(--clipto-text-muted); }
+.clipto-article__meta {
+	display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-4);
+	color: var(--clipto-text-muted);
+	font-size: 0.9rem;
+	padding-block: var(--clipto-space-4);
+	border-top: 1px solid var(--clipto-border);
+	border-bottom: 1px solid var(--clipto-border);
+	margin-bottom: var(--clipto-space-6);
+}
+.clipto-article__author { display: inline-flex; align-items: center; gap: var(--clipto-space-2); color: var(--clipto-text); font-weight: 600; }
+.clipto-article__author img { border-radius: 50%; }
+
+.clipto-article__thumb { border-radius: var(--clipto-radius-lg); overflow: hidden; margin-bottom: var(--clipto-space-6); box-shadow: var(--clipto-shadow-md); }
+.clipto-article__thumb img { width: 100%; }
+
+.clipto-article__content { font-size: 1.08rem; }
+.clipto-article__content h2 {
+	margin-top: var(--clipto-space-7);
+	font-size: clamp(1.35rem, 1.2rem + 0.8vw, 1.75rem);
+}
+.clipto-article__content h2::before {
+	content: "";
+	display: block;
+	width: 32px;
+	height: 3px;
+	border-radius: 2px;
+	background: var(--clipto-accent);
+	margin-bottom: var(--clipto-space-3);
+}
+.clipto-article__content h3 {
+	margin-top: var(--clipto-space-6);
+	font-size: 1.15rem;
+	font-weight: 600;
+}
+.clipto-article__content p, .clipto-article__content ul, .clipto-article__content ol { margin-bottom: var(--clipto-space-5); }
+.clipto-article__content ul, .clipto-article__content ol { padding-left: 1.4em; }
+.clipto-article__content ul { list-style: disc; }
+.clipto-article__content ol { list-style: decimal; }
+.clipto-article__content img { border-radius: var(--clipto-radius-md); }
+.clipto-article__content blockquote {
+	margin: var(--clipto-space-6) 0;
+	padding: var(--clipto-space-4) var(--clipto-space-5);
+	border-left: 3px solid var(--clipto-accent);
+	background: var(--clipto-surface);
+	border-radius: 0 var(--clipto-radius-md) var(--clipto-radius-md) 0;
+	font-style: italic;
+}
+.clipto-article__content pre {
+	background: var(--clipto-surface);
+	border-radius: var(--clipto-radius-md);
+	padding: var(--clipto-space-4);
+	overflow-x: auto;
+	font-family: var(--clipto-font-mono);
+	font-size: 0.9rem;
+}
+.clipto-article__content code { font-family: var(--clipto-font-mono); background: var(--clipto-surface); padding: 0.15em 0.4em; border-radius: 4px; }
+.clipto-article__content pre code { background: none; padding: 0; }
+.clipto-article__content table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+.clipto-article__content th, .clipto-article__content td { padding: var(--clipto-space-3); border-bottom: 1px solid var(--clipto-border); text-align: left; }
+.clipto-article__content a { color: var(--clipto-accent); text-decoration: underline; text-underline-offset: 2px; }
+
+/* =====================================================================
+   12. CARDS (borderless — elevation and contrast instead of outlines)
+   ===================================================================== */
+.clipto-grid { display: grid; gap: var(--clipto-space-5); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); padding-block: var(--clipto-space-6); }
+.clipto-category-showcase { position: relative; overflow: hidden; padding-block: var(--clipto-space-4) var(--clipto-space-2); }
+.clipto-category-showcase__glow {
+	position: absolute;
+	top: -30%;
+	right: -10%;
+	width: 380px;
+	height: 380px;
+	background: radial-gradient(circle, color-mix(in srgb, var(--clipto-accent-2) 14%, transparent), transparent 70%);
+	filter: blur(50px);
+	pointer-events: none;
+	z-index: -1;
+}
+.clipto-grid--categories { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+.clipto-card {
+	background: var(--clipto-surface-elevated);
+	border-radius: var(--clipto-radius-md);
+	overflow: hidden;
+	box-shadow: var(--clipto-shadow-sm);
+	transition: transform var(--clipto-duration-med) var(--clipto-ease), box-shadow var(--clipto-duration-med) var(--clipto-ease);
+}
+.clipto-card:hover { transform: translateY(-4px); box-shadow: var(--clipto-shadow-lg); }
+.clipto-card__thumb-link { display: block; }
+.clipto-card__thumb { aspect-ratio: 16 / 10; overflow: hidden; background: var(--clipto-surface); }
+.clipto-card__thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--clipto-duration-slow) var(--clipto-ease); }
+.clipto-card:hover .clipto-card__thumb img { transform: scale(1.05); }
+.clipto-card__body { padding: var(--clipto-space-5); }
+.clipto-card__title {
+	font-size: 1.1rem;
+	margin-block: var(--clipto-space-2);
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.clipto-card__title a:hover { color: var(--clipto-accent); }
+.clipto-card__excerpt {
+	color: var(--clipto-text-muted);
+	font-size: 0.95rem;
+	margin-bottom: var(--clipto-space-3);
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.clipto-card__meta { display: flex; align-items: center; gap: var(--clipto-space-2); font-size: 0.82rem; color: var(--clipto-text-muted); }
+
+.clipto-badge {
+	display: inline-flex; align-items: center;
+	font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+	padding: 0.3em 0.7em;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--clipto-accent) 12%, transparent);
+	color: var(--clipto-accent);
+	margin-bottom: var(--clipto-space-2);
+}
+.clipto-badge--expertise { background: color-mix(in srgb, var(--clipto-accent-2) 14%, transparent); color: var(--clipto-accent-2); }
+
+.clipto-category-card {
+	display: flex; flex-direction: column; gap: var(--clipto-space-2);
+	background: var(--clipto-surface-elevated);
+	border-radius: var(--clipto-radius-md);
+	padding: var(--clipto-space-5);
+	box-shadow: var(--clipto-shadow-sm);
+	transition: transform var(--clipto-duration-med) var(--clipto-ease), box-shadow var(--clipto-duration-med) var(--clipto-ease);
+}
+.clipto-category-card:hover { transform: translateY(-4px); box-shadow: var(--clipto-shadow-md); }
+.clipto-category-card__name { font-weight: 700; font-size: 1.05rem; }
+.clipto-category-card__count { color: var(--clipto-text-muted); font-size: 0.85rem; }
+
+/* =====================================================================
+   13. AI TOOLS GRID
+   ===================================================================== */
+.clipto-grid--tools { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.clipto-tool-card {
+	background: var(--clipto-surface-elevated);
+	border-radius: var(--clipto-radius-md);
+	overflow: hidden;
+	box-shadow: var(--clipto-shadow-sm);
+	transition: transform var(--clipto-duration-med) var(--clipto-ease), box-shadow var(--clipto-duration-med) var(--clipto-ease);
+	display: flex; flex-direction: column;
+}
+.clipto-tool-card:hover { transform: translateY(-4px); box-shadow: var(--clipto-glow); }
+.clipto-tool-card__logo { aspect-ratio: 16 / 10; overflow: hidden; background: var(--clipto-surface); }
+.clipto-tool-card__logo img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--clipto-duration-slow) var(--clipto-ease); }
+.clipto-tool-card:hover .clipto-tool-card__logo img { transform: scale(1.05); }
+.clipto-tool-card__body { padding: var(--clipto-space-5); display: flex; flex-direction: column; gap: var(--clipto-space-2); flex: 1; }
+.clipto-tool-card__name {
+	font-size: 1.05rem;
+	margin: 0;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.clipto-tool-card__badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-2); min-height: 3.2em; align-content: flex-start; }
+.clipto-tool-card__badges .clipto-badge, .clipto-tool-card__badges .clipto-pricing-badge { margin-bottom: 0; }
+.clipto-rating-badge {
+	display: inline-flex; align-items: center; gap: 4px;
+	font-size: 0.75rem; font-weight: 700;
+	padding: 0.3em 0.65em;
+	border-radius: 999px;
+	background: var(--clipto-rating-bg);
+	color: var(--clipto-rating);
+}
+.clipto-tool-card__desc {
+	color: var(--clipto-text-muted);
+	font-size: 0.92rem;
+	flex: 1;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.clipto-tool-card__cta {
+	align-self: flex-start;
+	margin-top: var(--clipto-space-2);
+	padding: var(--clipto-space-2) var(--clipto-space-5);
+	border-radius: 999px;
+	background: var(--clipto-accent);
+	color: var(--clipto-accent-contrast);
+	font-weight: 700; font-size: 0.9rem;
+	transition: transform var(--clipto-duration-fast) var(--clipto-ease), box-shadow var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-tool-card__cta:hover, .clipto-tool-card__cta:focus-visible { transform: translateY(-2px); box-shadow: var(--clipto-glow); }
+
+.clipto-pricing-badge {
+	display: inline-flex; align-self: flex-start;
+	font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;
+	padding: 0.3em 0.7em;
+	border-radius: 999px;
+}
+.clipto-pricing-badge--free { background: var(--clipto-free-bg); color: var(--clipto-free); }
+.clipto-pricing-badge--freemium { background: var(--clipto-freemium-bg); color: var(--clipto-freemium); }
+.clipto-pricing-badge--paid { background: var(--clipto-paid-bg); color: var(--clipto-paid); }
+
+/* =====================================================================
+   14. AI SUMMARY
+   ===================================================================== */
+.clipto-ai-summary {
+	position: relative;
+	margin-block: var(--clipto-space-7);
+	padding: var(--clipto-space-6);
+	border-radius: var(--clipto-radius-lg);
+	background: linear-gradient(180deg, color-mix(in srgb, var(--clipto-accent) 6%, var(--clipto-surface-elevated)), var(--clipto-surface-elevated));
+	box-shadow: var(--clipto-shadow-sm), inset 0 0 0 1px color-mix(in srgb, var(--clipto-accent) 16%, transparent);
+	overflow: hidden;
+}
+.clipto-ai-summary::before {
+	content: "";
+	position: absolute;
+	inset: -40% -20% auto auto;
+	width: 220px; height: 220px;
+	background: radial-gradient(circle, color-mix(in srgb, var(--clipto-accent) 30%, transparent), transparent 70%);
+	filter: blur(30px);
+	pointer-events: none;
+}
+.clipto-ai-summary h2 {
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--clipto-accent);
+	margin-bottom: var(--clipto-space-3);
+}
+.clipto-ai-summary__body { position: relative; font-size: 1rem; }
+.clipto-ai-summary__body p:last-child { margin-bottom: 0; }
+.clipto-ai-summary__takeaway { position: relative; margin-top: var(--clipto-space-3); margin-bottom: 0; }
+
+/* =====================================================================
+   15. AUTHOR BOX
+   ===================================================================== */
+.clipto-author-box, .clipto-author-header {
+	display: flex; gap: var(--clipto-space-5); align-items: flex-start;
+	background: var(--clipto-surface);
+	border-radius: var(--clipto-radius-lg);
+	padding: var(--clipto-space-6);
+	margin-block: var(--clipto-space-7);
+}
+.clipto-author-header { margin-top: var(--clipto-space-6); }
+.clipto-author-box__avatar img, .clipto-author-header__avatar img { border-radius: 50%; }
+.clipto-author-box__body, .clipto-author-header__body { flex: 1; min-width: 0; }
+.clipto-author-box__name { font-weight: 800; font-size: 1.1rem; display: inline-block; margin-bottom: var(--clipto-space-2); }
+.clipto-author-box__bio { color: var(--clipto-text-muted); }
+.clipto-author-box__stats { font-size: 0.88rem; color: var(--clipto-text-muted); }
+.clipto-social-links { display: flex; flex-wrap: wrap; gap: var(--clipto-space-3); margin-top: var(--clipto-space-2); }
+.clipto-social-links a { font-weight: 700; font-size: 0.85rem; color: var(--clipto-accent); }
+.clipto-social-links a:hover { text-decoration: underline; }
+
+/* =====================================================================
+   16. RELATED / BOOKMARK / POST NAV
+   ===================================================================== */
+.clipto-related { margin-top: var(--clipto-space-7); }
+.clipto-bookmark-btn {
+	display: inline-flex; align-items: center; gap: var(--clipto-space-2);
+	padding: var(--clipto-space-2) var(--clipto-space-4);
+	border-radius: 999px;
+	background: var(--clipto-surface-elevated);
+	box-shadow: var(--clipto-shadow-sm);
+	font-weight: 700; font-size: 0.85rem;
+	margin-left: auto;
+	transition: transform var(--clipto-duration-fast) var(--clipto-ease), box-shadow var(--clipto-duration-fast) var(--clipto-ease), color var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-bookmark-btn:hover { transform: translateY(-2px); box-shadow: var(--clipto-shadow-md); }
+.clipto-bookmark-btn.is-saved { color: var(--clipto-accent); box-shadow: var(--clipto-glow); }
+.clipto-bookmark-btn.is-saved svg {
+	transform: scale(1.1);
+	animation: clipto-bookmark-pop var(--clipto-duration-med) var(--clipto-ease);
+}
+.clipto-bookmark-btn svg { transition: transform var(--clipto-duration-fast) var(--clipto-ease); }
+@keyframes clipto-bookmark-pop {
+	0% { transform: scale(1); }
+	45% { transform: scale(1.35); }
+	100% { transform: scale(1.1); }
+}
+
+.clipto-post-nav { display: flex; gap: var(--clipto-space-5); margin-block: var(--clipto-space-7); flex-wrap: wrap; }
+.clipto-post-nav a {
+	flex: 1; min-width: 220px;
+	background: var(--clipto-surface);
+	border-radius: var(--clipto-radius-md);
+	padding: var(--clipto-space-4) var(--clipto-space-5);
+	transition: transform var(--clipto-duration-fast) var(--clipto-ease), box-shadow var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-post-nav a:hover { transform: translateY(-2px); box-shadow: var(--clipto-shadow-md); }
+.clipto-post-nav__next { text-align: right; }
+.clipto-post-nav__label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--clipto-text-muted); margin-bottom: var(--clipto-space-1); }
+.clipto-post-nav__title { font-weight: 700; }
+
+/* =====================================================================
+   17. BREADCRUMBS / PAGINATION / EMPTY STATES
+   ===================================================================== */
+.clipto-breadcrumbs { padding-top: var(--clipto-space-5); font-size: 0.85rem; color: var(--clipto-text-muted); }
+.clipto-breadcrumbs ol { display: flex; flex-wrap: wrap; gap: var(--clipto-space-2); align-items: center; }
+.clipto-breadcrumbs li:not(:last-child)::after { content: "/"; margin-left: var(--clipto-space-2); opacity: 0.5; }
+.clipto-breadcrumbs a:hover { color: var(--clipto-accent); }
+
+.clipto-pagination, .pagination { display: flex; gap: var(--clipto-space-2); justify-content: center; padding-block: var(--clipto-space-6); flex-wrap: wrap; }
+.clipto-pagination .page-numbers, .pagination .page-numbers {
+	display: inline-flex; align-items: center; justify-content: center;
+	min-width: 40px; height: 40px; padding-inline: var(--clipto-space-2);
+	border-radius: var(--clipto-radius-sm);
+	background: var(--clipto-surface);
+	font-weight: 600;
+	transition: background var(--clipto-duration-fast) var(--clipto-ease), color var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-pagination .page-numbers.current, .pagination .page-numbers.current { background: var(--clipto-accent); color: var(--clipto-accent-contrast); }
+.clipto-pagination .page-numbers:hover, .pagination .page-numbers:hover { background: var(--clipto-border); }
+
+.clipto-empty-state { text-align: center; padding-block: var(--clipto-space-8); color: var(--clipto-text-muted); }
+
+/* =====================================================================
+   18. FOOTER
+   ===================================================================== */
+.site-footer { border-top: 1px solid var(--clipto-border); margin-top: var(--clipto-space-8); padding-block: var(--clipto-space-6); }
+.site-footer__inner { display: flex; flex-direction: column; gap: var(--clipto-space-4); align-items: center; text-align: center; }
+.footer-nav-list { display: flex; flex-wrap: wrap; gap: var(--clipto-space-4); justify-content: center; }
+.footer-nav-list a { color: var(--clipto-text-muted); font-weight: 600; font-size: 0.9rem; }
+.footer-nav-list a:hover { color: var(--clipto-accent); }
+.footer-copyright { color: var(--clipto-text-muted); font-size: 0.85rem; margin: 0; }
+
+/* =====================================================================
+   19. SCROLL-REVEAL, RESPONSIVE, DARK MODE OVERRIDES, REDUCED MOTION
+   ===================================================================== */
+
+/* Scroll reveal only activates once JS confirms it's ready — without JS
+   every element below stays fully visible, per the "must never
+   permanently hide content" requirement. */
+html.js-reveal-ready .clipto-reveal {
+	opacity: 0;
+	transform: translateY(18px);
+	transition: opacity var(--clipto-duration-slow) var(--clipto-ease), transform var(--clipto-duration-slow) var(--clipto-ease);
+	transition-delay: calc(var(--clipto-reveal-i, 0) * 70ms);
+}
+html.js-reveal-ready .clipto-reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 900px) {
+	.clipto-container { padding-inline: var(--clipto-space-4); }
+	.clipto-author-box, .clipto-author-header { flex-direction: column; }
+	.clipto-orb { display: none; }
+}
+
+@media (max-width: 600px) {
+	body { font-size: 16px; }
+	.clipto-hero { padding-block: var(--clipto-space-7) var(--clipto-space-6); }
+	.clipto-hero__ctas { flex-direction: column; align-items: stretch; }
+	.clipto-article__meta { gap: var(--clipto-space-3); }
+	.clipto-bookmark-btn { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
+	}
+	html.js-reveal-ready .clipto-reveal { opacity: 1; transform: none; }
+	.clipto-card:hover, .clipto-tool-card:hover, .clipto-category-card:hover, .clipto-btn:hover, .clipto-post-nav a:hover {
+		transform: none;
+	}
+}
