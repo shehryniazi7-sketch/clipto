@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CLIPTO_VERSION', '1.1.0' );
+define( 'CLIPTO_VERSION', '1.2.0' );
 
 /**
  * ------------------------------------------------------------------
@@ -52,12 +52,15 @@ function clipto_theme_setup() {
 	);
 
 	add_image_size( 'clipto-card', 640, 400, true );
+	// Half-size card crop: gives card srcsets a small same-ratio candidate
+	// even when the upload's own ratio (e.g. 16:9) differs from the card's.
+	add_image_size( 'clipto-card-sm', 320, 200, true );
 	add_image_size( 'clipto-hero', 1280, 720, true );
 	// Same 16:9 crop at a phone-friendly width, so the hero's srcset has a
 	// smaller candidate (without it, phones downloaded the 1280px crop).
 	add_image_size( 'clipto-hero-md', 768, 432, true );
 
-	$GLOBALS['content_width'] = 780;
+	$GLOBALS['content_width'] = 720; // Article text column (see --clipto-content).
 }
 add_action( 'after_setup_theme', 'clipto_theme_setup' );
 
@@ -82,10 +85,18 @@ add_action( 'wp_enqueue_scripts', 'clipto_enqueue_assets' );
 
 /**
  * sizes attribute for the article/page/tool hero image, which is rendered
- * at the article column width (740px container minus 2 x 24px padding).
+ * at the article column width (768px container minus 2 x 24px padding).
  */
 function clipto_hero_image_sizes() {
-	return '(max-width: 740px) 100vw, 692px';
+	return '(max-width: 768px) 100vw, 720px';
+}
+
+/**
+ * sizes for the single-post featured image, which breaks out of the text
+ * column to a wider (max 1040px) media width — see .clipto-article__thumb.
+ */
+function clipto_article_hero_sizes() {
+	return '(max-width: 1088px) calc(100vw - 32px), 1040px';
 }
 
 /**
@@ -172,6 +183,32 @@ function clipto_is_tools_listing() {
 function clipto_search_form( $label ) {
 	get_search_form( array( 'aria_label' => $label ) );
 }
+
+/**
+ * Editor block styles for callouts inside articles. Registered in PHP
+ * only (no editor JS); they appear as "Callout" / "Notice" styles on
+ * the core Group block and are styled in style.css (.is-style-*).
+ */
+function clipto_register_block_styles() {
+	if ( ! function_exists( 'register_block_style' ) ) {
+		return;
+	}
+	register_block_style(
+		'core/group',
+		array(
+			'name'  => 'clipto-callout',
+			'label' => __( 'Callout', 'clipto' ),
+		)
+	);
+	register_block_style(
+		'core/group',
+		array(
+			'name'  => 'clipto-notice',
+			'label' => __( 'Notice', 'clipto' ),
+		)
+	);
+}
+add_action( 'init', 'clipto_register_block_styles' );
 
 /**
  * ------------------------------------------------------------------
@@ -849,34 +886,97 @@ function clipto_render_comments( $post_id ) {
 }
 
 function clipto_render_author_box( $author_id ) {
-	$bio       = get_the_author_meta( 'description', $author_id );
-	$expertise = clipto_get_author_expertise_label( $author_id );
-	$count     = count_user_posts( $author_id, 'post', true );
-	$links     = clipto_get_author_social_links( $author_id );
+	$bio        = get_the_author_meta( 'description', $author_id );
+	$expertise  = clipto_get_author_expertise_label( $author_id );
+	$count      = count_user_posts( $author_id, 'post', true );
+	$links      = clipto_get_author_social_links( $author_id );
+	$author_url = get_author_posts_url( $author_id );
+	$name       = get_the_author_meta( 'display_name', $author_id );
 	?>
-	<div class="clipto-author-box clipto-reveal">
-		<a class="clipto-author-box__avatar" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>" tabindex="-1" aria-hidden="true">
-			<?php echo get_avatar( $author_id, 72 ); ?>
+	<section class="clipto-author-box clipto-reveal" aria-label="<?php esc_attr_e( 'About the author', 'clipto' ); ?>">
+		<a class="clipto-author-box__avatar" href="<?php echo esc_url( $author_url ); ?>" tabindex="-1" aria-hidden="true">
+			<?php echo get_avatar( $author_id, 80 ); ?>
 		</a>
 		<div class="clipto-author-box__body">
-			<a class="clipto-author-box__name" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>"><?php echo esc_html( get_the_author_meta( 'display_name', $author_id ) ); ?></a>
-			<?php if ( $expertise ) : ?>
-				<span class="clipto-badge clipto-badge--expertise"><?php echo esc_html( $expertise ); ?></span>
-			<?php endif; ?>
+			<p class="clipto-author-box__eyebrow"><?php esc_html_e( 'Written by', 'clipto' ); ?></p>
+			<div class="clipto-author-box__head">
+				<a class="clipto-author-box__name" href="<?php echo esc_url( $author_url ); ?>"><?php echo esc_html( $name ); ?></a>
+				<?php if ( $expertise ) : ?>
+					<span class="clipto-badge clipto-badge--expertise"><?php echo esc_html( $expertise ); ?></span>
+				<?php endif; ?>
+			</div>
 			<?php if ( $bio ) : ?>
 				<p class="clipto-author-box__bio"><?php echo esc_html( $bio ); ?></p>
 			<?php endif; ?>
-			<p class="clipto-author-box__stats">
-				<?php
-				printf(
-					/* translators: %d: number of published articles */
-					esc_html( _n( '%d article published', '%d articles published', $count, 'clipto' ) ),
-					(int) $count
-				);
-				?>
-			</p>
-			<?php clipto_render_social_icons( $links ); ?>
+			<div class="clipto-author-box__foot">
+				<span class="clipto-author-box__stats">
+					<?php
+					printf(
+						/* translators: %d: number of published articles */
+						esc_html( _n( '%d article published', '%d articles published', $count, 'clipto' ) ),
+						(int) $count
+					);
+					?>
+				</span>
+				<?php clipto_render_social_icons( $links ); ?>
+				<a class="clipto-author-box__more" href="<?php echo esc_url( $author_url ); ?>">
+					<?php
+					/* translators: %s: author name */
+					echo esc_html( sprintf( __( 'All articles by %s', 'clipto' ), $name ) );
+					?>
+					<span aria-hidden="true">→</span>
+				</a>
+			</div>
 		</div>
+	</section>
+	<?php
+}
+
+/**
+ * Share button in the article header: uses the native Web Share sheet
+ * where available and falls back to copying the permalink (footer.php).
+ * No third-party scripts; the URL is always the post's own permalink.
+ */
+function clipto_render_share_button( $post_id ) {
+	?>
+	<button type="button" class="clipto-share-btn" data-share-url="<?php echo esc_url( get_permalink( $post_id ) ); ?>" data-share-title="<?php echo esc_attr( wp_strip_all_tags( get_the_title( $post_id ) ) ); ?>" data-label-copied="<?php echo esc_attr__( 'Link copied', 'clipto' ); ?>">
+		<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+		<span class="clipto-share-btn__label"><?php esc_html_e( 'Share', 'clipto' ); ?></span>
+	</button>
+	<?php
+}
+
+/**
+ * End-of-article share row: plain share-intent links built from the
+ * permalink (no social SDKs), plus copy-link.
+ */
+function clipto_render_share_row( $post_id ) {
+	$url   = get_permalink( $post_id );
+	$title = wp_strip_all_tags( get_the_title( $post_id ) );
+	$links = array(
+		'x'        => array( __( 'X', 'clipto' ), add_query_arg( array( 'url' => rawurlencode( $url ), 'text' => rawurlencode( $title ) ), 'https://x.com/intent/post' ) ),
+		'linkedin' => array( __( 'LinkedIn', 'clipto' ), add_query_arg( 'url', rawurlencode( $url ), 'https://www.linkedin.com/sharing/share-offsite/' ) ),
+		'email'    => array( __( 'Email', 'clipto' ), 'mailto:?subject=' . rawurlencode( $title ) . '&body=' . rawurlencode( $url ) ),
+	);
+	?>
+	<div class="clipto-share-row">
+		<span class="clipto-share-row__label"><?php esc_html_e( 'Share this article', 'clipto' ); ?></span>
+		<ul class="clipto-share-row__list">
+			<?php foreach ( $links as $key => $link ) : ?>
+				<li>
+					<a class="clipto-share-row__link" href="<?php echo esc_url( $link[1], array( 'https', 'mailto' ) ); ?>" <?php echo 'email' === $key ? '' : 'target="_blank" rel="noopener noreferrer"'; ?>>
+						<?php echo esc_html( $link[0] ); ?>
+						<?php if ( 'email' !== $key ) : ?>
+							<span class="screen-reader-text"><?php esc_html_e( '(opens in a new tab)', 'clipto' ); ?></span>
+						<?php endif; ?>
+					</a>
+				</li>
+			<?php endforeach; ?>
+			<li>
+				<button type="button" class="clipto-share-row__link clipto-copy-link" data-share-url="<?php echo esc_url( $url ); ?>" data-label-copied="<?php echo esc_attr__( 'Link copied', 'clipto' ); ?>"><?php esc_html_e( 'Copy link', 'clipto' ); ?></button>
+			</li>
+		</ul>
+		<span class="clipto-share-status screen-reader-text" role="status" aria-live="polite"></span>
 	</div>
 	<?php
 }

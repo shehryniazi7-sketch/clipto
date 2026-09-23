@@ -2,7 +2,7 @@
 Theme Name: Clipto
 Author: Clipto
 Description: A lightweight, premium editorial WordPress theme built for AI news, tools, guides, tutorials, reviews and comparisons. Engineered for speed, Core Web Vitals, SEO, accessibility and E-E-A-T, with a restrained AI-inspired visual identity.
-Version: 1.1.0
+Version: 1.2.0
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -34,7 +34,8 @@ Tags: blog, news, one-column, custom-logo, custom-menu, featured-images, threade
 	--clipto-radius-md: 14px;
 	--clipto-radius-lg: 22px;
 	--clipto-container: 1240px;
-	--clipto-content: 740px;
+	--clipto-content: 768px;     /* article column: 720px text measure + gutters */
+	--clipto-wide: 1040px;       /* featured image / related articles breakout width */
 	--clipto-space-1: 4px;
 	--clipto-space-2: 8px;
 	--clipto-space-3: 12px;
@@ -46,6 +47,11 @@ Tags: blog, news, one-column, custom-logo, custom-menu, featured-images, threade
 	--clipto-header-height: 76px;
 	--clipto-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	--clipto-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+	/* Editorial voice only (drop cap, quotes) — body and headings stay on the system sans. */
+	--clipto-font-serif: "Iowan Old Style", "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+	--clipto-prose: #1f2430;
+	--clipto-code-bg: #0f1422;
+	--clipto-code-text: #e4e8f2;
 	--clipto-free: #147a4d;
 	--clipto-free-bg: #e4f6ec;
 	--clipto-freemium: #93590a;
@@ -69,6 +75,9 @@ Tags: blog, news, one-column, custom-logo, custom-menu, featured-images, threade
 		--clipto-surface-elevated: #171b24;
 		--clipto-text: #eef1f6;
 		--clipto-text-muted: #a2aab8;
+		--clipto-prose: #dde2ea;
+		--clipto-code-bg: #0a0d14;
+		--clipto-code-text: #e4e8f2;
 		--clipto-accent: #7d95ff;
 		--clipto-accent-2: #b78cff;
 		--clipto-accent-contrast: #0b0d12;
@@ -122,10 +131,15 @@ input, textarea, select { font: inherit; color: inherit; }
 /* =====================================================================
    3. TYPOGRAPHY
    ===================================================================== */
-h1, h2, h3, h4 { line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 var(--clipto-space-4); }
-h1 { font-size: clamp(2rem, 1.5rem + 2vw, 3.2rem); }
-h2 { font-size: clamp(1.5rem, 1.3rem + 1vw, 2.1rem); }
-h3 { font-size: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem); }
+/* One refined heading scale for the whole product. Weights stay below
+   "heavy" (650/600) and headings balance their line breaks instead of
+   stretching across the container. */
+h1, h2, h3, h4, h5, h6 { line-height: 1.2; font-weight: 650; letter-spacing: -0.015em; margin: 0 0 var(--clipto-space-4); text-wrap: balance; overflow-wrap: break-word; }
+h1 { font-size: clamp(1.9rem, 1.45rem + 1.9vw, 2.85rem); line-height: 1.12; letter-spacing: -0.025em; }
+h2 { font-size: clamp(1.4rem, 1.25rem + 0.7vw, 1.85rem); letter-spacing: -0.02em; }
+h3 { font-size: clamp(1.15rem, 1.08rem + 0.35vw, 1.35rem); font-weight: 600; }
+h4 { font-size: 1.05rem; font-weight: 600; }
+h5, h6 { font-size: 0.95rem; font-weight: 600; }
 p { margin: 0 0 var(--clipto-space-4); color: var(--clipto-text); }
 .clipto-section-title { margin-bottom: var(--clipto-space-5); }
 
@@ -153,7 +167,7 @@ p { margin: 0 0 var(--clipto-space-4); color: var(--clipto-text); }
 /* The skip link also carries .screen-reader-text, whose clip would keep it
    invisible even when focused — undo that on focus so it actually shows. */
 .skip-link:focus { top: var(--clipto-space-4); clip: auto; width: auto; height: auto; overflow: visible; white-space: normal; }
-a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex="0"]:focus-visible {
 	outline: 2px solid var(--clipto-accent);
 	outline-offset: 2px;
 	border-radius: var(--clipto-radius-sm);
@@ -445,7 +459,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	border-radius: 999px;
 	margin-bottom: var(--clipto-space-4);
 }
-.clipto-hero__title { margin-bottom: var(--clipto-space-4); font-weight: 800; letter-spacing: -0.02em; }
+.clipto-hero__title { margin-bottom: var(--clipto-space-4); font-size: clamp(2.2rem, 1.5rem + 2.4vw, 3.2rem); font-weight: 800; letter-spacing: -0.025em; }
 .clipto-hero__subtitle { color: var(--clipto-text-muted); font-size: 1.15rem; max-width: 560px; margin-inline: auto; }
 .clipto-hero__ctas { display: flex; gap: var(--clipto-space-4); justify-content: center; margin-top: var(--clipto-space-6); flex-wrap: wrap; }
 
@@ -500,78 +514,414 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
    11. MAIN CONTENT / ARTICLES
    ===================================================================== */
 .clipto-archive-header { padding-block: var(--clipto-space-6) var(--clipto-space-5); }
-.clipto-archive-title { margin-bottom: var(--clipto-space-2); }
-.clipto-archive-description { color: var(--clipto-text-muted); }
+.clipto-archive-title { margin-bottom: var(--clipto-space-2); max-width: 24ch; }
+.clipto-archive-description { color: var(--clipto-text-muted); max-width: 65ch; }
+.clipto-container--wide { max-width: calc(var(--clipto-wide) + 2 * var(--clipto-space-5)); }
 
-.clipto-article__header { padding-top: var(--clipto-space-6); }
+/* ---- Reading progress (single posts) — fixed, transform-only, no layout cost */
+.clipto-reading-progress {
+	position: fixed;
+	top: var(--wp-admin--admin-bar--height, 0px);
+	left: 0; right: 0;
+	height: 3px;
+	z-index: 200;
+	pointer-events: none;
+}
+.clipto-reading-progress__bar {
+	display: block;
+	height: 100%;
+	background: linear-gradient(90deg, var(--clipto-accent), var(--clipto-accent-2));
+	transform: scaleX(0);
+	transform-origin: 0 50%;
+	will-change: transform;
+}
+
+/* ---- Article header: eyebrow → H1 → dek → byline/meta/actions */
+.clipto-article__header { padding-top: var(--clipto-space-6); margin-bottom: var(--clipto-space-6); }
+.clipto-article__eyebrow {
+	display: inline-flex; align-items: center; gap: var(--clipto-space-2);
+	font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+	color: color-mix(in srgb, var(--clipto-accent) 82%, var(--clipto-text));
+	transition: color var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-article__eyebrow::before {
+	content: "";
+	width: 18px; height: 2px; border-radius: 2px;
+	background: linear-gradient(90deg, var(--clipto-accent), var(--clipto-accent-2));
+	transition: width var(--clipto-duration-med) var(--clipto-ease);
+}
+.clipto-article__eyebrow:hover::before, .clipto-article__eyebrow:focus-visible::before { width: 28px; }
 .clipto-article__title {
-	margin-block: var(--clipto-space-3);
-	font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
-	line-height: 1.15;
-	letter-spacing: -0.02em;
-	max-width: 18ch;
+	margin: var(--clipto-space-3) 0 var(--clipto-space-4);
+	font-size: clamp(1.65rem, 1.25rem + 1.8vw, 2.55rem);
+	line-height: 1.14;
+	letter-spacing: -0.026em;
+	font-weight: 650;
+	max-width: 21ch; /* a measured, balanced headline rather than a full-width banner */
 }
-.clipto-article__lede { font-size: 1.15rem; color: var(--clipto-text-muted); }
-.clipto-article__meta {
-	display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-4);
+.clipto-article__dek, .clipto-article__lede {
+	font-size: clamp(1.08rem, 1rem + 0.35vw, 1.24rem);
+	line-height: 1.55;
 	color: var(--clipto-text-muted);
-	font-size: 0.9rem;
-	padding-block: var(--clipto-space-4);
+	max-width: 60ch;
+	margin-bottom: var(--clipto-space-5);
+}
+.clipto-article__byline {
+	display: flex; flex-wrap: wrap; align-items: center;
+	gap: var(--clipto-space-3) var(--clipto-space-4);
+	padding-top: var(--clipto-space-5);
 	border-top: 1px solid var(--clipto-border);
-	border-bottom: 1px solid var(--clipto-border);
-	margin-bottom: var(--clipto-space-6);
 }
-.clipto-article__author { display: inline-flex; align-items: center; gap: var(--clipto-space-2); color: var(--clipto-text); font-weight: 600; }
-.clipto-article__author img { border-radius: 50%; }
-
-.clipto-article__thumb { border-radius: var(--clipto-radius-lg); overflow: hidden; margin-bottom: var(--clipto-space-6); box-shadow: var(--clipto-shadow-md); }
-.clipto-article__thumb img { width: 100%; }
-
-.clipto-article__content { font-size: 1.08rem; }
-.clipto-article__content h2 {
-	margin-top: var(--clipto-space-7);
-	font-size: clamp(1.35rem, 1.2rem + 0.8vw, 1.75rem);
+.clipto-article__avatar-link { flex: none; display: block; line-height: 0; }
+.clipto-article__avatar {
+	width: 44px; height: 44px;
+	border-radius: 50%;
+	box-shadow: 0 0 0 2px var(--clipto-bg), 0 0 0 3.5px color-mix(in srgb, var(--clipto-accent) 45%, transparent);
 }
-.clipto-article__content h2::before {
+.clipto-article__byline-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 0; min-width: 0; }
+.clipto-article__author { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--clipto-space-2); margin: 0; line-height: 1.35; }
+.clipto-article__author-name { font-weight: 650; font-size: 0.95rem; color: var(--clipto-text); transition: color var(--clipto-duration-fast) var(--clipto-ease); }
+.clipto-article__author-name:hover, .clipto-article__author-name:focus-visible { color: var(--clipto-accent); }
+.clipto-article__author-role { font-size: 0.78rem; font-weight: 600; color: color-mix(in srgb, var(--clipto-accent-2) 75%, var(--clipto-text)); }
+/* Separators sit in each item's left margin; the list is pulled left by the
+   same amount and clipped, so an item that wraps to a new line never starts
+   with a dangling "·". */
+.clipto-article__meta {
+	display: flex; flex-wrap: wrap; align-items: center;
+	margin-left: -1.1em;
+	clip-path: inset(0 0 0 1.1em);
+	font-size: 0.84rem; line-height: 1.5; color: var(--clipto-text-muted);
+}
+.clipto-article__meta li { position: relative; margin-left: 1.1em; white-space: nowrap; }
+.clipto-article__meta li::before { content: "·"; position: absolute; left: -0.75em; opacity: 0.6; }
+.clipto-article__actions { display: flex; flex: none; gap: var(--clipto-space-2); margin-left: auto; }
+@media (min-width: 601px) { .clipto-article__byline { flex-wrap: nowrap; } }
+
+/* Action chips (share, save, copy link, tags) */
+.clipto-share-btn, .clipto-bookmark-btn, .clipto-share-row__link {
+	display: inline-flex; align-items: center; gap: 6px;
+	min-height: 36px;
+	padding: 0 var(--clipto-space-4);
+	border-radius: 999px;
+	background: var(--clipto-surface);
+	color: var(--clipto-text);
+	font-size: 0.82rem; font-weight: 600;
+	transition: background var(--clipto-duration-fast) var(--clipto-ease), color var(--clipto-duration-fast) var(--clipto-ease), transform var(--clipto-duration-fast) var(--clipto-ease), box-shadow var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-share-btn:hover, .clipto-bookmark-btn:hover, .clipto-share-row__link:hover,
+.clipto-share-btn:focus-visible, .clipto-bookmark-btn:focus-visible, .clipto-share-row__link:focus-visible {
+	background: color-mix(in srgb, var(--clipto-accent) 10%, var(--clipto-surface));
+	color: color-mix(in srgb, var(--clipto-accent) 82%, var(--clipto-text));
+}
+.clipto-share-btn.is-copied, .clipto-share-row__link.is-copied { color: var(--clipto-free); background: var(--clipto-free-bg); }
+.clipto-bookmark-btn__shape { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; transition: fill var(--clipto-duration-fast) var(--clipto-ease); }
+.clipto-bookmark-btn.is-saved {
+	background: color-mix(in srgb, var(--clipto-accent) 12%, var(--clipto-surface));
+	color: color-mix(in srgb, var(--clipto-accent) 82%, var(--clipto-text));
+}
+.clipto-bookmark-btn.is-saved .clipto-bookmark-btn__shape { fill: currentColor; }
+.clipto-bookmark-btn svg { transform-origin: 50% 40%; }
+.clipto-bookmark-btn.is-just-saved svg { animation: clipto-bookmark-pop var(--clipto-duration-med) var(--clipto-ease); }
+@keyframes clipto-bookmark-pop {
+	0% { transform: scale(1); }
+	45% { transform: scale(1.3) rotate(-6deg); }
+	100% { transform: scale(1); }
+}
+
+/* ---- Featured image: breaks out of the text column on wide screens */
+.clipto-article__thumb { margin: 0 0 var(--clipto-space-7); }
+.clipto-article__thumb img {
+	width: 100%;
+	border-radius: var(--clipto-radius-lg);
+	box-shadow: var(--clipto-shadow-md);
+}
+.clipto-article__thumb figcaption, .clipto-article__content figcaption, .clipto-article__content .wp-element-caption {
+	margin-top: var(--clipto-space-3);
+	font-size: 0.84rem;
+	line-height: 1.5;
+	color: var(--clipto-text-muted);
+	text-align: center;
+}
+
+/* ---- Article body typography (single posts, pages and tool pages)
+   Element selectors are wrapped in :where() (zero specificity) so any
+   component embedded in the content — e.g. [clipto_tools_grid] tool
+   cards — keeps its own styling. Class-qualified overrides of core block
+   CSS (.wp-block-*) keep normal specificity so they still win. */
+.clipto-article__content {
+	font-size: 1.125rem;
+	line-height: 1.75;
+	color: var(--clipto-prose);
+	overflow-wrap: break-word;
+}
+:where(.clipto-article__content) > * { margin-top: 0; }
+:where(.clipto-article__content) p { margin: 0 0 1.35em; color: inherit; }
+:where(.clipto-article__content) h2 {
+	margin: 2.3em 0 0.75em;
+	font-size: clamp(1.4rem, 1.22rem + 0.75vw, 1.8rem);
+	font-weight: 650;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+	max-width: 32ch;
+	color: var(--clipto-text);
+}
+:where(.clipto-article__content) h2::before {
 	content: "";
 	display: block;
-	width: 32px;
-	height: 3px;
+	width: 28px; height: 3px;
 	border-radius: 2px;
-	background: var(--clipto-accent);
+	background: linear-gradient(90deg, var(--clipto-accent), var(--clipto-accent-2));
 	margin-bottom: var(--clipto-space-3);
 }
-.clipto-article__content h3 {
-	margin-top: var(--clipto-space-6);
-	font-size: 1.15rem;
+:where(.clipto-article__content) h3 {
+	margin: 1.9em 0 0.55em;
+	font-size: clamp(1.14rem, 1.08rem + 0.3vw, 1.3rem);
 	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	max-width: 40ch;
+	color: var(--clipto-text);
 }
-.clipto-article__content p, .clipto-article__content ul, .clipto-article__content ol { margin-bottom: var(--clipto-space-5); }
-.clipto-article__content ul, .clipto-article__content ol { padding-left: 1.4em; }
-.clipto-article__content ul { list-style: disc; }
-.clipto-article__content ol { list-style: decimal; }
-.clipto-article__content img { border-radius: var(--clipto-radius-md); }
-.clipto-article__content blockquote {
-	margin: var(--clipto-space-6) 0;
-	padding: var(--clipto-space-4) var(--clipto-space-5);
-	border-left: 3px solid var(--clipto-accent);
-	background: var(--clipto-surface);
+/* H4 stays compact but never smaller than body text; H5/H6 are run-in labels. */
+:where(.clipto-article__content) h4 { margin: 1.7em 0 0.45em; font-size: 1.05em; font-weight: 650; line-height: 1.4; letter-spacing: -0.005em; color: var(--clipto-text); }
+:where(.clipto-article__content) h5, :where(.clipto-article__content) h6 { margin: 1.5em 0 0.4em; font-size: 1em; font-weight: 650; letter-spacing: 0; color: var(--clipto-text-muted); }
+:where(.clipto-article__content) strong { font-weight: 650; color: var(--clipto-text); }
+
+/* Links: always visibly links; the underline strengthens on hover/focus */
+:where(.clipto-article__content) a:where(:not(.wp-block-button__link)) {
+	color: color-mix(in srgb, var(--clipto-accent) 88%, var(--clipto-text));
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.2em;
+	text-decoration-color: color-mix(in srgb, var(--clipto-accent) 40%, transparent);
+	transition: text-decoration-color var(--clipto-duration-fast) var(--clipto-ease), color var(--clipto-duration-fast) var(--clipto-ease);
+}
+:where(.clipto-article__content) a:where(:not(.wp-block-button__link)):hover,
+:where(.clipto-article__content) a:where(:not(.wp-block-button__link)):focus-visible {
+	color: var(--clipto-accent);
+	text-decoration-color: currentColor;
+	text-decoration-thickness: 2px;
+}
+
+/* Lists */
+:where(.clipto-article__content) ul, :where(.clipto-article__content) ol { margin: 0 0 1.35em; padding-left: 1.35em; }
+:where(.clipto-article__content) ul { list-style: disc; }
+:where(.clipto-article__content) ol { list-style: decimal; }
+:where(.clipto-article__content) li { margin-block: 0.45em; padding-left: 0.2em; }
+:where(.clipto-article__content) li::marker { color: color-mix(in srgb, var(--clipto-accent) 75%, var(--clipto-text-muted)); }
+:where(.clipto-article__content) ol > li::marker { font-weight: 650; font-variant-numeric: tabular-nums; }
+:where(.clipto-article__content) li > ul, :where(.clipto-article__content) li > ol { margin: 0.45em 0 0.2em; }
+:where(.clipto-article__content) li > ul { list-style: circle; }
+
+/* Drop cap — first letter of the first paragraph only (single posts). The
+   paragraph becomes a formatting context so a short first paragraph can't
+   let the floated letter collide with the next element. Core's own
+   "Drop cap" paragraph setting gets the same treatment. */
+.has-clipto-drop-cap > p:first-of-type { display: flow-root; }
+.has-clipto-drop-cap > p:first-of-type::first-letter,
+:where(.clipto-article__content) p.has-drop-cap:not(:focus)::first-letter {
+	float: left;
+	font-family: var(--clipto-font-serif);
+	font-size: 3.6em;
+	line-height: 0.8;
+	font-weight: 600;
+	font-style: normal;
+	text-transform: none;
+	margin: 0.08em 0.12em 0 0;
+	color: color-mix(in srgb, var(--clipto-accent) 88%, var(--clipto-accent-2));
+}
+
+/* Blockquotes + pullquotes */
+:where(.clipto-article__content) blockquote,
+.clipto-article__content .wp-block-quote {
+	position: relative;
+	margin: 2em 0;
+	padding: var(--clipto-space-4) var(--clipto-space-5) var(--clipto-space-4) var(--clipto-space-6);
+	border: 0;
 	border-radius: 0 var(--clipto-radius-md) var(--clipto-radius-md) 0;
+	background: linear-gradient(90deg, color-mix(in srgb, var(--clipto-accent) 7%, transparent), transparent 80%);
+	font-family: var(--clipto-font-serif);
+	font-size: 1.18em;
 	font-style: italic;
+	line-height: 1.55;
+	color: var(--clipto-text);
 }
-.clipto-article__content pre {
-	background: var(--clipto-surface);
-	border-radius: var(--clipto-radius-md);
-	padding: var(--clipto-space-4);
+:where(.clipto-article__content) blockquote::before {
+	content: "";
+	position: absolute;
+	left: 0; top: 0; bottom: 0;
+	width: 3px;
+	border-radius: 3px;
+	background: linear-gradient(180deg, var(--clipto-accent), var(--clipto-accent-2));
+}
+:where(.clipto-article__content) blockquote p:last-of-type { margin-bottom: 0; }
+:where(.clipto-article__content) blockquote cite {
+	display: block;
+	margin-top: var(--clipto-space-3);
+	font-family: var(--clipto-font-sans);
+	font-size: 0.72em;
+	font-style: normal;
+	font-weight: 600;
+	color: var(--clipto-text-muted);
+}
+:where(.clipto-article__content) blockquote cite::before { content: "— "; }
+.clipto-article__content .wp-block-pullquote {
+	margin: 2.5em 0;
+	padding: var(--clipto-space-5) 0;
+	border: 0;
+	text-align: center;
+}
+.clipto-article__content .wp-block-pullquote blockquote { margin: 0; padding: 0; background: none; }
+.clipto-article__content .wp-block-pullquote blockquote::before {
+	position: static; display: block;
+	width: 40px; height: 3px;
+	margin: 0 auto var(--clipto-space-4);
+}
+.clipto-article__content .wp-block-pullquote cite { font-size: 0.85rem; }
+.clipto-article__content .wp-block-pullquote cite::before { content: ""; }
+.clipto-article__content .wp-block-pullquote p {
+	font-size: clamp(1.3rem, 1.15rem + 0.8vw, 1.7rem);
+	line-height: 1.35;
+	text-wrap: balance;
+}
+
+/* Separator */
+:where(.clipto-article__content) hr, .clipto-article__content .wp-block-separator {
+	border: 0;
+	height: 1px;
+	margin: 3em auto;
+	background: linear-gradient(90deg, transparent, var(--clipto-border-strong), transparent);
+	opacity: 1;
+}
+
+/* Tables — scroll inside their own container, never the page */
+/* Scroll hint: soft edge shadows appear only on the side(s) that can still
+   scroll (CSS-only "scroll shadows" via background-attachment local/scroll). */
+.clipto-article__content .wp-block-table {
+	margin: 2em 0;
 	overflow-x: auto;
-	font-family: var(--clipto-font-mono);
-	font-size: 0.9rem;
+	-webkit-overflow-scrolling: touch;
+	background:
+		linear-gradient(90deg, var(--clipto-bg) 30%, transparent) left center / 40px 100% no-repeat local,
+		linear-gradient(270deg, var(--clipto-bg) 30%, transparent) right center / 40px 100% no-repeat local,
+		radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--clipto-text) 16%, transparent), transparent) left center / 14px 100% no-repeat scroll,
+		radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--clipto-text) 16%, transparent), transparent) right center / 14px 100% no-repeat scroll;
 }
-.clipto-article__content code { font-family: var(--clipto-font-mono); background: var(--clipto-surface); padding: 0.15em 0.4em; border-radius: 4px; }
-.clipto-article__content pre code { background: none; padding: 0; }
-.clipto-article__content table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
-.clipto-article__content th, .clipto-article__content td { padding: var(--clipto-space-3); border-bottom: 1px solid var(--clipto-border); text-align: left; }
-.clipto-article__content a { color: var(--clipto-accent); text-decoration: underline; text-underline-offset: 2px; }
+:where(.clipto-article__content) > table { display: block; overflow-x: auto; margin: 2em 0; }
+:where(.clipto-article__content) table { width: 100%; border-collapse: collapse; font-size: 0.9rem; line-height: 1.5; }
+:where(.clipto-article__content) th, :where(.clipto-article__content) td,
+.clipto-article__content .wp-block-table th, .clipto-article__content .wp-block-table td {
+	min-width: 7.5em; /* wide tables scroll on phones instead of crushing their columns */
+	padding: var(--clipto-space-3) var(--clipto-space-4);
+	border: 0;
+	border-bottom: 1px solid var(--clipto-border);
+	text-align: left;
+	vertical-align: top;
+}
+:where(.clipto-article__content) thead th, .clipto-article__content .wp-block-table thead {
+	border-bottom: 0;
+}
+:where(.clipto-article__content) thead th {
+	background: var(--clipto-surface);
+	font-weight: 650;
+	color: var(--clipto-text);
+	white-space: nowrap;
+}
+:where(.clipto-article__content) thead th:first-child { border-radius: var(--clipto-radius-sm) 0 0 var(--clipto-radius-sm); }
+:where(.clipto-article__content) thead th:last-child { border-radius: 0 var(--clipto-radius-sm) var(--clipto-radius-sm) 0; }
+:where(.clipto-article__content) tbody tr { transition: background var(--clipto-duration-fast) var(--clipto-ease); }
+:where(.clipto-article__content) tbody tr:hover { background: color-mix(in srgb, var(--clipto-accent) 4%, transparent); }
+.clipto-article__content .wp-block-table figcaption { text-align: left; }
+
+/* Code */
+:where(.clipto-article__content) pre, .clipto-article__content .wp-block-code {
+	margin: 1.8em 0;
+	padding: var(--clipto-space-5);
+	border: 0;
+	border-radius: var(--clipto-radius-md);
+	background:
+		linear-gradient(90deg, var(--clipto-accent), var(--clipto-accent-2)) top left / 100% 2px no-repeat,
+		var(--clipto-code-bg);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+	color: var(--clipto-code-text);
+	font-family: var(--clipto-font-mono);
+	font-size: 0.86rem;
+	line-height: 1.65;
+	overflow-x: auto;
+	tab-size: 4;
+}
+:where(.clipto-article__content) pre code, .clipto-article__content .wp-block-code code {
+	display: block;
+	padding: 0;
+	background: none;
+	color: inherit;
+	font-size: inherit;
+	white-space: pre;       /* scroll long lines rather than wrapping code */
+	overflow-wrap: normal;
+}
+:where(.clipto-article__content) :not(pre) > code {
+	font-family: var(--clipto-font-mono);
+	font-size: 0.86em;
+	padding: 0.15em 0.4em;
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--clipto-accent) 9%, var(--clipto-surface));
+	color: var(--clipto-text);
+}
+
+/* Images */
+:where(.clipto-article__content) img { height: auto; border-radius: var(--clipto-radius-md); }
+.clipto-article__content .wp-block-image, .clipto-article__content figure.wp-caption { margin: 2em 0; }
+.clipto-article__content .wp-block-embed { margin: 2em 0; }
+
+/* Callout / Notice (block styles on core/group, registered in functions.php) */
+.clipto-article__content .is-style-clipto-callout,
+.clipto-article__content .is-style-clipto-notice {
+	margin: 2em 0;
+	padding: var(--clipto-space-5) var(--clipto-space-5) var(--clipto-space-5) var(--clipto-space-6);
+	border-radius: var(--clipto-radius-md);
+	background: color-mix(in srgb, var(--clipto-accent) 7%, var(--clipto-surface-elevated));
+	box-shadow: inset 3px 0 0 var(--clipto-accent);
+	font-size: 0.98em;
+}
+.clipto-article__content .is-style-clipto-notice {
+	background: var(--clipto-freemium-bg);
+	box-shadow: inset 3px 0 0 var(--clipto-freemium);
+}
+.clipto-article__content .is-style-clipto-callout > :last-child,
+.clipto-article__content .is-style-clipto-notice > :last-child { margin-bottom: 0; }
+
+/* Wide / full-width blocks and the featured image break out of the text
+   column only where the viewport can actually fit them (no overflow). */
+@media (min-width: 1120px) {
+	.clipto-article__thumb--wide,
+	.clipto-article__content .alignwide,
+	.clipto-article__content .alignfull {
+		margin-inline: calc((100% - var(--clipto-wide)) / 2);
+		max-width: none;
+	}
+}
+
+/* ---- End of article: tags, share, author */
+.clipto-article__footer { margin-top: var(--clipto-space-7); }
+.clipto-article__tags { display: flex; flex-wrap: wrap; gap: var(--clipto-space-2); margin-bottom: var(--clipto-space-5); }
+.clipto-article__tags a {
+	display: inline-block;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: var(--clipto-surface);
+	color: var(--clipto-text-muted);
+	font-size: 0.82rem; font-weight: 600;
+	transition: color var(--clipto-duration-fast) var(--clipto-ease), background var(--clipto-duration-fast) var(--clipto-ease);
+}
+.clipto-article__tags a:hover, .clipto-article__tags a:focus-visible { color: color-mix(in srgb, var(--clipto-accent) 82%, var(--clipto-text)); background: color-mix(in srgb, var(--clipto-accent) 10%, var(--clipto-surface)); }
+.clipto-share-row {
+	display: flex; flex-wrap: wrap; align-items: center;
+	gap: var(--clipto-space-3) var(--clipto-space-4);
+	padding-block: var(--clipto-space-5);
+	border-top: 1px solid var(--clipto-border);
+}
+.clipto-share-row__label { font-size: 0.85rem; font-weight: 600; color: var(--clipto-text-muted); }
+.clipto-share-row__list { display: flex; flex-wrap: wrap; gap: var(--clipto-space-2); }
 
 /* =====================================================================
    12. CARDS (borderless — elevation and contrast instead of outlines)
@@ -606,6 +956,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .clipto-card__body { padding: var(--clipto-space-5); }
 .clipto-card__title {
 	font-size: 1.1rem;
+	font-weight: 650;
+	line-height: 1.3;
 	margin-block: var(--clipto-space-2);
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
@@ -675,6 +1027,9 @@ a.clipto-badge:hover, a.clipto-pricing-badge:hover { text-decoration: underline;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 }
+.clipto-tool-card__name a { color: inherit; text-decoration: none; }
+.clipto-tool-card__logo img, .clipto-card__thumb img { border-radius: 0; } /* the card clips its own corners */
+.clipto-tool-card__name::before { content: none; }
 .clipto-tool-card__name a:hover, .clipto-tool-card__name a:focus-visible { color: var(--clipto-accent); }
 .clipto-tool-card__badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-2); min-height: 3.2em; align-content: flex-start; }
 .clipto-tool-card__badges .clipto-badge, .clipto-tool-card__badges .clipto-pricing-badge { margin-bottom: 0; }
@@ -718,96 +1073,163 @@ a.clipto-badge:hover, a.clipto-pricing-badge:hover { text-decoration: underline;
 .clipto-pricing-badge--paid { background: var(--clipto-paid-bg); color: var(--clipto-paid); }
 
 /* =====================================================================
-   14. AI SUMMARY
+   14. AI SUMMARY — the "intelligence layer" above the article body
    ===================================================================== */
 .clipto-ai-summary {
 	position: relative;
-	margin-block: var(--clipto-space-7);
-	padding: var(--clipto-space-6);
+	margin: 0 0 var(--clipto-space-7);
+	padding: var(--clipto-space-5) var(--clipto-space-6);
 	border-radius: var(--clipto-radius-lg);
-	background: linear-gradient(180deg, color-mix(in srgb, var(--clipto-accent) 6%, var(--clipto-surface-elevated)), var(--clipto-surface-elevated));
-	box-shadow: var(--clipto-shadow-sm), inset 0 0 0 1px color-mix(in srgb, var(--clipto-accent) 16%, transparent);
+	background: linear-gradient(135deg, color-mix(in srgb, var(--clipto-accent) 7%, var(--clipto-surface-elevated)), color-mix(in srgb, var(--clipto-accent-2) 5%, var(--clipto-surface-elevated)));
+	box-shadow:
+		inset 0 0 0 1px color-mix(in srgb, var(--clipto-accent) 18%, transparent),
+		0 14px 34px -18px color-mix(in srgb, var(--clipto-accent) 45%, transparent);
 	overflow: hidden;
+	isolation: isolate;
 }
 .clipto-ai-summary::before {
 	content: "";
 	position: absolute;
-	inset: -40% -20% auto auto;
-	width: 220px; height: 220px;
-	background: radial-gradient(circle, color-mix(in srgb, var(--clipto-accent) 30%, transparent), transparent 70%);
-	filter: blur(30px);
+	top: -90px; right: -60px;
+	width: 240px; height: 240px;
+	background: radial-gradient(circle, color-mix(in srgb, var(--clipto-accent) 26%, transparent), transparent 70%);
+	filter: blur(24px);
 	pointer-events: none;
+	z-index: -1;
+	opacity: 0.8;
 }
-.clipto-ai-summary h2 {
-	font-size: 0.85rem;
-	text-transform: uppercase;
+.clipto-ai-summary__title {
+	display: flex; align-items: center; gap: var(--clipto-space-2);
+	margin: 0 0 var(--clipto-space-3);
+	font-size: 0.78rem;
+	font-weight: 700;
 	letter-spacing: 0.08em;
-	color: var(--clipto-accent);
-	margin-bottom: var(--clipto-space-3);
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--clipto-accent) 85%, var(--clipto-text));
 }
-.clipto-ai-summary__body { position: relative; font-size: 1rem; }
+.clipto-ai-summary__title svg { flex: none; }
+html.js-reveal-ready .clipto-ai-summary.is-visible .clipto-ai-summary__title svg { animation: clipto-sparkle 1.1s var(--clipto-ease) 0.35s both; }
+@keyframes clipto-sparkle {
+	0% { transform: scale(0.4) rotate(-40deg); opacity: 0; }
+	60% { transform: scale(1.2) rotate(8deg); opacity: 1; }
+	100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.clipto-ai-summary__body { font-size: 1rem; line-height: 1.65; color: var(--clipto-prose); }
 .clipto-ai-summary__body p:last-child { margin-bottom: 0; }
-.clipto-ai-summary__takeaway { position: relative; margin-top: var(--clipto-space-3); margin-bottom: 0; }
+.clipto-ai-summary__takeaway {
+	margin: var(--clipto-space-4) 0 0;
+	padding-top: var(--clipto-space-4);
+	border-top: 1px dashed color-mix(in srgb, var(--clipto-accent) 28%, transparent);
+	font-size: 0.95rem;
+	line-height: 1.55;
+}
+.clipto-ai-summary__takeaway strong {
+	display: block;
+	margin-bottom: 2px;
+	font-size: 0.72rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--clipto-accent-2) 80%, var(--clipto-text));
+}
+/* [clipto_summary] shortcode output keeps its simpler heading */
+.clipto-ai-summary--shortcode h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--clipto-accent); margin-bottom: var(--clipto-space-3); }
+.clipto-ai-summary--shortcode h2::before { display: none; }
 
 /* =====================================================================
-   15. AUTHOR BOX
+   15. AUTHOR — trust box (end of article) and author archive header
    ===================================================================== */
-.clipto-author-box, .clipto-author-header {
+.clipto-author-header {
 	display: flex; gap: var(--clipto-space-5); align-items: flex-start;
 	background: var(--clipto-surface);
 	border-radius: var(--clipto-radius-lg);
 	padding: var(--clipto-space-6);
-	margin-block: var(--clipto-space-7);
+	margin-block: var(--clipto-space-6) var(--clipto-space-7);
 }
-.clipto-author-header { margin-top: var(--clipto-space-6); }
-.clipto-author-box__avatar img, .clipto-author-header__avatar img { border-radius: 50%; }
-.clipto-author-box__body, .clipto-author-header__body { flex: 1; min-width: 0; }
-.clipto-author-box__name { font-weight: 800; font-size: 1.1rem; display: inline-block; margin-bottom: var(--clipto-space-2); }
-.clipto-author-box__bio { color: var(--clipto-text-muted); }
-.clipto-author-box__stats { font-size: 0.88rem; color: var(--clipto-text-muted); }
+.clipto-author-header__avatar img { border-radius: 50%; }
+.clipto-author-header__body { flex: 1; min-width: 0; }
+.clipto-author-box {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: var(--clipto-space-5);
+	margin-block: var(--clipto-space-5) 0;
+	padding: var(--clipto-space-6);
+	border-radius: var(--clipto-radius-lg);
+	background: var(--clipto-surface);
+	overflow: hidden;
+	isolation: isolate;
+}
+.clipto-author-box::before {
+	content: "";
+	position: absolute;
+	right: -80px; bottom: -120px;
+	width: 260px; height: 260px;
+	background: radial-gradient(circle, color-mix(in srgb, var(--clipto-accent-2) 14%, transparent), transparent 70%);
+	pointer-events: none;
+	z-index: -1;
+}
+.clipto-author-box__avatar img {
+	border-radius: 50%;
+	box-shadow: 0 0 0 3px var(--clipto-surface), 0 0 0 5px color-mix(in srgb, var(--clipto-accent) 40%, transparent);
+}
+.clipto-author-box__body { min-width: 0; }
+.clipto-author-box__eyebrow { margin: 0 0 2px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--clipto-text-muted); }
+.clipto-author-box__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-2) var(--clipto-space-3); }
+.clipto-author-box__head .clipto-badge { margin-bottom: 0; }
+.clipto-author-box__name { font-weight: 650; font-size: 1.25rem; letter-spacing: -0.01em; transition: color var(--clipto-duration-fast) var(--clipto-ease); }
+.clipto-author-box__name:hover, .clipto-author-box__name:focus-visible { color: var(--clipto-accent); }
+.clipto-author-box__bio { color: var(--clipto-text-muted); margin: var(--clipto-space-3) 0 var(--clipto-space-4); max-width: 60ch; }
+.clipto-author-box__foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-3) var(--clipto-space-5); }
+.clipto-author-box__stats { font-size: 0.85rem; color: var(--clipto-text-muted); }
+.clipto-author-box__foot .clipto-social-links { margin: 0; }
+.clipto-author-box__more {
+	margin-left: auto;
+	font-size: 0.88rem; font-weight: 650;
+	color: color-mix(in srgb, var(--clipto-accent) 85%, var(--clipto-text));
+}
+.clipto-author-box__more span { display: inline-block; transition: transform var(--clipto-duration-fast) var(--clipto-ease); }
+.clipto-author-box__more:hover span, .clipto-author-box__more:focus-visible span { transform: translateX(3px); }
+/* author.php header still uses these shared text styles */
+.clipto-author-header .clipto-author-box__bio { margin-top: var(--clipto-space-2); }
+.clipto-author-header .clipto-author-box__stats { display: block; margin-bottom: var(--clipto-space-2); }
 .clipto-social-links { display: flex; flex-wrap: wrap; gap: var(--clipto-space-3); margin-top: var(--clipto-space-2); }
-.clipto-social-links a { font-weight: 700; font-size: 0.85rem; color: var(--clipto-accent); }
-.clipto-social-links a:hover { text-decoration: underline; }
+.clipto-social-links a { font-weight: 650; font-size: 0.85rem; color: color-mix(in srgb, var(--clipto-accent) 85%, var(--clipto-text)); }
+.clipto-social-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* =====================================================================
-   16. RELATED / BOOKMARK / POST NAV
+   16. RELATED / POST NAV
    ===================================================================== */
-.clipto-related { margin-top: var(--clipto-space-7); }
-.clipto-bookmark-btn {
-	display: inline-flex; align-items: center; gap: var(--clipto-space-2);
-	padding: var(--clipto-space-2) var(--clipto-space-4);
-	border-radius: 999px;
-	background: var(--clipto-surface-elevated);
-	box-shadow: var(--clipto-shadow-sm);
-	font-weight: 700; font-size: 0.85rem;
-	margin-left: auto;
-	transition: transform var(--clipto-duration-fast) var(--clipto-ease), box-shadow var(--clipto-duration-fast) var(--clipto-ease), color var(--clipto-duration-fast) var(--clipto-ease);
-}
-.clipto-bookmark-btn:hover { transform: translateY(-2px); box-shadow: var(--clipto-shadow-md); }
-.clipto-bookmark-btn.is-saved { color: var(--clipto-accent); box-shadow: var(--clipto-glow); }
-.clipto-bookmark-btn.is-saved svg {
-	transform: scale(1.1);
-	animation: clipto-bookmark-pop var(--clipto-duration-med) var(--clipto-ease);
-}
-.clipto-bookmark-btn svg { transition: transform var(--clipto-duration-fast) var(--clipto-ease); }
-@keyframes clipto-bookmark-pop {
-	0% { transform: scale(1); }
-	45% { transform: scale(1.35); }
-	100% { transform: scale(1.1); }
-}
+.clipto-related { margin-top: var(--clipto-space-8); }
+.clipto-related .clipto-section-title { margin-bottom: 0; }
+.clipto-grid--related { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 
-.clipto-post-nav { display: flex; gap: var(--clipto-space-5); margin-block: var(--clipto-space-7); flex-wrap: wrap; }
-.clipto-post-nav a {
-	flex: 1; min-width: 220px;
-	background: var(--clipto-surface);
-	border-radius: var(--clipto-radius-md);
-	padding: var(--clipto-space-4) var(--clipto-space-5);
-	transition: transform var(--clipto-duration-fast) var(--clipto-ease), box-shadow var(--clipto-duration-fast) var(--clipto-ease);
+.clipto-post-nav {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--clipto-space-4);
+	margin-block: var(--clipto-space-7);
 }
-.clipto-post-nav a:hover { transform: translateY(-2px); box-shadow: var(--clipto-shadow-md); }
-.clipto-post-nav__next { text-align: right; }
-.clipto-post-nav__label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--clipto-text-muted); margin-bottom: var(--clipto-space-1); }
-.clipto-post-nav__title { font-weight: 700; }
+.clipto-post-nav__link {
+	display: flex; flex-direction: column; gap: var(--clipto-space-2);
+	padding: var(--clipto-space-5);
+	border-radius: var(--clipto-radius-lg);
+	background: var(--clipto-surface);
+	transition: transform var(--clipto-duration-med) var(--clipto-ease), box-shadow var(--clipto-duration-med) var(--clipto-ease), background var(--clipto-duration-med) var(--clipto-ease);
+}
+.clipto-post-nav__link:hover, .clipto-post-nav__link:focus-visible {
+	transform: translateY(-3px);
+	background: var(--clipto-surface-elevated);
+	box-shadow: var(--clipto-shadow-md);
+}
+.clipto-post-nav__next { grid-column: 2; text-align: right; align-items: flex-end; }
+.clipto-post-nav__label { font-size: 0.78rem; font-weight: 600; color: var(--clipto-text-muted); }
+.clipto-post-nav__arrow { display: inline-block; color: var(--clipto-accent); transition: transform var(--clipto-duration-fast) var(--clipto-ease); }
+.clipto-post-nav__prev:hover .clipto-post-nav__arrow { transform: translateX(-4px); }
+.clipto-post-nav__next:hover .clipto-post-nav__arrow { transform: translateX(4px); }
+.clipto-post-nav__title {
+	font-weight: 600; line-height: 1.4;
+	display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 
 /* Single AI Tool page (/ai-tools/{slug}/) — reuses the article header,
    badge and button styles; only the layout glue lives here. */
@@ -821,7 +1243,7 @@ a.clipto-badge:hover, a.clipto-pricing-badge:hover { text-decoration: underline;
 .clipto-tool__updated { color: var(--clipto-text-muted); font-size: 0.9rem; margin-left: auto; }
 .clipto-tool__rating-note { color: var(--clipto-text-muted); font-size: 0.85rem; margin: var(--clipto-space-3) 0 0; }
 .clipto-tool__actions { display: flex; flex-wrap: wrap; gap: var(--clipto-space-3); margin-block: var(--clipto-space-5) var(--clipto-space-6); }
-.clipto-tool .clipto-article__title { max-width: none; overflow-wrap: anywhere; }
+.clipto-tool .clipto-article__title { overflow-wrap: anywhere; }
 
 /* Comments */
 .clipto-comments { margin-block: var(--clipto-space-7); }
@@ -865,6 +1287,7 @@ a.clipto-badge:hover, a.clipto-pricing-badge:hover { text-decoration: underline;
    ===================================================================== */
 .clipto-breadcrumbs { padding-top: var(--clipto-space-5); font-size: 0.85rem; color: var(--clipto-text-muted); }
 .clipto-breadcrumbs ol { display: flex; flex-wrap: wrap; gap: var(--clipto-space-2); align-items: center; }
+.clipto-breadcrumbs li:last-child { flex: 1 1 0; min-width: 8ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .clipto-breadcrumbs li:not(:last-child)::after { content: "/"; margin-left: var(--clipto-space-2); opacity: 0.5; }
 .clipto-breadcrumbs a:hover { color: var(--clipto-accent); }
 
@@ -907,9 +1330,20 @@ html.js-reveal-ready .clipto-reveal {
 }
 html.js-reveal-ready .clipto-reveal.is-visible { opacity: 1; transform: translateY(0); }
 
+/* Article entrance: header children rise in once on load; the featured
+   image settles from a slight zoom. CSS-only, runs once, never hides
+   content permanently (fill-mode both ends fully visible). */
+@keyframes clipto-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes clipto-media-settle { from { opacity: 0.4; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
+.clipto-entrance > * { animation: clipto-rise 0.7s var(--clipto-ease) both; }
+.clipto-entrance > :nth-child(2) { animation-delay: 60ms; }
+.clipto-entrance > :nth-child(3) { animation-delay: 120ms; }
+.clipto-entrance > :nth-child(4) { animation-delay: 180ms; }
+.clipto-media-in img { animation: clipto-media-settle 1s var(--clipto-ease) 0.1s both; }
+
 @media (max-width: 900px) {
 	.clipto-container { padding-inline: var(--clipto-space-4); }
-	.clipto-author-box, .clipto-author-header { flex-direction: column; }
+	.clipto-author-header { flex-direction: column; }
 	.clipto-orb { display: none; }
 }
 
@@ -917,8 +1351,17 @@ html.js-reveal-ready .clipto-reveal.is-visible { opacity: 1; transform: translat
 	body { font-size: 16px; }
 	.clipto-hero { padding-block: var(--clipto-space-7) var(--clipto-space-6); }
 	.clipto-hero__ctas { flex-direction: column; align-items: stretch; }
-	.clipto-article__meta { gap: var(--clipto-space-3); }
-	.clipto-bookmark-btn { margin-left: 0; }
+	.clipto-article__content { font-size: 1.0625rem; line-height: 1.72; }
+	.has-clipto-drop-cap > p:first-of-type::first-letter { font-size: 3.25em; }
+	.clipto-article__byline-text { flex: 1 1 200px; }
+	.clipto-article__actions { flex-basis: 100%; margin-left: 0; }
+	.clipto-article__actions > * { flex: 1 1 0; justify-content: center; min-height: 40px; }
+	.clipto-ai-summary { padding: var(--clipto-space-5); }
+	.clipto-author-box { grid-template-columns: 1fr; padding: var(--clipto-space-5); }
+	.clipto-author-box__more { margin-left: 0; }
+	.clipto-post-nav { grid-template-columns: 1fr; }
+	.clipto-post-nav__next { grid-column: auto; }
+	.clipto-article__content blockquote, .clipto-article__content .wp-block-quote { padding: var(--clipto-space-4) var(--clipto-space-4) var(--clipto-space-4) var(--clipto-space-5); font-size: 1.1em; }
 	.clipto-tool__updated { margin-left: 0; }
 	.clipto-tool__actions .clipto-btn { flex: 1 1 100%; justify-content: center; }
 }
@@ -931,7 +1374,7 @@ html.js-reveal-ready .clipto-reveal.is-visible { opacity: 1; transform: translat
 		scroll-behavior: auto !important;
 	}
 	html.js-reveal-ready .clipto-reveal { opacity: 1; transform: none; }
-	.clipto-card:hover, .clipto-tool-card:hover, .clipto-category-card:hover, .clipto-btn:hover, .clipto-post-nav a:hover {
+	.clipto-card:hover, .clipto-tool-card:hover, .clipto-category-card:hover, .clipto-btn:hover, .clipto-post-nav__link:hover {
 		transform: none;
 	}
 }

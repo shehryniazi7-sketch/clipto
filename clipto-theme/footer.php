@@ -148,6 +148,94 @@ if ( ! defined( 'ABSPATH' ) ) {
 	})();
 
 	/* ---------------------------------------------------------
+	 * Share: native Web Share sheet where supported, otherwise copy
+	 * the permalink. Copy-link buttons always copy. No third-party
+	 * scripts; the URL comes from the post's own permalink attribute.
+	 * --------------------------------------------------------- */
+	(function () {
+		function announce( btn, text ) {
+			var scope  = btn.closest( '.clipto-article' ) || document;
+			var status = scope.querySelector( '.clipto-share-status' );
+			if ( status ) { status.textContent = ''; status.textContent = text; }
+			var label = btn.querySelector( '.clipto-share-btn__label' ) || btn;
+			if ( ! btn.hasAttribute( 'data-label-default' ) ) { btn.setAttribute( 'data-label-default', label.textContent ); }
+			label.textContent = text;
+			btn.classList.add( 'is-copied' );
+			window.setTimeout( function () {
+				label.textContent = btn.getAttribute( 'data-label-default' );
+				btn.classList.remove( 'is-copied' );
+			}, 2000 );
+		}
+		function copy( btn ) {
+			var url = btn.getAttribute( 'data-share-url' );
+			if ( ! url ) { return; }
+			var done = function () { announce( btn, btn.getAttribute( 'data-label-copied' ) || 'Copied' ); };
+			if ( navigator.clipboard && window.isSecureContext ) {
+				navigator.clipboard.writeText( url ).then( done, function () { window.prompt( '', url ); } );
+			} else {
+				window.prompt( '', url );
+			}
+		}
+		document.addEventListener( 'click', function ( e ) {
+			var btn = e.target.closest ? e.target.closest( '.clipto-share-btn, .clipto-copy-link' ) : null;
+			if ( ! btn ) { return; }
+			if ( btn.classList.contains( 'clipto-share-btn' ) && navigator.share ) {
+				navigator.share( { title: btn.getAttribute( 'data-share-title' ) || document.title, url: btn.getAttribute( 'data-share-url' ) } ).catch( function () {} );
+				return;
+			}
+			copy( btn );
+		} );
+	})();
+
+	/* ---------------------------------------------------------
+	 * Reading progress (single posts only). One transform on a
+	 * fixed element, rAF-throttled, passive listener — no layout
+	 * reads beyond the article box, no layout shift.
+	 * --------------------------------------------------------- */
+	(function () {
+		var bar     = document.querySelector( '.clipto-reading-progress__bar' );
+		var article = document.querySelector( '.clipto-article .clipto-article__content' );
+		if ( ! bar || ! article ) { return; }
+		var ticking = false;
+		function update() {
+			var rect  = article.getBoundingClientRect();
+			var total = rect.height - window.innerHeight * 0.6;
+			var done  = total > 0 ? Math.min( 1, Math.max( 0, ( window.innerHeight * 0.4 - rect.top ) / total ) ) : 1;
+			bar.style.transform = 'scaleX(' + done.toFixed( 4 ) + ')';
+			ticking = false;
+		}
+		function request() {
+			if ( ! ticking ) { window.requestAnimationFrame( update ); ticking = true; }
+		}
+		window.addEventListener( 'scroll', request, { passive: true } );
+		window.addEventListener( 'resize', request, { passive: true } );
+		update();
+	})();
+
+	/* ---------------------------------------------------------
+	 * Code blocks and tables that scroll horizontally must be
+	 * reachable by keyboard (WCAG 2.1.1): make only the ones that
+	 * actually overflow focusable, and re-check on resize.
+	 * --------------------------------------------------------- */
+	(function () {
+		var regions = document.querySelectorAll( '.clipto-article__content pre, .clipto-article__content .wp-block-table' );
+		if ( ! regions.length ) { return; }
+		function check() {
+			for ( var i = 0; i < regions.length; i++ ) {
+				var el = regions[ i ];
+				if ( el.scrollWidth > el.clientWidth + 1 ) {
+					el.setAttribute( 'tabindex', '0' );
+				} else if ( el.getAttribute( 'tabindex' ) === '0' ) {
+					el.removeAttribute( 'tabindex' );
+				}
+			}
+		}
+		var timer;
+		window.addEventListener( 'resize', function () { clearTimeout( timer ); timer = setTimeout( check, 150 ); }, { passive: true } );
+		check();
+	})();
+
+	/* ---------------------------------------------------------
 	 * Bookmark feature — localStorage only, defensive throughout.
 	 * --------------------------------------------------------- */
 	(function () {
@@ -206,6 +294,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			writeStore( store );
 			refreshButton( btn );
+			if ( btn.classList.contains( 'is-saved' ) ) {
+				btn.classList.remove( 'is-just-saved' );
+				void btn.offsetWidth; // restart the pop animation
+				btn.classList.add( 'is-just-saved' );
+			}
 		} );
 	})();
 
