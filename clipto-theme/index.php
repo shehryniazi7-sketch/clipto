@@ -28,7 +28,7 @@ if ( $is_home ) {
 			<h1 class="clipto-archive-title"><?php esc_html_e( 'Page Not Found', 'clipto' ); ?></h1>
 			<div class="clipto-archive-description"><?php esc_html_e( 'The page you were looking for doesn\'t exist. Try a search instead.', 'clipto' ); ?></div>
 		</header>
-		<?php get_search_form(); ?>
+		<?php clipto_search_form( __( 'Search after page not found', 'clipto' ) ); ?>
 	<?php elseif ( $is_home ) : ?>
 		<h2 class="clipto-section-title clipto-reveal"><span class="clipto-kicker"><?php esc_html_e( 'Fresh', 'clipto' ); ?></span><?php esc_html_e( 'Latest Articles', 'clipto' ); ?></h2>
 	<?php elseif ( is_home() ) : ?>
@@ -46,7 +46,9 @@ if ( $is_home ) {
 			while ( have_posts() ) :
 				the_post();
 				$i++;
-				clipto_render_post_card( get_the_ID(), $i );
+				// Under the homepage's "Latest Articles" H2 the card titles are H3s;
+				// on the posts page they sit directly under the page H1.
+				clipto_render_post_card( get_the_ID(), $i, $is_home ? 'h3' : 'h2' );
 			endwhile;
 			?>
 		</div>

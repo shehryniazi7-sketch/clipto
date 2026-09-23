@@ -35,7 +35,7 @@ while ( have_posts() ) :
 
 			<?php if ( has_post_thumbnail() ) : ?>
 				<div class="clipto-article__thumb">
-					<?php the_post_thumbnail( 'clipto-hero', array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => wp_strip_all_tags( get_the_title() ) ) ); ?>
+					<?php the_post_thumbnail( 'clipto-hero', array( 'decoding' => 'async', 'sizes' => clipto_hero_image_sizes(), 'alt' => wp_strip_all_tags( get_the_title() ) ) ); ?>
 				</div>
 			<?php endif; ?>
 

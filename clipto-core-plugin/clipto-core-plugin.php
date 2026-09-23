@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Clipto Core
- * Description: Core functionality for Clipto.org — the AI Tools directory (custom post type + taxonomies), the AI Summary editorial fields, canonical reading-time calculation, and the [clipto_summary] / [clipto_tools_grid] shortcodes. Safe to activate alongside the Clipto theme or any other theme, and safe to deactivate: the theme keeps working without it.
- * Version:     1.0.0
+ * Description: Core functionality for Clipto.org — the AI Tools directory (custom post type + taxonomies), the AI Summary editorial fields, canonical reading-time calculation, and the [clipto_summary] / [clipto_tools_grid heading="h2|h3|h4"] shortcodes. Safe to activate alongside the Clipto theme or any other theme, and safe to deactivate: the theme keeps working without it.
+ * Version:     1.1.0
  * Author:      Clipto
  * License:     GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CLIPTO_CORE_VERSION', '1.0.0' );
+define( 'CLIPTO_CORE_VERSION', '1.1.0' );
 
 /**
  * ------------------------------------------------------------------
@@ -119,6 +119,14 @@ function clipto_core_activate() {
 register_activation_hook( __FILE__, 'clipto_core_activate' );
 
 function clipto_core_deactivate() {
+	// The post type and taxonomies are still registered during this request
+	// (they were added on init), so they must be unregistered before the
+	// flush — otherwise the /ai-tools/, /tool-pricing/ and /tool-category/
+	// rewrite rules survive deactivation and /ai-tools/ keeps answering 200
+	// with a copy of the homepage instead of a 404.
+	unregister_taxonomy( 'clipto_pricing' );
+	unregister_taxonomy( 'clipto_tool_category' );
+	unregister_post_type( 'clipto_tool' );
 	flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'clipto_core_deactivate' );
@@ -206,7 +214,7 @@ function clipto_render_tool_meta_box( $post ) {
 	<p>
 		<label for="clipto_tool_url"><strong><?php esc_html_e( 'Official Tool Website URL', 'clipto-core' ); ?></strong></label><br />
 		<input type="url" id="clipto_tool_url" name="clipto_tool_url" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" style="width:100%;" />
-		<span class="description"><?php esc_html_e( 'Shown as the "View Tool" button on the tools grid. Leave blank to hide the button for this tool.', 'clipto-core' ); ?></span>
+		<span class="description"><?php esc_html_e( 'Shown as the "View Tool" button on the tools grid and the "Visit" button on the tool\'s own page. Leave blank to hide the button for this tool.', 'clipto-core' ); ?></span>
 	</p>
 	<p>
 		<label for="clipto_tool_summary"><strong><?php esc_html_e( 'Short Summary', 'clipto-core' ); ?></strong></label><br />
@@ -315,55 +323,112 @@ function clipto_summary_shortcode( $atts ) {
 add_shortcode( 'clipto_summary', 'clipto_summary_shortcode' );
 
 /**
+ * Collects one AI Tool's display data in one place, so the tool card,
+ * the single tool page and the theme's structured data all read the
+ * same validated values. The URL is only returned if it is a genuine
+ * http(s) URL, and the rating only if it is numeric — nothing is ever
+ * invented when a field is left blank in the editor.
+ */
+function clipto_get_tool_data( $tool_id = null ) {
+	$tool_id = $tool_id ? (int) $tool_id : get_the_ID();
+	if ( ! $tool_id || 'clipto_tool' !== get_post_type( $tool_id ) ) {
+		return null;
+	}
+
+	$url      = get_post_meta( $tool_id, '_clipto_tool_url', true );
+	$rating   = get_post_meta( $tool_id, '_clipto_tool_rating', true );
+	$pricing  = get_the_terms( $tool_id, 'clipto_pricing' );
+	$category = get_the_terms( $tool_id, 'clipto_tool_category' );
+
+	return array(
+		'id'       => $tool_id,
+		'url'      => ( $url && wp_http_validate_url( $url ) ) ? $url : '',
+		'summary'  => (string) get_post_meta( $tool_id, '_clipto_tool_summary', true ),
+		'rating'   => ( '' !== $rating && is_numeric( $rating ) ) ? max( 0, min( 5, (float) $rating ) ) : null,
+		'pricing'  => ( $pricing && ! is_wp_error( $pricing ) ) ? $pricing[0] : null,
+		'category' => ( $category && ! is_wp_error( $category ) ) ? $category[0] : null,
+	);
+}
+
+/**
+ * Category / pricing / editorial-rating badges. Shared by the tool card
+ * and the single tool page so both stay visually identical. On the
+ * single page ($link_terms = true) the category and pricing badges link
+ * to their existing taxonomy archives.
+ */
+function clipto_render_tool_badges( $data, $link_terms = false ) {
+	if ( ! $data ) {
+		return;
+	}
+	?>
+	<div class="clipto-tool-card__badges">
+		<?php if ( $data['category'] ) : ?>
+			<?php if ( $link_terms ) : ?>
+				<a class="clipto-badge clipto-badge--category" href="<?php echo esc_url( get_term_link( $data['category'] ) ); ?>"><?php echo esc_html( $data['category']->name ); ?></a>
+			<?php else : ?>
+				<span class="clipto-badge clipto-badge--category"><?php echo esc_html( $data['category']->name ); ?></span>
+			<?php endif; ?>
+		<?php endif; ?>
+		<?php if ( $data['pricing'] ) : ?>
+			<?php if ( $link_terms ) : ?>
+				<a class="clipto-pricing-badge clipto-pricing-badge--<?php echo esc_attr( $data['pricing']->slug ); ?>" href="<?php echo esc_url( get_term_link( $data['pricing'] ) ); ?>"><?php echo esc_html( $data['pricing']->name ); ?></a>
+			<?php else : ?>
+				<span class="clipto-pricing-badge clipto-pricing-badge--<?php echo esc_attr( $data['pricing']->slug ); ?>"><?php echo esc_html( $data['pricing']->name ); ?></span>
+			<?php endif; ?>
+		<?php endif; ?>
+		<?php if ( null !== $data['rating'] ) : ?>
+			<span class="clipto-rating-badge" title="<?php echo esc_attr__( 'Editorial rating — assigned by our editors, not aggregated from user reviews', 'clipto-core' ); ?>">
+				<svg aria-hidden="true" viewBox="0 0 20 20" width="13" height="13"><path fill="currentColor" d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L10 14.9 4.4 18l1.4-6.2L1 7.5l6.4-.6z"/></svg>
+				<?php echo esc_html( number_format_i18n( $data['rating'], 1 ) ); ?>/5
+				<span class="screen-reader-text"><?php esc_html_e( '(editorial rating, not a user review average)', 'clipto-core' ); ?></span>
+			</span>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+/**
  * Renders one AI Tool card. Shared by the [clipto_tools_grid] shortcode
  * and, when this plugin is active, by the theme's archive.php for the
  * actual clipto_tool post-type archive — so the real /ai-tools/ URL gets
  * the same premium card treatment as the shortcode, not a generic post
  * card. Takes an explicit ID (rather than relying on the global $post)
  * so it works correctly regardless of which loop calls it.
+ *
+ * The tool name links to the tool's own detail page (/ai-tools/{slug}/);
+ * "View Tool" remains the outbound link to the official website.
+ *
+ * $loading: '' lets WordPress core choose eager/lazy for the logo (it keeps
+ * the first, likely above-the-fold images eager); 'lazy' forces lazy for
+ * sections known to be below the fold.
  */
-function clipto_render_tool_card( $tool_id = null, $heading_tag = 'h3' ) {
-	$tool_id     = $tool_id ? $tool_id : get_the_ID();
-	if ( ! $tool_id ) {
+function clipto_render_tool_card( $tool_id = null, $heading_tag = 'h3', $loading = '' ) {
+	$data = clipto_get_tool_data( $tool_id );
+	if ( ! $data ) {
 		return;
 	}
+	$tool_id     = $data['id'];
 	$heading_tag = in_array( $heading_tag, array( 'h2', 'h3', 'h4' ), true ) ? $heading_tag : 'h3';
-
-	$url        = get_post_meta( $tool_id, '_clipto_tool_url', true );
-	$summary    = get_post_meta( $tool_id, '_clipto_tool_summary', true );
-	$pricing    = get_the_terms( $tool_id, 'clipto_pricing' );
-	$category   = get_the_terms( $tool_id, 'clipto_tool_category' );
-	$rating     = get_post_meta( $tool_id, '_clipto_tool_rating', true );
-	$price_term = ( $pricing && ! is_wp_error( $pricing ) ) ? $pricing[0] : null;
-	$cat_term   = ( $category && ! is_wp_error( $category ) ) ? $category[0] : null;
 	?>
 	<article class="clipto-tool-card">
 		<?php if ( has_post_thumbnail( $tool_id ) ) : ?>
 			<div class="clipto-tool-card__logo">
-				<?php echo get_the_post_thumbnail( $tool_id, 'clipto-card', array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => wp_strip_all_tags( get_the_title( $tool_id ) ) ) ); ?>
+				<?php echo get_the_post_thumbnail( $tool_id, 'clipto-card', array_filter( array( 'loading' => 'lazy' === $loading ? 'lazy' : '', 'decoding' => 'async', 'sizes' => '(max-width: 640px) calc(100vw - 32px), (max-width: 940px) 50vw, (max-width: 1240px) 33vw, 300px', 'alt' => wp_strip_all_tags( get_the_title( $tool_id ) ) ) ) ); ?>
 			</div>
 		<?php endif; ?>
 		<div class="clipto-tool-card__body">
-			<<?php echo esc_html( $heading_tag ); ?> class="clipto-tool-card__name"><?php echo esc_html( get_the_title( $tool_id ) ); ?></<?php echo esc_html( $heading_tag ); ?>>
-			<div class="clipto-tool-card__badges">
-				<?php if ( $cat_term ) : ?>
-					<span class="clipto-badge clipto-badge--category"><?php echo esc_html( $cat_term->name ); ?></span>
-				<?php endif; ?>
-				<?php if ( $price_term ) : ?>
-					<span class="clipto-pricing-badge clipto-pricing-badge--<?php echo esc_attr( $price_term->slug ); ?>"><?php echo esc_html( $price_term->name ); ?></span>
-				<?php endif; ?>
-				<?php if ( '' !== $rating && is_numeric( $rating ) ) : ?>
-					<span class="clipto-rating-badge" title="<?php echo esc_attr__( 'Editorial rating — assigned by our editors, not aggregated from user reviews', 'clipto-core' ); ?>">
-						<svg aria-hidden="true" viewBox="0 0 20 20" width="13" height="13"><path fill="currentColor" d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L10 14.9 4.4 18l1.4-6.2L1 7.5l6.4-.6z"/></svg>
-						<?php echo esc_html( number_format_i18n( (float) $rating, 1 ) ); ?>/5
-						<span class="screen-reader-text"><?php esc_html_e( '(editorial rating, not a user review average)', 'clipto-core' ); ?></span>
-					</span>
-				<?php endif; ?>
-			</div>
-			<p class="clipto-tool-card__desc"><?php echo esc_html( $summary ? $summary : wp_trim_words( get_the_excerpt( $tool_id ), 18 ) ); ?></p>
-			<?php if ( $url && wp_http_validate_url( $url ) ) : ?>
-				<a class="clipto-tool-card__cta" href="<?php echo esc_url( $url ); ?>" target="_blank" rel="nofollow noopener noreferrer">
+			<<?php echo esc_html( $heading_tag ); ?> class="clipto-tool-card__name"><a href="<?php echo esc_url( get_permalink( $tool_id ) ); ?>"><?php echo esc_html( get_the_title( $tool_id ) ); ?></a></<?php echo esc_html( $heading_tag ); ?>>
+			<?php clipto_render_tool_badges( $data ); ?>
+			<p class="clipto-tool-card__desc"><?php echo esc_html( $data['summary'] ? $data['summary'] : wp_trim_words( get_the_excerpt( $tool_id ), 18 ) ); ?></p>
+			<?php if ( $data['url'] ) : ?>
+				<a class="clipto-tool-card__cta" href="<?php echo esc_url( $data['url'] ); ?>" target="_blank" rel="nofollow noopener noreferrer">
 					<?php esc_html_e( 'View Tool', 'clipto-core' ); ?>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: %s: tool name */
+						echo esc_html( sprintf( __( '%s (official website, opens in a new tab)', 'clipto-core' ), get_the_title( $tool_id ) ) );
+						?>
+					</span>
 				</a>
 			<?php endif; ?>
 		</div>
@@ -384,6 +449,7 @@ function clipto_tools_grid_shortcode( $atts ) {
 			'count'    => 12,
 			'order'    => 'DESC',
 			'orderby'  => 'date',
+			'heading'  => 'h3',
 		),
 		$atts,
 		'clipto_tools_grid'
@@ -393,6 +459,7 @@ function clipto_tools_grid_shortcode( $atts ) {
 	$order            = 'ASC' === strtoupper( $atts['order'] ) ? 'ASC' : 'DESC';
 	$allowed_orderby  = array( 'date', 'title', 'rand', 'menu_order' );
 	$orderby          = in_array( $atts['orderby'], $allowed_orderby, true ) ? $atts['orderby'] : 'date';
+	$heading          = in_array( $atts['heading'], array( 'h2', 'h3', 'h4' ), true ) ? $atts['heading'] : 'h3';
 
 	$query_args = array(
 		'post_type'           => 'clipto_tool',
@@ -435,7 +502,7 @@ function clipto_tools_grid_shortcode( $atts ) {
 	echo '<div class="clipto-grid clipto-grid--tools">';
 	while ( $query->have_posts() ) {
 		$query->the_post();
-		clipto_render_tool_card( get_the_ID() );
+		clipto_render_tool_card( get_the_ID(), $heading );
 	}
 	echo '</div>';
 	wp_reset_postdata();

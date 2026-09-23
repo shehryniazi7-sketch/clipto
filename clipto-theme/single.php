@@ -14,6 +14,13 @@ get_header();
 while ( have_posts() ) :
 	the_post();
 
+	// AI Tool detail pages (/ai-tools/{slug}/) get their own directory-entry
+	// presentation instead of the article layout below.
+	if ( is_singular( 'clipto_tool' ) && function_exists( 'clipto_get_tool_data' ) ) {
+		clipto_render_tool_single( get_the_ID() );
+		continue;
+	}
+
 	$post_id      = get_the_ID();
 	$author_id    = (int) get_the_author_meta( 'ID' );
 	$categories   = get_the_category();
@@ -73,7 +80,7 @@ while ( have_posts() ) :
 
 			<?php if ( has_post_thumbnail() ) : ?>
 				<div class="clipto-article__thumb">
-					<?php the_post_thumbnail( 'clipto-hero', array( 'fetchpriority' => 'high', 'decoding' => 'async', 'alt' => wp_strip_all_tags( get_the_title( $post_id ) ) ) ); ?>
+					<?php the_post_thumbnail( 'clipto-hero', array( 'fetchpriority' => 'high', 'decoding' => 'async', 'sizes' => clipto_hero_image_sizes(), 'alt' => wp_strip_all_tags( get_the_title( $post_id ) ) ) ); ?>
 				</div>
 			<?php endif; ?>
 
@@ -111,7 +118,7 @@ while ( have_posts() ) :
 						while ( $related->have_posts() ) :
 							$related->the_post();
 							$r++;
-							clipto_render_post_card( get_the_ID(), $r );
+							clipto_render_post_card( get_the_ID(), $r, 'h3', 'lazy' );
 						endwhile;
 						wp_reset_postdata();
 						?>
@@ -122,6 +129,8 @@ while ( have_posts() ) :
 			<footer class="clipto-article__footer">
 				<?php clipto_render_author_box( $author_id ); ?>
 			</footer>
+
+			<?php clipto_render_comments( $post_id ); ?>
 		</article>
 
 		<?php

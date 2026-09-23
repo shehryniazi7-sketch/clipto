@@ -2,9 +2,9 @@
 Theme Name: Clipto
 Author: Clipto
 Description: A lightweight, premium editorial WordPress theme built for AI news, tools, guides, tutorials, reviews and comparisons. Engineered for speed, Core Web Vitals, SEO, accessibility and E-E-A-T, with a restrained AI-inspired visual identity.
-Version: 1.0.0
+Version: 1.1.0
 Requires at least: 6.0
-Tested up to: 6.6
+Tested up to: 7.1
 Requires PHP: 7.4
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -150,7 +150,9 @@ p { margin: 0 0 var(--clipto-space-4); color: var(--clipto-text); }
 	z-index: 1000;
 	transition: top var(--clipto-duration-fast) var(--clipto-ease);
 }
-.skip-link:focus { top: var(--clipto-space-4); }
+/* The skip link also carries .screen-reader-text, whose clip would keep it
+   invisible even when focused — undo that on focus so it actually shows. */
+.skip-link:focus { top: var(--clipto-space-4); clip: auto; width: auto; height: auto; overflow: visible; white-space: normal; }
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
 	outline: 2px solid var(--clipto-accent);
 	outline-offset: 2px;
@@ -174,11 +176,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	height: var(--clipto-header-height);
 	display: flex;
 	align-items: center;
+	border-bottom: 1px solid transparent;
+	transition: box-shadow var(--clipto-duration-med) var(--clipto-ease), border-color var(--clipto-duration-med) var(--clipto-ease);
+}
+/* The frosted-glass layer lives on a pseudo-element rather than on the
+   header itself: backdrop-filter on an element makes it the containing
+   block for position:fixed descendants, which clipped the full-screen
+   mobile menu (.clipto-nav-menu) to the 76px header box. */
+.site-header::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
 	background: color-mix(in srgb, var(--clipto-bg) 88%, transparent);
 	backdrop-filter: saturate(140%) blur(10px);
 	-webkit-backdrop-filter: saturate(140%) blur(10px);
-	border-bottom: 1px solid transparent;
-	transition: box-shadow var(--clipto-duration-med) var(--clipto-ease), border-color var(--clipto-duration-med) var(--clipto-ease), background var(--clipto-duration-med) var(--clipto-ease);
+	pointer-events: none;
 }
 .site-header.is-scrolled {
 	border-bottom-color: var(--clipto-border);
@@ -261,11 +274,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	box-shadow: var(--clipto-shadow-lg);
 	padding: var(--clipto-space-3);
 	opacity: 0;
+	visibility: hidden; /* keeps the closed panel out of the tab order and accessibility tree */
 	transform: translateY(-6px) scale(0.98);
 	pointer-events: none;
-	transition: opacity var(--clipto-duration-fast) var(--clipto-ease), transform var(--clipto-duration-fast) var(--clipto-ease);
+	transition: opacity var(--clipto-duration-fast) var(--clipto-ease), transform var(--clipto-duration-fast) var(--clipto-ease), visibility 0s linear var(--clipto-duration-fast);
 }
-.clipto-search-form.is-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.clipto-search-form.is-open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; transition-delay: 0s; }
 .clipto-search-form .search-form { display: flex; gap: var(--clipto-space-2); }
 .clipto-search-form input[type="search"] {
 	flex: 1;
@@ -282,6 +296,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	font-weight: 600;
 }
 
+/* Search form inside page content (404, empty search results). */
+.site-main .search-form { display: flex; flex-wrap: wrap; gap: var(--clipto-space-2); max-width: 480px; margin-block: var(--clipto-space-5); }
+.clipto-empty-state .search-form { margin-inline: auto; }
+.site-main .search-form label { flex: 1; min-width: 200px; }
+.site-main .search-form .search-field {
+	width: 100%;
+	padding: var(--clipto-space-3);
+	border: 1px solid var(--clipto-border-strong);
+	border-radius: var(--clipto-radius-sm);
+	background: var(--clipto-surface-elevated);
+	color: var(--clipto-text);
+}
+.site-main .search-form .search-submit {
+	padding: var(--clipto-space-3) var(--clipto-space-5);
+	border: 0;
+	border-radius: var(--clipto-radius-sm);
+	background: var(--clipto-accent);
+	color: var(--clipto-accent-contrast);
+	font-weight: 600;
+	cursor: pointer;
+}
+
 @media (max-width: 860px) {
 	.clipto-nav-toggle { display: inline-flex; }
 	.clipto-nav-menu {
@@ -290,12 +326,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 		background: var(--clipto-bg);
 		transform: translateY(-8px);
 		opacity: 0;
+		visibility: hidden; /* closed menu links must not be keyboard-focusable */
 		pointer-events: none;
-		transition: opacity var(--clipto-duration-med) var(--clipto-ease), transform var(--clipto-duration-med) var(--clipto-ease);
+		transition: opacity var(--clipto-duration-med) var(--clipto-ease), transform var(--clipto-duration-med) var(--clipto-ease), visibility 0s linear var(--clipto-duration-med);
 		overflow-y: auto;
 		padding: var(--clipto-space-6) var(--clipto-space-5);
 	}
-	.clipto-nav-menu.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+	.clipto-nav-menu.is-open { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; transition-delay: 0s; }
 	.clipto-nav-list { flex-direction: column; align-items: flex-start; gap: var(--clipto-space-5); }
 	.clipto-nav-list a { font-size: 1.15rem; }
 	.clipto-nav-list li {
@@ -593,10 +630,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	padding: 0.3em 0.7em;
 	border-radius: 999px;
 	background: color-mix(in srgb, var(--clipto-accent) 12%, transparent);
-	color: var(--clipto-accent);
+	/* Nudged toward the text color so small uppercase badge text clears
+	   WCAG AA (4.5:1) on its tinted background in both color schemes. */
+	color: color-mix(in srgb, var(--clipto-accent) 82%, var(--clipto-text));
 	margin-bottom: var(--clipto-space-2);
 }
-.clipto-badge--expertise { background: color-mix(in srgb, var(--clipto-accent-2) 14%, transparent); color: var(--clipto-accent-2); }
+.clipto-badge--expertise { background: color-mix(in srgb, var(--clipto-accent-2) 14%, transparent); color: color-mix(in srgb, var(--clipto-accent-2) 78%, var(--clipto-text)); }
+a.clipto-badge:hover, a.clipto-pricing-badge:hover { text-decoration: underline; text-underline-offset: 2px; }
 
 .clipto-category-card {
 	display: flex; flex-direction: column; gap: var(--clipto-space-2);
@@ -635,6 +675,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 }
+.clipto-tool-card__name a:hover, .clipto-tool-card__name a:focus-visible { color: var(--clipto-accent); }
 .clipto-tool-card__badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-2); min-height: 3.2em; align-content: flex-start; }
 .clipto-tool-card__badges .clipto-badge, .clipto-tool-card__badges .clipto-pricing-badge { margin-bottom: 0; }
 .clipto-rating-badge {
@@ -768,6 +809,57 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .clipto-post-nav__label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--clipto-text-muted); margin-bottom: var(--clipto-space-1); }
 .clipto-post-nav__title { font-weight: 700; }
 
+/* Single AI Tool page (/ai-tools/{slug}/) — reuses the article header,
+   badge and button styles; only the layout glue lives here. */
+.clipto-tool__meta {
+	display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-3) var(--clipto-space-4);
+	padding-block: var(--clipto-space-4);
+	border-top: 1px solid var(--clipto-border);
+	border-bottom: 1px solid var(--clipto-border);
+}
+.clipto-tool__meta .clipto-tool-card__badges { min-height: 0; }
+.clipto-tool__updated { color: var(--clipto-text-muted); font-size: 0.9rem; margin-left: auto; }
+.clipto-tool__rating-note { color: var(--clipto-text-muted); font-size: 0.85rem; margin: var(--clipto-space-3) 0 0; }
+.clipto-tool__actions { display: flex; flex-wrap: wrap; gap: var(--clipto-space-3); margin-block: var(--clipto-space-5) var(--clipto-space-6); }
+.clipto-tool .clipto-article__title { max-width: none; overflow-wrap: anywhere; }
+
+/* Comments */
+.clipto-comments { margin-block: var(--clipto-space-7); }
+.clipto-comment-list, .clipto-comment-list .children { list-style: none; padding: 0; margin: 0; }
+.clipto-comment-list .children { padding-left: var(--clipto-space-5); border-left: 2px solid var(--clipto-border); margin-top: var(--clipto-space-4); }
+.clipto-comment-list .comment-body { background: var(--clipto-surface); border-radius: var(--clipto-radius-md); padding: var(--clipto-space-4) var(--clipto-space-5); margin-bottom: var(--clipto-space-4); }
+.clipto-comment-list .comment-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--clipto-space-2) var(--clipto-space-3); font-size: 0.85rem; color: var(--clipto-text-muted); margin-bottom: var(--clipto-space-2); }
+.clipto-comment-list .comment-author { display: flex; align-items: center; gap: var(--clipto-space-2); color: var(--clipto-text); }
+.clipto-comment-list .comment-author .says { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); }
+.clipto-comment-list .avatar { border-radius: 50%; }
+.clipto-comment-list .comment-content p:last-child { margin-bottom: 0; }
+.clipto-comment-list .reply a, .clipto-comment-list .comment-edit-link { font-size: 0.85rem; font-weight: 700; color: var(--clipto-accent); }
+.clipto-comment-form .comment-reply-title { font-size: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem); }
+.clipto-comment-form .comment-reply-title small { display: block; font-size: 0.85rem; margin-top: var(--clipto-space-1); }
+.clipto-comment-form p { margin-bottom: var(--clipto-space-4); }
+.clipto-comment-form label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: var(--clipto-space-1); }
+.clipto-comment-form .comment-form-cookies-consent { display: flex; gap: var(--clipto-space-2); align-items: flex-start; }
+.clipto-comment-form .comment-form-cookies-consent label { font-weight: 400; }
+.clipto-comment-form input[type="text"], .clipto-comment-form input[type="email"], .clipto-comment-form input[type="url"], .clipto-comment-form textarea {
+	width: 100%;
+	padding: var(--clipto-space-3);
+	border: 1px solid var(--clipto-border-strong);
+	border-radius: var(--clipto-radius-sm);
+	background: var(--clipto-surface-elevated);
+}
+.clipto-comment-form .comment-notes, .clipto-comment-form .logged-in-as { color: var(--clipto-text-muted); font-size: 0.9rem; }
+.clipto-comment-form .comment-notes a, .clipto-comment-form .logged-in-as a { color: var(--clipto-accent); }
+.clipto-comment-form .submit {
+	padding: var(--clipto-space-3) var(--clipto-space-6);
+	border: 0;
+	border-radius: 999px;
+	background: var(--clipto-accent);
+	color: var(--clipto-accent-contrast);
+	font-weight: 700;
+	cursor: pointer;
+}
+.clipto-comments__closed { color: var(--clipto-text-muted); }
+
 /* =====================================================================
    17. BREADCRUMBS / PAGINATION / EMPTY STATES
    ===================================================================== */
@@ -827,6 +919,8 @@ html.js-reveal-ready .clipto-reveal.is-visible { opacity: 1; transform: translat
 	.clipto-hero__ctas { flex-direction: column; align-items: stretch; }
 	.clipto-article__meta { gap: var(--clipto-space-3); }
 	.clipto-bookmark-btn { margin-left: 0; }
+	.clipto-tool__updated { margin-left: 0; }
+	.clipto-tool__actions .clipto-btn { flex: 1 1 100%; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

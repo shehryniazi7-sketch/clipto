@@ -1,10 +1,12 @@
 <?php
 /**
  * The template for displaying category, tag, and general archives —
- * and also the AI Tools post-type archive (there is no dedicated
- * archive-clipto_tool.php, by design, to keep the theme's file count
- * fixed), which gets the plugin's premium tool-card grid instead of
- * the generic post-card grid when the plugin is active.
+ * and also the AI Tools post-type archive and its pricing / tool-category
+ * taxonomy archives (there is no dedicated archive-clipto_tool.php, by
+ * design, to keep the theme's file count fixed), which get the plugin's
+ * premium tool-card grid instead of the generic post-card grid when the
+ * plugin is active. Search results are routed here too (see
+ * clipto_search_template() in functions.php).
  *
  * @package Clipto
  */
@@ -15,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header();
 
-$is_tools_archive = is_post_type_archive( 'clipto_tool' ) && function_exists( 'clipto_render_tool_card' );
+$is_tools_archive = clipto_is_tools_listing();
 ?>
 <div class="clipto-container">
 	<?php clipto_breadcrumbs(); ?>
@@ -47,7 +49,9 @@ $is_tools_archive = is_post_type_archive( 'clipto_tool' ) && function_exists( 'c
 			while ( have_posts() ) :
 				the_post();
 				$i++;
-				if ( $is_tools_archive ) {
+				// Tools are public and searchable, so they can also appear in
+				// search results — give them their tool card there as well.
+				if ( $is_tools_archive || ( 'clipto_tool' === get_post_type() && function_exists( 'clipto_render_tool_card' ) ) ) {
 					clipto_render_tool_card( get_the_ID(), 'h2' );
 				} else {
 					clipto_render_post_card( get_the_ID(), $i );
@@ -67,7 +71,7 @@ $is_tools_archive = is_post_type_archive( 'clipto_tool' ) && function_exists( 'c
 				);
 				?>
 			</p>
-			<?php get_search_form(); ?>
+			<?php clipto_search_form( __( 'Search again', 'clipto' ) ); ?>
 		</div>
 	<?php elseif ( $is_tools_archive ) : ?>
 		<div class="clipto-empty-state">

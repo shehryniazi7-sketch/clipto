@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CLIPTO_VERSION', '1.0.0' );
+define( 'CLIPTO_VERSION', '1.1.0' );
 
 /**
  * ------------------------------------------------------------------
@@ -53,6 +53,9 @@ function clipto_theme_setup() {
 
 	add_image_size( 'clipto-card', 640, 400, true );
 	add_image_size( 'clipto-hero', 1280, 720, true );
+	// Same 16:9 crop at a phone-friendly width, so the hero's srcset has a
+	// smaller candidate (without it, phones downloaded the 1280px crop).
+	add_image_size( 'clipto-hero-md', 768, 432, true );
 
 	$GLOBALS['content_width'] = 780;
 }
@@ -78,6 +81,34 @@ function clipto_enqueue_assets() {
 add_action( 'wp_enqueue_scripts', 'clipto_enqueue_assets' );
 
 /**
+ * sizes attribute for the article/page/tool hero image, which is rendered
+ * at the article column width (740px container minus 2 x 24px padding).
+ */
+function clipto_hero_image_sizes() {
+	return '(max-width: 740px) 100vw, 692px';
+}
+
+/**
+ * sizes attribute for card thumbnails in .clipto-grid (1 column on phones,
+ * then 2, 3 and at most 4 columns of ~280-300px inside the 1240px container).
+ * Without it, core's default "(max-width: 640px) 100vw, 640px" made desktop
+ * browsers fetch the 640px file for a ~280px card.
+ */
+function clipto_card_image_sizes() {
+	return '(max-width: 640px) calc(100vw - 32px), (max-width: 940px) 50vw, (max-width: 1240px) 33vw, 300px';
+}
+
+/**
+ * The card grids show up to four cards in their first row, so let core keep
+ * the first four content images eager (its default is three) — the fourth
+ * card is above the fold on desktop.
+ */
+function clipto_loading_threshold() {
+	return 4;
+}
+add_filter( 'wp_omit_loading_attr_threshold', 'clipto_loading_threshold' );
+
+/**
  * ------------------------------------------------------------------
  * 3. PERFORMANCE + SECURITY HARDENING
  * ------------------------------------------------------------------
@@ -95,6 +126,52 @@ function clipto_performance_and_security_cleanup() {
 }
 add_action( 'init', 'clipto_performance_and_security_cleanup' );
 add_filter( 'the_generator', '__return_empty_string' );
+
+/**
+ * ------------------------------------------------------------------
+ * 3b. TEMPLATE ROUTING
+ * ------------------------------------------------------------------
+ * The theme intentionally ships no search.php. Without this filter
+ * WordPress falls back to index.php for search results, which has no
+ * H1 and a "No articles published yet" empty state; archive.php already
+ * contains the search-specific heading and empty state, so route search
+ * there. A child theme's own search.php still wins.
+ */
+function clipto_search_template( $template ) {
+	if ( '' !== $template ) {
+		return $template;
+	}
+	$archive = locate_template( 'archive.php' );
+	return $archive ? $archive : $template;
+}
+add_filter( 'search_template', 'clipto_search_template' );
+
+/**
+ * The AI Tools archive H1 reads "AI Tools" rather than core's default
+ * "Archives: AI Tools". Category/tag prefixes are left as core prints them.
+ */
+function clipto_archive_title_prefix( $prefix ) {
+	return is_post_type_archive( 'clipto_tool' ) ? '' : $prefix;
+}
+add_filter( 'get_the_archive_title_prefix', 'clipto_archive_title_prefix' );
+
+/**
+ * Tool taxonomy archives (/tool-pricing/…, /tool-category/…) and the
+ * /ai-tools/ archive get the plugin's tool cards rather than post cards.
+ */
+function clipto_is_tools_listing() {
+	return function_exists( 'clipto_render_tool_card' )
+		&& ( is_post_type_archive( 'clipto_tool' ) || is_tax( array( 'clipto_pricing', 'clipto_tool_category' ) ) );
+}
+
+/**
+ * Search form with a distinct accessible name, so pages that show a
+ * second search form (404, empty search results) don't expose two
+ * identically-named "search" landmarks.
+ */
+function clipto_search_form( $label ) {
+	get_search_form( array( 'aria_label' => $label ) );
+}
 
 /**
  * ------------------------------------------------------------------
@@ -238,8 +315,14 @@ function clipto_seo_plugin_active() {
  * ------------------------------------------------------------------
  */
 function clipto_get_meta_description() {
+	if ( is_singular( 'clipto_tool' ) ) {
+		$summary = get_post_meta( get_queried_object_id(), '_clipto_tool_summary', true );
+		if ( $summary ) {
+			return wp_strip_all_tags( $summary );
+		}
+	}
 	if ( is_singular() ) {
-		return wp_strip_all_tags( get_the_excerpt() );
+		return wp_strip_all_tags( get_the_excerpt( get_queried_object_id() ) );
 	}
 	if ( is_category() || is_tag() || is_tax() ) {
 		return wp_strip_all_tags( term_description() );
@@ -257,7 +340,10 @@ function clipto_output_meta_tags() {
 
 	$description = clipto_get_meta_description();
 	$title       = wp_get_document_title();
-	$url         = is_singular() ? get_permalink() : home_url( esc_url_raw( wp_unslash( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/' ) ) );
+	// get_pagenum_link() resolves the current archive/search URL relative to
+	// the real home path (home_url( REQUEST_URI ) doubled the path on
+	// subdirectory installs, e.g. /blog/blog/category/…).
+	$url         = is_singular() ? get_permalink() : get_pagenum_link( max( 1, (int) get_query_var( 'paged' ) ) );
 	$image       = '';
 
 	if ( is_singular() && has_post_thumbnail() ) {
@@ -294,10 +380,33 @@ function clipto_output_meta_tags() {
 add_action( 'wp_head', 'clipto_output_meta_tags', 5 );
 
 /**
+ * Internal search result pages are thin, near-infinite URL space; keep them
+ * out of the index (links are still followed). Uses core's wp_robots API,
+ * and defers to an SEO plugin's own robots settings when one is active.
+ */
+function clipto_search_robots( $robots ) {
+	if ( is_search() && ! clipto_seo_plugin_active() ) {
+		$robots['noindex'] = true;
+		$robots['follow']  = true;
+	}
+	return $robots;
+}
+add_filter( 'wp_robots', 'clipto_search_robots' );
+
+/**
  * ------------------------------------------------------------------
  * 11. STRUCTURED DATA (NewsArticle / Person / WebSite)
  * ------------------------------------------------------------------
  */
+/**
+ * Plain text for JSON-LD: strips tags and decodes HTML entities (e.g. the
+ * "&hellip;" excerpt suffix or "&#8217;" from wptexturize) so structured
+ * data contains real characters rather than literal entity strings.
+ */
+function clipto_schema_text( $text ) {
+	return trim( html_entity_decode( wp_strip_all_tags( (string) $text ), ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ) );
+}
+
 function clipto_output_structured_data() {
 	if ( clipto_seo_plugin_active() ) {
 		return;
@@ -317,7 +426,7 @@ function clipto_output_structured_data() {
 
 		$publisher = array(
 			'@type' => 'Organization',
-			'name'  => get_bloginfo( 'name' ),
+			'name'  => clipto_schema_text( get_bloginfo( 'name' ) ),
 		);
 		if ( $logo ) {
 			$publisher['logo'] = array(
@@ -329,8 +438,8 @@ function clipto_output_structured_data() {
 		$graph = array(
 			'@context'         => 'https://schema.org',
 			'@type'            => 'NewsArticle',
-			'headline'         => wp_strip_all_tags( get_the_title( $post_id ) ),
-			'description'      => wp_strip_all_tags( get_the_excerpt( $post_id ) ),
+			'headline'         => clipto_schema_text( get_the_title( $post_id ) ),
+			'description'      => clipto_schema_text( clipto_get_meta_description() ),
 			'datePublished'    => get_the_date( DATE_W3C, $post_id ),
 			'dateModified'     => get_the_modified_date( DATE_W3C, $post_id ),
 			'mainEntityOfPage' => array(
@@ -339,7 +448,7 @@ function clipto_output_structured_data() {
 			),
 			'author'           => array(
 				'@type' => 'Person',
-				'name'  => get_the_author_meta( 'display_name', $author_id ),
+				'name'  => clipto_schema_text( get_the_author_meta( 'display_name', $author_id ) ),
 				'url'   => get_author_posts_url( $author_id ),
 			),
 			'publisher'        => $publisher,
@@ -352,15 +461,15 @@ function clipto_output_structured_data() {
 		$graph     = array(
 			'@context'    => 'https://schema.org',
 			'@type'       => 'Person',
-			'name'        => get_the_author_meta( 'display_name', $author_id ),
-			'description' => wp_strip_all_tags( get_the_author_meta( 'description', $author_id ) ),
+			'name'        => clipto_schema_text( get_the_author_meta( 'display_name', $author_id ) ),
+			'description' => clipto_schema_text( get_the_author_meta( 'description', $author_id ) ),
 			'url'         => get_author_posts_url( $author_id ),
 		);
 	} elseif ( is_front_page() || is_home() ) {
 		$graph = array(
 			'@context' => 'https://schema.org',
 			'@type'    => 'WebSite',
-			'name'     => get_bloginfo( 'name' ),
+			'name'     => clipto_schema_text( get_bloginfo( 'name' ) ),
 			'url'      => home_url( '/' ),
 		);
 	}
@@ -369,7 +478,7 @@ function clipto_output_structured_data() {
 		return;
 	}
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $graph ) . '</script>' . "\n";
+	echo '<script type="application/ld+json">' . wp_json_encode( $graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'clipto_output_structured_data', 6 );
 
@@ -378,36 +487,97 @@ add_action( 'wp_head', 'clipto_output_structured_data', 6 );
  * 12. BREADCRUMBS
  * ------------------------------------------------------------------
  */
-function clipto_breadcrumbs() {
+/**
+ * Breadcrumb trail as data: an ordered list of array( label, url ), where
+ * the final (current) item has a null URL. Used by both the visible
+ * breadcrumb (clipto_breadcrumbs) and the BreadcrumbList structured data,
+ * so the two can never disagree.
+ */
+function clipto_get_breadcrumb_items() {
 	if ( is_front_page() ) {
-		return;
+		return array();
 	}
-	echo '<nav class="clipto-breadcrumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'clipto' ) . '"><ol>';
-	echo '<li><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Home', 'clipto' ) . '</a></li>';
+	$items   = array( array( __( 'Home', 'clipto' ), home_url( '/' ) ) );
+	$tool_pt = post_type_exists( 'clipto_tool' ) ? get_post_type_object( 'clipto_tool' ) : null;
 
 	if ( is_singular( 'post' ) ) {
 		$categories = get_the_category();
 		if ( ! empty( $categories ) ) {
-			$cat = $categories[0];
-			echo '<li><a href="' . esc_url( get_category_link( $cat->term_id ) ) . '">' . esc_html( $cat->name ) . '</a></li>';
+			$items[] = array( $categories[0]->name, get_category_link( $categories[0]->term_id ) );
 		}
-		echo '<li aria-current="page">' . esc_html( get_the_title() ) . '</li>';
+		$items[] = array( get_the_title(), null );
+	} elseif ( is_singular( 'clipto_tool' ) && $tool_pt ) {
+		$items[] = array( $tool_pt->labels->name, get_post_type_archive_link( 'clipto_tool' ) );
+		$items[] = array( get_the_title(), null );
+	} elseif ( is_tax( array( 'clipto_pricing', 'clipto_tool_category' ) ) && $tool_pt ) {
+		$items[] = array( $tool_pt->labels->name, get_post_type_archive_link( 'clipto_tool' ) );
+		$items[] = array( single_term_title( '', false ), null );
 	} elseif ( is_category() || is_tag() || is_tax() ) {
-		echo '<li aria-current="page">' . esc_html( single_term_title( '', false ) ) . '</li>';
+		$items[] = array( single_term_title( '', false ), null );
 	} elseif ( is_author() ) {
-		echo '<li aria-current="page">' . esc_html( get_the_author() ) . '</li>';
+		$items[] = array( get_the_author_meta( 'display_name', get_queried_object_id() ), null );
 	} elseif ( is_singular() ) {
-		echo '<li aria-current="page">' . esc_html( get_the_title() ) . '</li>';
+		$items[] = array( get_the_title(), null );
 	} elseif ( is_search() ) {
-		echo '<li aria-current="page">' . esc_html__( 'Search Results', 'clipto' ) . '</li>';
+		$items[] = array( __( 'Search Results', 'clipto' ), null );
 	} elseif ( is_post_type_archive() ) {
-		echo '<li aria-current="page">' . esc_html( post_type_archive_title( '', false ) ) . '</li>';
+		$items[] = array( post_type_archive_title( '', false ), null );
 	} elseif ( is_home() ) {
-		echo '<li aria-current="page">' . esc_html__( 'Latest Articles', 'clipto' ) . '</li>';
+		$items[] = array( __( 'Latest Articles', 'clipto' ), null );
 	}
 
+	return $items;
+}
+
+function clipto_breadcrumbs() {
+	$items = clipto_get_breadcrumb_items();
+	if ( empty( $items ) ) {
+		return;
+	}
+	echo '<nav class="clipto-breadcrumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'clipto' ) . '"><ol>';
+	foreach ( $items as $item ) {
+		if ( $item[1] ) {
+			echo '<li><a href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . '</a></li>';
+		} else {
+			echo '<li aria-current="page">' . esc_html( $item[0] ) . '</li>';
+		}
+	}
 	echo '</ol></nav>';
 }
+
+/**
+ * BreadcrumbList JSON-LD mirroring the visible breadcrumb. Skipped on the
+ * front page / 404 (no trail) and when an SEO plugin is active (they emit
+ * their own breadcrumb schema).
+ */
+function clipto_output_breadcrumb_schema() {
+	if ( clipto_seo_plugin_active() || is_404() ) {
+		return;
+	}
+	$items = clipto_get_breadcrumb_items();
+	if ( count( $items ) < 2 ) {
+		return;
+	}
+	$list = array();
+	foreach ( array_values( $items ) as $i => $item ) {
+		$entry = array(
+			'@type'    => 'ListItem',
+			'position' => $i + 1,
+			'name'     => clipto_schema_text( $item[0] ),
+		);
+		if ( $item[1] ) {
+			$entry['item'] = $item[1];
+		}
+		$list[] = $entry;
+	}
+	$graph = array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => $list,
+	);
+	echo '<script type="application/ld+json">' . wp_json_encode( $graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'clipto_output_breadcrumb_schema', 7 );
 
 /**
  * ------------------------------------------------------------------
@@ -453,8 +623,14 @@ function clipto_pagination() {
  *     template-part files)
  * ------------------------------------------------------------------
  */
-function clipto_render_post_card( $post_id = null, $reveal_index = 0 ) {
-	$post_id    = $post_id ? $post_id : get_the_ID();
+/**
+ * $loading: '' lets WordPress core decide (it keeps the first, likely
+ * above-the-fold images eager and lazy-loads the rest); pass 'lazy' for
+ * sections that are always below the fold, e.g. Related Articles.
+ */
+function clipto_render_post_card( $post_id = null, $reveal_index = 0, $heading_tag = 'h2', $loading = '' ) {
+	$post_id     = $post_id ? $post_id : get_the_ID();
+	$heading_tag = in_array( $heading_tag, array( 'h2', 'h3' ), true ) ? $heading_tag : 'h2';
 	$categories = get_the_category( $post_id );
 	$category   = ! empty( $categories ) ? $categories[0] : null;
 	$delay      = min( 6, max( 0, (int) $reveal_index ) );
@@ -463,7 +639,7 @@ function clipto_render_post_card( $post_id = null, $reveal_index = 0 ) {
 		<a class="clipto-card__thumb-link" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" tabindex="-1" aria-hidden="true">
 			<?php if ( has_post_thumbnail( $post_id ) ) : ?>
 				<div class="clipto-card__thumb">
-					<?php echo get_the_post_thumbnail( $post_id, 'clipto-card', array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => wp_strip_all_tags( get_the_title( $post_id ) ) ) ); ?>
+					<?php echo get_the_post_thumbnail( $post_id, 'clipto-card', array_filter( array( 'loading' => 'lazy' === $loading ? 'lazy' : '', 'decoding' => 'async', 'sizes' => clipto_card_image_sizes(), 'alt' => wp_strip_all_tags( get_the_title( $post_id ) ) ) ) ); ?>
 				</div>
 			<?php endif; ?>
 		</a>
@@ -471,9 +647,9 @@ function clipto_render_post_card( $post_id = null, $reveal_index = 0 ) {
 			<?php if ( $category ) : ?>
 				<a class="clipto-badge clipto-badge--category" href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>"><?php echo esc_html( $category->name ); ?></a>
 			<?php endif; ?>
-			<h2 class="clipto-card__title">
+			<<?php echo esc_html( $heading_tag ); ?> class="clipto-card__title">
 				<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a>
-			</h2>
+			</<?php echo esc_html( $heading_tag ); ?>>
 			<p class="clipto-card__excerpt"><?php echo esc_html( wp_trim_words( get_the_excerpt( $post_id ), 20 ) ); ?></p>
 			<div class="clipto-card__meta">
 				<span><?php echo esc_html( get_the_date( '', $post_id ) ); ?></span>
@@ -485,6 +661,193 @@ function clipto_render_post_card( $post_id = null, $reveal_index = 0 ) {
 	<?php
 }
 
+/**
+ * Single AI Tool page (/ai-tools/{slug}/). Rendered from single.php when
+ * the queried post is a clipto_tool and the Clipto Core plugin is active
+ * (the post type only exists when it is). Tools are directory entries,
+ * not articles, so this shows the tool's own data — category, pricing,
+ * editorial rating, official website — instead of article byline,
+ * reading time, bookmark, author box and prev/next-article navigation.
+ */
+function clipto_render_tool_single( $tool_id ) {
+	$data = clipto_get_tool_data( $tool_id );
+	if ( ! $data ) {
+		return;
+	}
+	$title = get_the_title( $tool_id );
+	$lede  = $data['summary'] ? $data['summary'] : ( has_excerpt( $tool_id ) ? get_the_excerpt( $tool_id ) : '' );
+	?>
+	<div class="clipto-container clipto-container--article">
+		<?php clipto_breadcrumbs(); ?>
+
+		<article <?php post_class( 'clipto-article clipto-tool', $tool_id ); ?> id="post-<?php echo esc_attr( $tool_id ); ?>">
+			<header class="clipto-article__header clipto-tool__header">
+				<h1 class="clipto-article__title"><?php echo esc_html( $title ); ?></h1>
+
+				<?php if ( $lede ) : ?>
+					<p class="clipto-article__lede"><?php echo esc_html( $lede ); ?></p>
+				<?php endif; ?>
+
+				<div class="clipto-tool__meta">
+					<?php clipto_render_tool_badges( $data, true ); ?>
+					<span class="clipto-tool__updated">
+						<?php esc_html_e( 'Updated', 'clipto' ); ?>
+						<time datetime="<?php echo esc_attr( get_the_modified_date( DATE_W3C, $tool_id ) ); ?>"><?php echo esc_html( get_the_modified_date( '', $tool_id ) ); ?></time>
+					</span>
+				</div>
+				<?php if ( null !== $data['rating'] ) : ?>
+					<p class="clipto-tool__rating-note"><?php esc_html_e( 'The rating is an editorial score assigned by our editors after testing — not an average of user reviews.', 'clipto' ); ?></p>
+				<?php endif; ?>
+
+				<div class="clipto-tool__actions">
+					<?php if ( $data['url'] ) : ?>
+						<a class="clipto-btn clipto-btn--primary" href="<?php echo esc_url( $data['url'] ); ?>" target="_blank" rel="nofollow noopener noreferrer">
+							<?php
+							/* translators: %s: tool name */
+							echo esc_html( sprintf( __( 'Visit %s', 'clipto' ), $title ) );
+							?>
+							<span class="clipto-btn__arrow" aria-hidden="true">↗</span>
+							<span class="screen-reader-text"><?php esc_html_e( '(official website, opens in a new tab)', 'clipto' ); ?></span>
+						</a>
+					<?php endif; ?>
+					<a class="clipto-btn clipto-btn--secondary" href="<?php echo esc_url( get_post_type_archive_link( 'clipto_tool' ) ); ?>">
+						<?php esc_html_e( 'All AI Tools', 'clipto' ); ?>
+					</a>
+				</div>
+			</header>
+
+			<?php if ( has_post_thumbnail( $tool_id ) ) : ?>
+				<div class="clipto-article__thumb">
+					<?php echo get_the_post_thumbnail( $tool_id, 'clipto-hero', array( 'fetchpriority' => 'high', 'decoding' => 'async', 'sizes' => clipto_hero_image_sizes(), 'alt' => wp_strip_all_tags( $title ) ) ); ?>
+				</div>
+			<?php endif; ?>
+
+			<div class="clipto-article__content">
+				<?php the_content(); ?>
+			</div>
+
+			<?php
+			if ( $data['category'] ) :
+				$more = new WP_Query(
+					array(
+						'post_type'           => 'clipto_tool',
+						'post_status'         => 'publish',
+						'posts_per_page'      => 3,
+						'post__not_in'        => array( $tool_id ),
+						'no_found_rows'       => true,
+						'ignore_sticky_posts' => true,
+						'tax_query'           => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- single term, 3 rows.
+							array(
+								'taxonomy' => 'clipto_tool_category',
+								'field'    => 'term_id',
+								'terms'    => $data['category']->term_id,
+							),
+						),
+					)
+				);
+				if ( $more->have_posts() ) :
+					?>
+					<section class="clipto-related">
+						<h2 class="clipto-section-title">
+							<?php
+							/* translators: %s: tool category name */
+							echo esc_html( sprintf( __( 'More %s tools', 'clipto' ), $data['category']->name ) );
+							?>
+						</h2>
+						<div class="clipto-grid clipto-grid--tools">
+							<?php
+							while ( $more->have_posts() ) :
+								$more->the_post();
+								clipto_render_tool_card( get_the_ID(), 'h3', 'lazy' );
+							endwhile;
+							wp_reset_postdata();
+							?>
+						</div>
+					</section>
+					<?php
+				endif;
+			endif;
+			?>
+		</article>
+	</div>
+	<?php
+}
+
+/**
+ * Comments for single posts. The theme deliberately ships no
+ * comments.php (fixed file set), and calling comments_template() without
+ * one loads WordPress's deprecated theme-compat file, so the list and form
+ * are rendered here directly. Only shown when comments are open or the
+ * post already has approved comments.
+ */
+function clipto_render_comments( $post_id ) {
+	if ( post_password_required( $post_id ) || ( ! comments_open( $post_id ) && ! get_comments_number( $post_id ) ) ) {
+		return;
+	}
+
+	// Same rule as core's comments_template(): a commenter sees their own
+	// comment while it awaits moderation.
+	$include_unapproved = array();
+	if ( is_user_logged_in() ) {
+		$include_unapproved[] = get_current_user_id();
+	} else {
+		$unapproved_email = wp_get_unapproved_comment_author_email();
+		if ( $unapproved_email ) {
+			$include_unapproved[] = $unapproved_email;
+		}
+	}
+
+	$comments = get_comments(
+		array(
+			'post_id'            => $post_id,
+			'status'             => 'approve',
+			'include_unapproved' => $include_unapproved,
+			'order'              => 'ASC',
+			'orderby'            => 'comment_date_gmt',
+		)
+	);
+	$count    = (int) get_comments_number( $post_id );
+	?>
+	<section class="clipto-comments" id="comments">
+		<?php if ( $comments ) : ?>
+			<h2 class="clipto-section-title">
+				<?php
+				/* translators: %s: number of comments */
+				echo esc_html( sprintf( _n( '%s Comment', '%s Comments', $count, 'clipto' ), number_format_i18n( $count ) ) );
+				?>
+			</h2>
+			<ol class="clipto-comment-list">
+				<?php
+				wp_list_comments(
+					array(
+						'style'       => 'ol',
+						'short_ping'  => true,
+						'avatar_size' => 40,
+					),
+					$comments
+				);
+				?>
+			</ol>
+		<?php endif; ?>
+
+		<?php if ( ! comments_open( $post_id ) ) : ?>
+			<p class="clipto-comments__closed"><?php esc_html_e( 'Comments are closed.', 'clipto' ); ?></p>
+		<?php else : ?>
+			<?php
+			comment_form(
+				array(
+					'class_container'    => 'comment-respond clipto-comment-form',
+					'title_reply_before' => '<h2 id="reply-title" class="comment-reply-title">',
+					'title_reply_after'  => '</h2>',
+				),
+				$post_id
+			);
+			?>
+		<?php endif; ?>
+	</section>
+	<?php
+}
+
 function clipto_render_author_box( $author_id ) {
 	$bio       = get_the_author_meta( 'description', $author_id );
 	$expertise = clipto_get_author_expertise_label( $author_id );
@@ -492,7 +855,7 @@ function clipto_render_author_box( $author_id ) {
 	$links     = clipto_get_author_social_links( $author_id );
 	?>
 	<div class="clipto-author-box clipto-reveal">
-		<a class="clipto-author-box__avatar" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>">
+		<a class="clipto-author-box__avatar" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>" tabindex="-1" aria-hidden="true">
 			<?php echo get_avatar( $author_id, 72 ); ?>
 		</a>
 		<div class="clipto-author-box__body">

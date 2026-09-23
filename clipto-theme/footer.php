@@ -70,7 +70,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 		} );
 		document.addEventListener( 'click', function ( e ) {
-			if ( toggle.getAttribute( 'aria-expanded' ) === 'true' && ! menu.contains( e.target ) && e.target !== toggle ) {
+			// contains(), not ===: a tap on the hamburger bars targets the
+			// inner icon <span>, which must not count as an "outside" click.
+			if ( toggle.getAttribute( 'aria-expanded' ) === 'true' && ! menu.contains( e.target ) && ! toggle.contains( e.target ) ) {
 				closeNav();
 			}
 		} );

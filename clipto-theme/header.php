@@ -59,7 +59,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<span class="screen-reader-text"><?php esc_html_e( 'Search', 'clipto' ); ?></span>
 			</button>
 			<div class="clipto-search-form" id="clipto-search-form">
-				<?php get_search_form(); ?>
+				<?php clipto_search_form( __( 'Site search', 'clipto' ) ); ?>
 			</div>
 		</div>
 	</div>
