@@ -662,6 +662,15 @@ figcaption {
 	margin-left: auto;
 }
 
+/* Keep the numbers centred on the first/last page, where Newer/Older is absent. */
+.pagination .nav-links > :first-child:not(.prev) {
+	margin-left: auto;
+}
+
+.pagination .nav-links > :last-child:not(.next) {
+	margin-right: auto;
+}
+
 @media (max-width: 29.99em) {
 	.pagination .page-numbers:not(.prev, .next, .current) {
 		display: none;

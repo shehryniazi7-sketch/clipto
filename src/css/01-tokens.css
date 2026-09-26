@@ -19,6 +19,7 @@
 	--c-accent-text: #b3360f;
 	--c-accent-soft: rgb(226 73 31 / 0.1);
 	--c-free: #1b7446;
+	--c-logo-tile: #ffffff; /* logos are drawn for light grounds: white tile in both modes */
 	--c-invert-bg: #121417;
 	--c-invert-ink: #f6f4ee;
 	--c-invert-ink-2: #b9b5ab;

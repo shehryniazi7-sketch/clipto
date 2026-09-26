@@ -179,9 +179,13 @@
 	padding-inline: 0.85rem;
 }
 
-/* Where supported, a subcategory page opens with its own chip scrolled into view. */
-.archive-head__chips .chip[aria-current="page"] {
-	scroll-initial-target: nearest;
+/* Where supported, a subcategory page opens with its own chip scrolled into view. Only while the
+   chip row is a horizontal scroller (< 64em): on desktop the page itself would be the nearest scroll
+   container and would load scrolled past the title. */
+@media (max-width: 63.99em) {
+	.archive-head__chips .chip[aria-current="page"] {
+		scroll-initial-target: nearest;
+	}
 }
 
 @media (min-width: 64em) {

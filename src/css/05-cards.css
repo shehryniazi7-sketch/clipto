@@ -258,7 +258,6 @@
 	font-family: var(--ff-sans);
 	font-size: var(--fs-xs);
 	font-weight: 600;
-	font-variant-numeric: tabular-nums;
 }
 
 .card__rating .icon {
@@ -286,7 +285,7 @@
 	place-items: center;
 	aspect-ratio: 1;
 	padding: 18%;
-	background: var(--c-surface);
+	background: var(--c-logo-tile);
 	border: 1px solid var(--c-rule);
 	border-radius: var(--r-sm);
 	overflow: hidden;
