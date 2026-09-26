@@ -20,10 +20,33 @@ function clipto_asset_version( $rel ) {
 }
 
 /**
+ * Which template stylesheet the current view needs: home, article or archive.
+ *
+ * @return string
+ */
+function clipto_css_bundle() {
+	if ( is_front_page() || is_home() ) {
+		$bundle = 'home';
+	} elseif ( is_singular() ) {
+		$bundle = 'article';
+	} else {
+		$bundle = 'archive'; // Archives, search, author, 404.
+	}
+	return (string) apply_filters( 'clipto_css_bundle', $bundle );
+}
+
+/**
  * Enqueue styles and scripts.
  */
 function clipto_enqueue_assets() {
 	wp_enqueue_style( 'clipto', CLIPTO_URI . '/assets/css/main.css', array(), clipto_asset_version( 'assets/css/main.css' ) );
+
+	// One template bundle per page type keeps each page's CSS small.
+	$bundle = clipto_css_bundle();
+	if ( $bundle ) {
+		$rel = 'assets/css/' . $bundle . '.css';
+		wp_enqueue_style( 'clipto-' . $bundle, CLIPTO_URI . '/' . $rel, array( 'clipto' ), clipto_asset_version( $rel ) );
+	}
 
 	wp_enqueue_script(
 		'clipto',

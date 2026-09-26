@@ -131,7 +131,8 @@ pre {
 	font-size: 0.9em;
 }
 
-time,
+/* Tabular figures only where digits must align (counts, indices). Not on dates: this face's
+   tabular set also widens commas and full stops ("Sep 25 , 2026"). */
 .tabular {
 	font-variant-numeric: tabular-nums;
 }

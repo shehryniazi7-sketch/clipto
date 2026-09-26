@@ -19,21 +19,39 @@ const targets = {
 	safari: (15 << 16) | (4 << 8),
 };
 
-function buildCss() {
-	const files = readdirSync(CSS_SRC).filter((f) => f.endsWith('.css')).sort();
+// Per-template bundles: each page loads main.css plus the one bundle for its template type
+// (see inc/assets.php). Partials not claimed by a bundle go into main.css.
+const CSS_BUNDLES = {
+	home: ['20-'],
+	article: ['30-', '31-', '35-'],
+	archive: ['40-'],
+};
+
+function writeCss(name, files) {
 	const source = files
 		.map((f) => `/* ${f} */\n` + readFileSync(join(CSS_SRC, f), 'utf8'))
 		.join('\n');
 	const { code, warnings } = transform({
-		filename: 'main.css',
+		filename: `${name}.css`,
 		code: Buffer.from(source),
 		minify: true,
 		targets,
 		drafts: { customMedia: true },
 	});
 	warnings.forEach((w) => console.warn('[css]', w.message, w.loc));
-	writeFileSync(join(ROOT, 'assets/css/main.css'), code);
-	console.log(`css  ${files.length} partials → assets/css/main.css (${(code.length / 1024).toFixed(1)} KB)`);
+	writeFileSync(join(ROOT, `assets/css/${name}.css`), code);
+	console.log(`css  ${name}.css ← ${files.join(', ')} (${(code.length / 1024).toFixed(1)} KB)`);
+}
+
+function buildCss() {
+	const files = readdirSync(CSS_SRC).filter((f) => f.endsWith('.css')).sort();
+	const claimed = new Set();
+	for (const [name, prefixes] of Object.entries(CSS_BUNDLES)) {
+		const parts = files.filter((f) => prefixes.some((p) => f.startsWith(p)));
+		parts.forEach((f) => claimed.add(f));
+		writeCss(name, parts);
+	}
+	writeCss('main', files.filter((f) => !claimed.has(f)));
 
 	// Editor styles: tokens + article content + editorial block styles. Content partials scope
 	// their selectors to `.entry-content`; in the editor that scope is the canvas itself, so it is

@@ -38,7 +38,44 @@ $clipto_badges    = $clipto_is_post ? clipto_badges( $clipto_post ) : '';
 $clipto_minutes   = clipto_reading_time( $clipto_post );
 ?>
 <header class="article-header">
-	<?php clipto_breadcrumbs( $clipto_post ); ?>
+	<?php
+	if ( $clipto_is_post ) {
+		clipto_breadcrumbs( $clipto_post );
+	} else {
+		// Pages: Home / ancestors / this page (the shared helper stops at the ancestors).
+		$clipto_trail = array(
+			array(
+				'label' => __( 'Home', 'clipto' ),
+				'url'   => home_url( '/' ),
+			),
+		);
+		foreach ( array_reverse( get_post_ancestors( $clipto_post ) ) as $clipto_ancestor ) {
+			$clipto_trail[] = array(
+				'label' => wp_strip_all_tags( get_the_title( $clipto_ancestor ) ),
+				'url'   => get_permalink( $clipto_ancestor ),
+			);
+		}
+		$clipto_trail[] = array(
+			'label' => wp_strip_all_tags( get_the_title( $clipto_post ) ),
+			'url'   => '',
+		);
+		?>
+		<nav class="breadcrumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'clipto' ); ?>">
+			<ol class="breadcrumbs__list" role="list">
+				<?php foreach ( $clipto_trail as $clipto_crumb ) : ?>
+					<li class="breadcrumbs__item">
+						<?php if ( $clipto_crumb['url'] ) : ?>
+							<a href="<?php echo esc_url( $clipto_crumb['url'] ); ?>"><?php echo esc_html( $clipto_crumb['label'] ); ?></a>
+						<?php else : ?>
+							<span aria-current="page"><?php echo esc_html( $clipto_crumb['label'] ); ?></span>
+						<?php endif; ?>
+					</li>
+				<?php endforeach; ?>
+			</ol>
+		</nav>
+		<?php
+	}
+	?>
 
 	<?php if ( $clipto_args['kicker'] || $clipto_cat || $clipto_badges ) : ?>
 		<div class="article-header__eyebrow">

@@ -8,26 +8,15 @@
 import { prefersReducedMotion } from './reveal.js';
 
 const BAND_BOTTOM = 0.3; // A heading becomes current once it rises above 30% of the viewport.
+const CONDENSE_AFTER = 16; // Rail entries before sub-sections collapse to the current one.
 
 function headerOffset() {
-	const root = document.documentElement;
-	const styles = getComputedStyle(root);
-	const px = (value) => {
-		const probe = document.createElement('div');
-		probe.style.cssText = `position:absolute;visibility:hidden;height:${value}`;
-		document.body.appendChild(probe);
-		const h = probe.getBoundingClientRect().height;
-		probe.remove();
-		return h;
-	};
 	const header = document.querySelector('[data-site-header], .site-header');
 	if (header) {
-		const r = header.getBoundingClientRect();
-		if (getComputedStyle(header).position === 'sticky' || getComputedStyle(header).position === 'fixed') {
-			return Math.max(0, r.bottom);
-		}
+		const pos = getComputedStyle(header).position;
+		if (pos === 'sticky' || pos === 'fixed') return Math.max(0, header.getBoundingClientRect().bottom);
 	}
-	return px(styles.getPropertyValue('--header-h') || '4rem');
+	return 64;
 }
 
 export function initToc() {
@@ -47,6 +36,17 @@ export function initToc() {
 		.map((id) => document.getElementById(id))
 		.filter(Boolean);
 	if (!headings.length) return;
+
+	// Long rails show only the current section's sub-entries (see 30-article.css).
+	navs.forEach((nav) => {
+		if (
+			nav.classList.contains('toc--rail') &&
+			nav.querySelector('.toc__sub') &&
+			nav.querySelectorAll('[data-toc-link]').length > CONDENSE_AFTER
+		) {
+			nav.classList.add('is-condensed');
+		}
+	});
 
 	const indicators = navs
 		.map((nav) => ({ nav, el: nav.querySelector('[data-toc-indicator]') }))
@@ -98,12 +98,16 @@ export function initToc() {
 				link.removeAttribute('aria-current');
 			}
 		});
-		document.querySelectorAll('.toc__item.is-parent-active').forEach((li) => li.classList.remove('is-parent-active'));
+		document
+			.querySelectorAll('.toc__item.is-parent-active, .toc__item.is-current-section')
+			.forEach((li) => li.classList.remove('is-parent-active', 'is-current-section'));
 		if (id && byId.get(id)) {
 			byId.get(id).forEach((link) => {
 				const parent = link.closest('.toc__sub');
 				const item = parent ? parent.closest('.toc__item') : null;
 				if (item) item.classList.add('is-parent-active');
+				const section = item || link.closest('.toc__item');
+				if (section) section.classList.add('is-current-section');
 			});
 		}
 		moveIndicator(id);

@@ -472,7 +472,8 @@
 }
 
 .entry-content > .alignfull :where(figcaption) {
-	padding-inline: var(--gutter);
+	width: min(100% - 2 * var(--gutter), var(--measure));
+	margin-inline: auto;
 }
 
 /* Tables -----------------------------------------------------------------------------
@@ -493,8 +494,14 @@
 	font-family: var(--ff-sans);
 	font-size: 0.9375rem;
 	line-height: 1.45;
-	font-variant-numeric: tabular-nums;
+	font-variant-numeric: lining-nums;
 	color: var(--c-ink);
+}
+
+/* Numeric columns (aligned right or centre in the editor) use tabular figures so
+   digits line up; text columns keep proportional punctuation. */
+.entry-content :not(.is-style-clipto-compare) > table :is(.has-text-align-right, .has-text-align-center) {
+	font-variant-numeric: lining-nums tabular-nums;
 }
 
 /* Four or more columns: keep cells legible and let the figure scroll. */

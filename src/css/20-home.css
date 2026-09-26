@@ -404,6 +404,10 @@
 		max-width: none;
 	}
 
+	.home-hero__grid--solo .home-hero__main {
+		grid-column: 1 / span 9;
+	}
+
 	.hero-top {
 		grid-template-columns: 9rem minmax(0, 1fr);
 		padding-top: var(--sp-5);
@@ -1156,6 +1160,10 @@
 
 	.home-latest__list {
 		grid-column: 6 / -1;
+	}
+
+	.home-latest__grid--solo .home-latest__lead {
+		grid-column: 1 / span 8;
 	}
 
 	.home-latest__lead .card--feature {

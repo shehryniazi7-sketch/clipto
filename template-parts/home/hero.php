@@ -84,7 +84,7 @@ if ( count( $clipto_top ) < 4 ) {
 ?>
 <section class="home-hero" aria-labelledby="home-hero-title">
 	<div class="container">
-		<div class="home-hero__grid grid-12">
+		<div class="home-hero__grid grid-12<?php echo $clipto_rows ? '' : ' home-hero__grid--solo'; ?>">
 
 			<div class="home-hero__main">
 				<p class="home-hero__kicker">

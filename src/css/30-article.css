@@ -26,7 +26,8 @@
 .reading-progress {
 	position: fixed;
 	z-index: 59; /* just under the header (60) so its menus cover it */
-	top: calc(var(--wp-admin--admin-bar--height, 0px) + var(--header-h));
+	/* Directly under the header's 1px bottom rule. */
+	top: calc(var(--wp-admin--admin-bar--height, 0px) + var(--header-h) + 1px);
 	left: 0;
 	right: 0;
 	display: none;
@@ -54,7 +55,7 @@
 @media (max-width: 37.5em) {
 	/* The admin bar scrolls away on phones; the header sticks to the very top. */
 	.admin-bar .reading-progress {
-		top: var(--header-h);
+		top: calc(var(--header-h) + 1px);
 	}
 }
 
@@ -94,7 +95,7 @@
 
 /* Reading grid ------------------------------------------------------------------ */
 .reading {
-	--rail: 13rem;
+	--rail: 14rem;
 	--col-gap: clamp(2rem, 1rem + 2.5vw, 3.5rem);
 	--reading-top: clamp(var(--sp-8), 3rem + 2vw, var(--sp-10));
 }
@@ -172,6 +173,11 @@
 		grid-row: auto;
 	}
 
+	.reading:not(.reading--simple) .entry-content > .alignfull figcaption {
+		width: var(--measure);
+		margin-left: 0;
+	}
+
 	@supports (width: 1cqi) {
 		.reading:not(.reading--simple) .entry-content {
 			--content-wide-w: min(60rem, 100cqi - var(--rail) - var(--col-gap));
@@ -179,12 +185,6 @@
 			--content-full-w: calc((100vw + 100cqi) / 2 - var(--rail) - var(--col-gap));
 			--content-full-ml: 0px;
 		}
-	}
-}
-
-@media (min-width: 80em) {
-	.reading {
-		--rail: 14rem;
 	}
 }
 
@@ -245,6 +245,16 @@
 
 .article-header .breadcrumbs a:hover {
 	color: var(--c-accent-text);
+}
+
+.article-header .breadcrumbs [aria-current] {
+	display: block;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 32ch;
+	color: var(--c-ink-3);
 }
 
 .article-header__eyebrow {
@@ -483,6 +493,16 @@
 
 .toc__item.is-parent-active > .toc__link {
 	color: var(--c-ink);
+}
+
+/* Long tables of contents (set by toc.js): the rail shows sub-sections of the
+   current section only. Without JavaScript everything stays expanded. */
+.toc--rail.is-condensed .toc__sub {
+	display: none;
+}
+
+.toc--rail.is-condensed .toc__item.is-current-section > .toc__sub {
+	display: block;
 }
 
 /* Rail: hairline track with a vermilion indicator that glides (transform only). */
@@ -915,7 +935,6 @@ html:not(.js) .share__copy {
 
 .stars__value {
 	font-weight: 650;
-	font-variant-numeric: tabular-nums;
 }
 
 .stars__max {
@@ -1063,6 +1082,43 @@ html:not(.js) .share__copy {
 	font-weight: 500;
 	font-variant-numeric: tabular-nums;
 	color: var(--c-ink-3);
+}
+
+@media (max-width: 29.99em) {
+	/* Narrow phones: photo beside the name; the bio takes the full width. */
+	.author-box {
+		column-gap: var(--sp-4);
+		row-gap: 0;
+	}
+
+	.author-box__body {
+		display: contents;
+	}
+
+	.author-box__photo {
+		grid-row: 1 / span 2;
+		align-self: center;
+		margin-top: 0;
+	}
+
+	.author-box__eyebrow {
+		grid-column: 2;
+		align-self: end;
+	}
+
+	.author-box__name {
+		grid-column: 2;
+		align-self: start;
+	}
+
+	.author-box__bio,
+	.author-box__foot {
+		grid-column: 1 / -1;
+	}
+
+	.author-box__bio {
+		margin-top: var(--sp-4);
+	}
 }
 
 @media (min-width: 30em) {

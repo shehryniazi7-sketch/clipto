@@ -365,7 +365,8 @@ function clipto_badges( $post = null, $args = array() ) {
 	$labels  = clipto_pricing_labels();
 	$pricing = isset( $facts['pricing'], $labels[ $facts['pricing'] ] ) ? $facts['pricing'] : '';
 
-	if ( clipto_is_free( $post ) ) {
+	// The review's own pricing model is the most precise label; the free-ai tag alone means "Free".
+	if ( 'free' === $pricing || ( ! $pricing && clipto_is_free( $post ) ) ) {
 		$badges[] = '<span class="badge badge--free">' . esc_html( $labels['free'] ) . '</span>';
 	} elseif ( $pricing ) {
 		$badges[] = '<span class="badge badge--' . esc_attr( $pricing ) . '">' . esc_html( $labels[ $pricing ] ) . '</span>';
