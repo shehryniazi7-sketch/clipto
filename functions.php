@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CLIPTO_VERSION', '1.0.0' );
+define( 'CLIPTO_VERSION', '1.0.1' );
 define( 'CLIPTO_DIR', get_template_directory() );
 define( 'CLIPTO_URI', get_template_directory_uri() );
 

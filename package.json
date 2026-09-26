@@ -1,6 +1,6 @@
 {
   "name": "clipto-theme",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Build tooling for the Clipto WordPress theme (CSS + JS bundles).",
   "scripts": {
