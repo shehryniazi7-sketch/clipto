@@ -46,8 +46,13 @@ function clipto_setup() {
 
 	// Editorial image sizes (DESIGN.md §6). Ratios are enforced in CSS too.
 	add_image_size( 'clipto-wide', 1600, 900, true );
+	// Smaller 16:9 renditions so responsive srcset can serve phones/tablets a right-sized file
+	// (srcset only mixes sizes that share the chosen image's aspect ratio).
+	add_image_size( 'clipto-wide-md', 1200, 675, true );
+	add_image_size( 'clipto-wide-sm', 800, 450, true );
 	add_image_size( 'clipto-feature', 1200, 800, true );
 	add_image_size( 'clipto-card', 720, 480, true );
+	add_image_size( 'clipto-card-sm', 480, 320, true );
 	add_image_size( 'clipto-thumb', 240, 240, true );
 }
 add_action( 'after_setup_theme', 'clipto_setup' );

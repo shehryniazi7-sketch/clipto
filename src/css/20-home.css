@@ -507,6 +507,14 @@
 	}
 }
 
+/* The headline and lede are the page's Largest Contentful Paint: they must be visible in the
+   very first frame, so they only lift into place (transform) and never start transparent. */
+@keyframes clipto-home-lift {
+	from {
+		transform: translate3d(0, 10px, 0);
+	}
+}
+
 @keyframes clipto-home-bar {
 	from {
 		transform: scaleX(0);
@@ -515,8 +523,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
 	.home-hero__kicker,
-	.home-hero__title,
-	.home-hero__lede,
 	.home-hero__search,
 	.home-hero__dest,
 	.hero-index__head,
@@ -528,8 +534,11 @@
 		animation-delay: var(--enter, 0ms);
 	}
 
-	.home-hero__title { --enter: 60ms; }
-	.home-hero__lede { --enter: 150ms; }
+	.home-hero__title,
+	.home-hero__lede {
+		animation: clipto-home-lift 560ms var(--ease-out) both;
+	}
+
 	.home-hero__search { --enter: 230ms; }
 	.home-hero__dest { --enter: 300ms; }
 	.hero-index__head { --enter: 220ms; }
