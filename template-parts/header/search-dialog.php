@@ -32,7 +32,7 @@ $clipto_subcats      = clipto_tool_subcategories( 8 );
 
 			<form role="search" method="get" class="search-dialog__form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
 				<?php clipto_the_icon( 'search', array( 'class' => 'search-dialog__icon' ) ); ?>
-				<input class="search-dialog__input" type="search" id="search-dialog-input" name="s" value="<?php echo esc_attr( get_search_query() ); ?>" placeholder="<?php esc_attr_e( 'Search AI tools, guides and news', 'clipto' ); ?>" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus />
+				<input class="search-dialog__input" type="search" id="search-dialog-input" name="s" value="<?php echo esc_attr( get_search_query() ); ?>" placeholder="<?php esc_attr_e( 'Search tools, guides & news', 'clipto' ); ?>" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus />
 				<button class="btn search-dialog__submit" type="submit">
 					<span class="search-dialog__submit-label"><?php esc_html_e( 'Search', 'clipto' ); ?></span>
 					<?php clipto_the_icon( 'arrow-right' ); ?>

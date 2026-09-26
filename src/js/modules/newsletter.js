@@ -122,17 +122,28 @@ function confirmSubscription(el) {
 		/* URL API unavailable — leave the address alone. */
 	}
 
-	const rect = el.getBoundingClientRect();
-	const inView = rect.top >= 0 && rect.bottom <= window.innerHeight;
-	if (!inView) {
-		// Jump (not glide) so the confirmation animation is seen, not scrolled past.
-		const root = document.documentElement;
-		const previous = root.style.scrollBehavior;
-		root.style.scrollBehavior = 'auto';
-		el.scrollIntoView({ block: reducedMotion() ? 'start' : 'center' });
-		root.style.scrollBehavior = previous;
+	const reveal = () => {
+		const rect = el.getBoundingClientRect();
+		const inView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+		if (!inView) {
+			// Jump (not glide) so the confirmation animation is seen, not scrolled past.
+			const root = document.documentElement;
+			const previous = root.style.scrollBehavior;
+			root.style.scrollBehavior = 'auto';
+			el.scrollIntoView({ block: reducedMotion() ? 'start' : 'center' });
+			root.style.scrollBehavior = previous;
+		}
+		el.focus({ preventScroll: true });
+	};
+
+	// The browser's own scroll-to-#newsletter runs around load and resets focus to the
+	// viewport, so wait for it before moving focus to the confirmation.
+	const settle = () => requestAnimationFrame(() => setTimeout(reveal, 0));
+	if (document.readyState === 'complete') {
+		settle();
+	} else {
+		window.addEventListener('load', settle, { once: true });
 	}
-	el.focus({ preventScroll: true });
 }
 
 export function initNewsletter(root = document) {
@@ -142,14 +153,19 @@ export function initNewsletter(root = document) {
 		confirmSubscription(band.querySelector('[data-newsletter-success]'));
 	}
 
-	// Customizer preview: re-enhance after the band is re-rendered by selective refresh.
+	// Customizer preview: after selective refresh re-renders the band or the footer, show
+	// their scroll-reveal elements (the reveal observer only runs on page load) and
+	// re-enhance the form.
 	const wp = window.wp;
 	if (root === document && wp && wp.customize && wp.customize.selectiveRefresh && !initNewsletter.bound) {
 		initNewsletter.bound = true;
 		wp.customize.selectiveRefresh.bind('partial-content-rendered', (placement) => {
-			if (placement && placement.partial && placement.partial.id === 'clipto_newsletter') {
-				initNewsletter();
-			}
+			const id = placement && placement.partial ? placement.partial.id : '';
+			if (id !== 'clipto_newsletter' && id !== 'clipto_footer') return;
+			document
+				.querySelectorAll('[data-clipto-newsletter] [data-reveal], .site-footer [data-reveal]')
+				.forEach((el) => el.classList.add('is-revealed'));
+			if (id === 'clipto_newsletter') initNewsletter();
 		});
 	}
 }

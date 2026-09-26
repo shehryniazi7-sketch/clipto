@@ -1,0 +1,767 @@
+/* ==========================================================================
+   Newsletter band + site footer (template-parts/newsletter.php,
+   template-parts/footer/*.php). The band is part of the publication: a ruled
+   section in the container, never a popup. The footer is the back page — a
+   tinted index of the site's real destinations.
+   ========================================================================== */
+
+/* Both parts own their surface, face and link treatment, so core's global styles
+   (body font, underlined links, printed after main.css) never leak in. */
+.newsletter,
+.newsletter-setup,
+.site-footer {
+	font-family: var(--ff-sans);
+	line-height: var(--lh-ui);
+}
+
+.newsletter,
+.newsletter-setup {
+	background: var(--c-paper);
+	color: var(--c-ink);
+}
+
+:is(.newsletter, .newsletter-setup, .site-footer) a {
+	text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   Newsletter band
+   -------------------------------------------------------------------------- */
+.newsletter {
+	padding-block: var(--sp-6) var(--section-gap);
+}
+
+.newsletter__inner {
+	display: grid;
+	gap: var(--sp-6);
+	padding-top: var(--sp-4);
+	border-top: 2px solid var(--c-rule-strong);
+}
+
+.newsletter__eyebrow {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
+}
+
+.newsletter__eyebrow-icon {
+	width: 1.125rem;
+	height: 1.125rem;
+	color: var(--c-accent);
+}
+
+.newsletter__title {
+	max-width: 17ch;
+	font-size: var(--fs-2xl);
+	font-weight: 500;
+	line-height: var(--lh-tight);
+	letter-spacing: var(--tracking-display);
+}
+
+.newsletter__title em {
+	font-style: italic;
+	font-weight: 400;
+}
+
+.newsletter__panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-5);
+	max-width: 34rem;
+	min-width: 0;
+}
+
+.newsletter__desc {
+	font-family: var(--ff-serif);
+	font-size: var(--fs-md);
+	line-height: 1.55;
+	color: var(--c-ink-2);
+}
+
+@media (min-width: 64em) {
+	.newsletter__inner {
+		grid-template-columns: repeat(12, minmax(0, 1fr));
+		column-gap: var(--grid-gap);
+		row-gap: var(--sp-7);
+	}
+
+	.newsletter__eyebrow {
+		grid-column: 1 / -1;
+	}
+
+	.newsletter__title {
+		grid-column: 1 / span 6;
+		max-width: 16ch;
+	}
+
+	.newsletter__panel {
+		grid-column: 8 / -1;
+		padding-top: 0.4rem;
+	}
+}
+
+/* Form ---------------------------------------------------------------------- */
+.newsletter__form {
+	display: flex;
+	flex-direction: column;
+}
+
+.newsletter__label {
+	margin-bottom: var(--sp-2);
+	font-size: var(--fs-sm);
+	font-weight: 600;
+	color: var(--c-ink);
+}
+
+.newsletter__row {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-2);
+}
+
+.newsletter__input.field {
+	min-height: 3.25rem;
+}
+
+.newsletter__submit {
+	min-height: 3.25rem;
+	padding-inline: 1.35rem;
+}
+
+.newsletter__submit .icon {
+	transition:
+		transform var(--dur-2) var(--ease-out),
+		opacity var(--dur-2) var(--ease-out);
+}
+
+@media (min-width: 30em) {
+	.newsletter__row {
+		flex-direction: row;
+		align-items: stretch;
+	}
+
+	.newsletter__input.field {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.newsletter__submit {
+		flex: 0 0 auto;
+	}
+}
+
+/* Validation feedback (newsletter.js sets aria-invalid + data-state). */
+.newsletter__input[aria-invalid="true"],
+.newsletter__input[aria-invalid="true"]:hover {
+	border-color: var(--c-accent-text);
+}
+
+.newsletter__input[aria-invalid="true"]:focus-visible {
+	border-color: var(--c-accent-text);
+	box-shadow: 0 0 0 3px var(--c-accent-soft), 0 0 0 1px var(--c-accent-text);
+}
+
+.newsletter__msg {
+	margin-top: var(--sp-2);
+	font-size: var(--fs-sm);
+	line-height: 1.45;
+	color: var(--c-accent-text);
+}
+
+/* Empty live region stays in the tree (so it announces) but takes no space. */
+.newsletter__msg:empty {
+	margin: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.newsletter__form:is([data-state="empty"], [data-state="invalid"]) .newsletter__msg {
+		animation: newsletter-msg-in var(--dur-3) var(--ease-out) both;
+	}
+}
+
+@keyframes newsletter-msg-in {
+	from {
+		opacity: 0;
+		transform: translate3d(0, -4px, 0);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Submitting: the button says so; the live message speaks it for screen readers. */
+.newsletter__form[data-state="submitting"] .newsletter__submit {
+	cursor: progress;
+}
+
+.newsletter__form[data-state="submitting"] .newsletter__submit .icon {
+	opacity: 0;
+	transform: translateX(8px);
+}
+
+.newsletter__form[data-state="submitting"] .newsletter__msg {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+}
+
+/* Reassurance line ------------------------------------------------------------ */
+.newsletter__trust {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--sp-2);
+	font-size: var(--fs-xs);
+	line-height: 1.45;
+	color: var(--c-ink-3);
+}
+
+.newsletter__trust-icon {
+	width: 1rem;
+	height: 1rem;
+	margin-top: 0.05em;
+	color: var(--c-ink-2);
+}
+
+.newsletter__trust-text {
+	min-width: 0;
+}
+
+.newsletter__trust a {
+	color: var(--c-ink-2);
+	white-space: nowrap;
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+.newsletter__trust a:hover {
+	color: var(--c-ink);
+}
+
+.newsletter__trust-text > span:not(:last-child)::after {
+	content: "";
+	display: inline-block;
+	width: 3px;
+	height: 3px;
+	margin-inline: var(--sp-2);
+	vertical-align: middle;
+	border-radius: 50%;
+	background: var(--c-ink-3);
+	opacity: 0.7;
+}
+
+/* Plugin shortcode output, styled to match (MailPoet, Newsletter, Jetpack …). */
+.newsletter__embed form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-3);
+	margin: 0;
+}
+
+.newsletter__embed :is(p, fieldset) {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.newsletter__embed label {
+	font-size: var(--fs-sm);
+	font-weight: 600;
+	color: var(--c-ink);
+}
+
+.newsletter__embed :is(input[type="email"], input[type="text"], input[type="tel"], input:not([type]), select, textarea) {
+	display: block;
+	width: 100%;
+	max-width: none;
+	min-height: 3.25rem;
+	margin: 0;
+	padding: 0.75rem 1rem;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-base);
+	line-height: 1.4;
+	color: var(--c-ink);
+	background: var(--c-surface);
+	border: 1px solid var(--c-rule);
+	border-radius: var(--r-sm);
+	box-shadow: none;
+	transition:
+		border-color var(--dur-2) var(--ease-out),
+		box-shadow var(--dur-2) var(--ease-out);
+}
+
+.newsletter__embed :is(input, select, textarea)::placeholder {
+	color: var(--c-ink-3);
+	opacity: 1;
+}
+
+.newsletter__embed :is(input, select, textarea):focus-visible {
+	outline: none;
+	border-color: var(--c-ink);
+	box-shadow: 0 0 0 3px var(--c-accent-soft), 0 0 0 1px var(--c-ink);
+}
+
+.newsletter__embed :is(button, input[type="submit"]) {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	min-height: 3.25rem;
+	margin: 0;
+	padding: 0.65rem 1.35rem;
+	font-family: var(--ff-sans);
+	font-size: 0.9375rem;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--c-paper);
+	background: var(--c-ink);
+	border: 1px solid var(--c-ink);
+	border-radius: var(--r-sm);
+	box-shadow: none;
+	cursor: pointer;
+	transition:
+		background-color var(--dur-2) var(--ease-out),
+		border-color var(--dur-2) var(--ease-out),
+		transform var(--dur-2) var(--ease-out);
+}
+
+.newsletter__embed :is(button, input[type="submit"]):hover {
+	background: var(--c-accent-text);
+	border-color: var(--c-accent-text);
+}
+
+.newsletter__embed :is(button, input[type="submit"]):active {
+	transform: translateY(1px);
+}
+
+/* Confirmation (?clipto_subscribed=1) ----------------------------------------- */
+.newsletter__success {
+	display: grid;
+	grid-template-columns: 3rem minmax(0, 1fr);
+	align-items: start;
+	gap: var(--sp-4);
+	padding-top: var(--sp-1);
+}
+
+.newsletter__success:focus,
+.newsletter__success:focus-visible {
+	outline: none;
+}
+
+.newsletter__check {
+	width: 3rem;
+	height: 3rem;
+	fill: none;
+	stroke: var(--c-accent);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.newsletter__check-ring {
+	stroke-width: 1.6;
+}
+
+.newsletter__check-tick {
+	stroke-width: 2.4;
+}
+
+.newsletter__success-text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-2);
+}
+
+.newsletter__success-title {
+	font-family: var(--ff-serif);
+	font-size: var(--fs-xl);
+	font-weight: 500;
+	line-height: 1.15;
+	letter-spacing: var(--tracking-tight);
+	color: var(--c-ink);
+}
+
+.newsletter__success-desc {
+	font-family: var(--ff-serif);
+	font-size: var(--fs-md);
+	line-height: 1.55;
+	color: var(--c-ink-2);
+}
+
+/* Drawn once: ring, then tick, while the words rise in. Static when motion is reduced. */
+@media (prefers-reduced-motion: no-preference) {
+	.newsletter__check path {
+		stroke-dasharray: 1 2;
+		stroke-dashoffset: 0;
+	}
+
+	.newsletter__check-ring {
+		animation: newsletter-draw 700ms var(--ease-out) 150ms both;
+	}
+
+	.newsletter__check-tick {
+		animation: newsletter-draw 380ms var(--ease-out) 700ms both;
+	}
+
+	.newsletter__success-text {
+		animation: newsletter-rise var(--dur-4) var(--ease-out) 320ms both;
+	}
+}
+
+@keyframes newsletter-draw {
+	0% {
+		stroke-dashoffset: 1;
+		opacity: 0;
+	}
+
+	8% {
+		opacity: 1;
+	}
+
+	100% {
+		stroke-dashoffset: 0;
+		opacity: 1;
+	}
+}
+
+@keyframes newsletter-rise {
+	from {
+		opacity: 0;
+		transform: translate3d(0, 12px, 0);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Setup note — only rendered for users who can configure it ------------------ */
+.newsletter-setup {
+	padding-block: var(--sp-6) var(--sp-8);
+}
+
+.newsletter-setup__note {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--sp-3);
+	max-width: 48rem;
+	padding: var(--sp-4) var(--sp-5);
+	font-size: var(--fs-sm);
+	line-height: 1.5;
+	color: var(--c-ink-2);
+	border: 1px dashed var(--c-ink-3);
+	border-radius: var(--r-sm);
+}
+
+.newsletter-setup__note strong {
+	color: var(--c-ink);
+	font-weight: 600;
+}
+
+.newsletter-setup__note a {
+	color: var(--c-ink);
+	font-weight: 600;
+}
+
+.newsletter-setup__icon {
+	margin-top: 0.1em;
+	color: var(--c-ink-3);
+}
+
+.newsletter-setup__reason,
+.newsletter-setup__who {
+	display: block;
+	margin-top: var(--sp-1);
+	font-size: var(--fs-xs);
+	color: var(--c-ink-3);
+}
+
+/* --------------------------------------------------------------------------
+   Site footer
+   -------------------------------------------------------------------------- */
+.site-footer {
+	padding-top: clamp(var(--sp-9), 1.5rem + 4.5vw, var(--sp-11));
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+	background: var(--c-tint);
+	color: var(--c-ink);
+}
+
+.site-footer__top {
+	display: grid;
+	gap: var(--sp-9);
+}
+
+@media (min-width: 64em) {
+	.site-footer__top {
+		grid-template-columns: repeat(12, minmax(0, 1fr));
+		column-gap: var(--grid-gap);
+	}
+
+	.site-footer__about {
+		grid-column: 1 / span 4;
+	}
+
+	.site-footer__nav {
+		grid-column: 6 / -1;
+	}
+}
+
+/* About: brand, tagline, one line of purpose ---------------------------------- */
+.site-footer__about {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--sp-4);
+	max-width: 28rem;
+}
+
+/* The shared .brand (10-header.css) sets the lock-up; the footer only scales it. */
+.site-footer__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55rem;
+	min-height: 2.75rem;
+	color: var(--c-ink);
+}
+
+.site-footer__brand .logo-mark {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+.site-footer__brand .logo-mark__dot {
+	fill: var(--c-accent);
+}
+
+.site-footer__brand .brand__word {
+	font-size: 1.5rem;
+}
+
+.site-footer__brand .brand__logo {
+	width: auto;
+	max-width: 12rem;
+	max-height: 2.5rem;
+}
+
+.site-footer__tagline {
+	max-width: 22ch;
+	font-family: var(--ff-serif);
+	font-size: var(--fs-lg);
+	font-style: italic;
+	font-weight: 400;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+	color: var(--c-ink);
+}
+
+.site-footer__text {
+	max-width: 40ch;
+	font-size: var(--fs-sm);
+	line-height: 1.6;
+	color: var(--c-ink-2);
+}
+
+/* Footer index: numbered columns of real links ---------------------------------- */
+.site-footer__nav {
+	--cols: 2;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--sp-8) var(--grid-gap);
+	align-items: start;
+}
+
+.site-footer__nav--1 {
+	--cols: 1;
+}
+
+.site-footer__nav--3 {
+	--cols: 3;
+}
+
+/* Two columns on phones; an odd last column takes the full row. */
+.site-footer__col:last-child:nth-child(odd) {
+	grid-column: 1 / -1;
+}
+
+@media (min-width: 48em) {
+	.site-footer__nav {
+		grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+	}
+
+	.site-footer__col:last-child:nth-child(odd) {
+		grid-column: auto;
+	}
+}
+
+.site-footer__col {
+	min-width: 0;
+}
+
+.site-footer__heading {
+	display: flex;
+	align-items: baseline;
+	gap: var(--sp-3);
+	padding-bottom: var(--sp-3);
+	border-bottom: 1px solid var(--c-rule-strong);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--c-ink);
+}
+
+.site-footer__heading .index-num {
+	letter-spacing: 0.04em;
+}
+
+.site-footer__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.site-footer__list > li {
+	border-bottom: 1px solid var(--c-rule);
+}
+
+.site-footer__link {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--sp-3);
+	min-height: 2.75rem;
+	padding-block: 0.7rem;
+	font-family: var(--ff-serif);
+	font-size: 1rem;
+	font-weight: 450;
+	line-height: 1.25;
+	color: var(--c-ink);
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+.site-footer__label {
+	display: inline-block;
+	min-width: 0;
+	transition: transform var(--dur-2) var(--ease-out);
+}
+
+.site-footer__count {
+	flex-shrink: 0;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+	color: var(--c-ink-3);
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+@media (min-width: 48em) {
+	.site-footer__link {
+		font-size: 1.0625rem;
+	}
+}
+
+@media (hover: hover) {
+	.site-footer__link:hover {
+		color: var(--c-accent-text);
+	}
+
+	.site-footer__link:hover .site-footer__label {
+		transform: translateX(4px);
+	}
+
+	.site-footer__link:hover .site-footer__count {
+		color: var(--c-ink-2);
+	}
+}
+
+.site-footer__link:focus-visible {
+	outline-offset: 2px;
+}
+
+/* You are here: the vermilion square from the logo mark. */
+.site-footer__link[aria-current="page"] .site-footer__label::before {
+	content: "";
+	display: inline-block;
+	width: 0.4em;
+	height: 0.4em;
+	margin-right: 0.5em;
+	vertical-align: 0.14em;
+	background: var(--c-accent);
+	border-radius: 1px;
+}
+
+.site-footer__all {
+	margin-top: var(--sp-1);
+}
+
+/* Oversized wordmark — set on the colophon rule, descenders cropped like a proof. */
+.site-footer__mark {
+	margin-top: clamp(var(--sp-9), 1.5rem + 5vw, var(--sp-11));
+	color: color-mix(in srgb, var(--c-ink) 9%, var(--c-tint));
+	pointer-events: none;
+	user-select: none;
+}
+
+.site-footer__mark svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	overflow: hidden;
+}
+
+.site-footer__mark text {
+	font-family: var(--ff-serif);
+	font-weight: 500;
+	fill: currentColor;
+}
+
+/* Colophon bar ------------------------------------------------------------------- */
+.site-footer__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0 var(--sp-5);
+	margin-top: var(--sp-10);
+	padding-block: var(--sp-2);
+	border-top: 1px solid var(--c-rule);
+	font-size: var(--fs-xs);
+	color: var(--c-ink-3);
+}
+
+.site-footer__bar.has-mark {
+	margin-top: 0;
+	border-top-color: var(--c-rule-strong);
+}
+
+.site-footer__copy {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 0.4em;
+	font-variant-numeric: tabular-nums;
+}
+
+.site-footer__totop {
+	margin-right: -0.25rem;
+	padding-inline: 0.25rem;
+	font-size: var(--fs-xs);
+	color: var(--c-ink-2);
+}
+
+.site-footer__totop .icon {
+	width: 1rem;
+	height: 1rem;
+	transition: transform var(--dur-2) var(--ease-out);
+}
+
+@media (hover: hover) {
+	.site-footer__totop:hover .icon {
+		transform: translateY(-3px);
+	}
+}

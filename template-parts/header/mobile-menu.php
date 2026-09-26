@@ -17,7 +17,7 @@ $clipto_subcats = clipto_tool_subcategories();
 
 		<div class="menu-sheet__head">
 			<?php clipto_brand( array( 'class' => 'menu-sheet__brand' ) ); ?>
-			<button type="button" class="icon-btn menu-sheet__close" data-dialog-close>
+			<button type="button" class="icon-btn menu-sheet__close" data-dialog-close autofocus>
 				<?php clipto_the_icon( 'close' ); ?>
 				<span class="screen-reader-text"><?php esc_html_e( 'Close menu', 'clipto' ); ?></span>
 			</button>
@@ -72,8 +72,9 @@ $clipto_subcats = clipto_tool_subcategories();
 			<?php
 			clipto_search_form(
 				array(
-					'id'    => 'menu-search-input',
-					'class' => 'menu-sheet__search',
+					'id'          => 'menu-search-input',
+					'class'       => 'menu-sheet__search',
+					'placeholder' => __( 'Search Clipto', 'clipto' ),
 				)
 			);
 			?>

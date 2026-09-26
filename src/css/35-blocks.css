@@ -1,0 +1,917 @@
+/* ==========================================================================
+   Editorial block styles — the signature Clipto article components
+   (DESIGN.md §7). Registered in inc/blocks.php, inserted via /patterns.
+
+   Every rule is scoped to .entry-content; build.mjs rewrites that scope to
+   `body` for the editor stylesheet, so the editor matches the front end.
+   Labels drawn with ::before read translated custom properties printed by
+   inc/blocks.php, with English fallbacks here.
+
+   Components: Key takeaways · Callouts (note/tip/warning) · Pros/Cons ·
+   At a glance · Index list · FAQ · Comparison table · Pull quote · Verdict
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. Shared: the component label (kicker voice) used by several blocks
+   -------------------------------------------------------------------------- */
+.entry-content .wp-block-group.is-style-clipto-takeaways > :is(h2, h3, h4, h5, h6, p):first-child,
+.entry-content .wp-block-group.is-style-clipto-takeaways:not(:has(> :is(h2, h3, h4, h5, h6, p):first-child))::before,
+.entry-content :is(ul, ol).is-style-clipto-takeaways::before,
+.entry-content .wp-block-group.is-style-clipto-verdict > :is(h2, h3, h4, h5, h6):first-child {
+	display: block;
+	max-width: none;
+	margin: 0;
+	padding: 0 0 0 1.125rem;
+	border: 0;
+	/* Small vermilion square — the logo's centre, reused as the label mark. */
+	background: linear-gradient(var(--c-accent), var(--c-accent)) 0 50% / 0.4375rem 0.4375rem no-repeat;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-style: normal;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	text-wrap: balance;
+	color: var(--c-accent-text);
+}
+
+/* --------------------------------------------------------------------------
+   1. Key takeaways — crop-marked, numbered, serif
+      core/group (heading + list) or a core/list on its own
+   -------------------------------------------------------------------------- */
+.entry-content :is(.wp-block-group, ul, ol).is-style-clipto-takeaways {
+	--tk-mark: var(--c-ink);
+	--tk-arm: 1.125rem;
+	--tk-w: 1.5px;
+	--tk-pad-x: clamp(1.125rem, 0.6rem + 2.6vw, 2.25rem);
+	--tk-pad-y: clamp(1.25rem, 0.9rem + 1.8vw, 2rem);
+	position: relative;
+	margin-block: var(--sp-8);
+	margin-inline: 0;
+	padding: var(--tk-pad-y) var(--tk-pad-x);
+	list-style: none;
+	border: 0;
+	/* Four crop marks, drawn as solid strokes (no pseudo-element needed). */
+	background:
+		linear-gradient(var(--tk-mark), var(--tk-mark)) top left / var(--tk-arm) var(--tk-w),
+		linear-gradient(var(--tk-mark), var(--tk-mark)) top left / var(--tk-w) var(--tk-arm),
+		linear-gradient(var(--tk-mark), var(--tk-mark)) top right / var(--tk-arm) var(--tk-w),
+		linear-gradient(var(--tk-mark), var(--tk-mark)) top right / var(--tk-w) var(--tk-arm),
+		linear-gradient(var(--tk-mark), var(--tk-mark)) bottom left / var(--tk-arm) var(--tk-w),
+		linear-gradient(var(--tk-mark), var(--tk-mark)) bottom left / var(--tk-w) var(--tk-arm),
+		linear-gradient(var(--tk-mark), var(--tk-mark)) bottom right / var(--tk-arm) var(--tk-w),
+		linear-gradient(var(--tk-mark), var(--tk-mark)) bottom right / var(--tk-w) var(--tk-arm);
+	background-repeat: no-repeat;
+	counter-reset: clipto-tk;
+}
+
+.entry-content .wp-block-group.is-style-clipto-takeaways > * {
+	margin-block: 0;
+}
+
+.entry-content .wp-block-group.is-style-clipto-takeaways > * + * {
+	margin-top: var(--sp-4);
+}
+
+/* A group with no label of its own gets the default one. */
+.entry-content .wp-block-group.is-style-clipto-takeaways:not(:has(> :is(h2, h3, h4, h5, h6, p):first-child))::before,
+.entry-content :is(ul, ol).is-style-clipto-takeaways::before {
+	content: var(--clipto-label-takeaways, "Key takeaways");
+	margin-bottom: var(--sp-2);
+}
+
+/* The label heading never takes article-heading decoration. */
+.entry-content .wp-block-group.is-style-clipto-takeaways > :is(h2, h3, h4, h5, h6):first-child::before,
+.entry-content .wp-block-group.is-style-clipto-takeaways > :is(h2, h3, h4, h5, h6):first-child::after,
+.entry-content .wp-block-group.is-style-clipto-verdict > :is(h2, h3, h4, h5, h6):first-child::before,
+.entry-content .wp-block-group.is-style-clipto-verdict > :is(h2, h3, h4, h5, h6):first-child::after {
+	content: none;
+}
+
+.entry-content .wp-block-group.is-style-clipto-takeaways > :is(ul, ol) {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	counter-reset: clipto-tk;
+}
+
+.entry-content .wp-block-group.is-style-clipto-takeaways > :is(h2, h3, h4, h5, h6, p):first-child + :is(ul, ol) {
+	margin-top: var(--sp-2);
+}
+
+.entry-content .is-style-clipto-takeaways > :is(ul, ol) > li,
+.entry-content :is(ul, ol).is-style-clipto-takeaways > li {
+	--tk-num: 2.25rem;
+	position: relative;
+	margin: 0;
+	padding: var(--sp-4) 0 var(--sp-4) var(--tk-num);
+	font-family: var(--ff-serif);
+	font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+	font-weight: 450;
+	line-height: 1.5;
+	letter-spacing: -0.003em;
+	color: var(--c-ink);
+	text-wrap: pretty;
+	counter-increment: clipto-tk;
+}
+
+.entry-content .is-style-clipto-takeaways > :is(ul, ol) > li + li,
+.entry-content :is(ul, ol).is-style-clipto-takeaways > li + li {
+	border-top: 1px solid var(--c-rule);
+}
+
+.entry-content .is-style-clipto-takeaways > :is(ul, ol) > li:last-child,
+.entry-content :is(ul, ol).is-style-clipto-takeaways > li:last-child {
+	padding-bottom: 0;
+}
+
+/* Index numerals sit on the first line's baseline (inline-block, hung left). */
+.entry-content .is-style-clipto-takeaways > :is(ul, ol) > li::before,
+.entry-content :is(ul, ol).is-style-clipto-takeaways > li::before {
+	content: counter(clipto-tk, decimal-leading-zero);
+	position: static;
+	display: inline-block;
+	width: var(--tk-num);
+	margin: 0 0 0 calc(var(--tk-num) * -1);
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	font-style: normal;
+	letter-spacing: 0.04em;
+	font-variant-numeric: tabular-nums;
+	color: var(--c-accent-text);
+	transform: none;
+}
+
+.entry-content .is-style-clipto-takeaways li::marker {
+	content: none;
+}
+
+.entry-content .is-style-clipto-takeaways li strong {
+	font-weight: 650;
+}
+
+/* Anything after the list (a closing line, a link) reads as UI text. */
+.entry-content .wp-block-group.is-style-clipto-takeaways > :is(ul, ol) ~ p {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	line-height: var(--lh-ui);
+	color: var(--c-ink-2);
+}
+
+@media (min-width: 48em) {
+	.entry-content .is-style-clipto-takeaways > :is(ul, ol) > li,
+	.entry-content :is(ul, ol).is-style-clipto-takeaways > li {
+		--tk-num: 2.75rem;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   2. Callouts — tint surface, 2px left rule, sans label, serif body
+   -------------------------------------------------------------------------- */
+.entry-content .wp-block-group:is(.is-style-clipto-note, .is-style-clipto-tip, .is-style-clipto-warning) {
+	--callout-rule: var(--c-ink);
+	--callout-label: var(--c-ink);
+	margin-block: var(--sp-7);
+	margin-inline: 0;
+	padding: var(--sp-5) var(--sp-5) var(--sp-5) clamp(1.125rem, 0.9rem + 1vw, 1.5rem);
+	background: var(--c-tint);
+	border: 0;
+	border-left: 2px solid var(--callout-rule);
+	border-radius: 0 var(--r-xs) var(--r-xs) 0;
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-group.is-style-clipto-tip {
+	--callout-rule: var(--c-free);
+	--callout-label: var(--c-free);
+}
+
+.entry-content .wp-block-group.is-style-clipto-warning {
+	--callout-rule: var(--c-accent);
+	--callout-label: var(--c-accent-text);
+}
+
+.entry-content .wp-block-group:is(.is-style-clipto-note, .is-style-clipto-tip, .is-style-clipto-warning)::before {
+	content: var(--clipto-label-note, "Note");
+	display: block;
+	margin-bottom: var(--sp-2);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	line-height: 1.3;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--callout-label);
+}
+
+.entry-content .wp-block-group.is-style-clipto-tip::before {
+	content: var(--clipto-label-tip, "Tip");
+}
+
+.entry-content .wp-block-group.is-style-clipto-warning::before {
+	content: var(--clipto-label-warning, "Warning");
+}
+
+.entry-content .wp-block-group:is(.is-style-clipto-note, .is-style-clipto-tip, .is-style-clipto-warning) > * {
+	margin-block: 0;
+	max-width: none;
+}
+
+.entry-content .wp-block-group:is(.is-style-clipto-note, .is-style-clipto-tip, .is-style-clipto-warning) > * + * {
+	margin-top: var(--sp-3);
+}
+
+.entry-content .wp-block-group:is(.is-style-clipto-note, .is-style-clipto-tip, .is-style-clipto-warning) > :is(p, ul, ol) {
+	font-family: var(--ff-serif);
+	font-size: clamp(1.0625rem, 1.02rem + 0.15vw, 1.125rem);
+	line-height: 1.6;
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-group:is(.is-style-clipto-note, .is-style-clipto-tip, .is-style-clipto-warning) > :is(h2, h3, h4, h5, h6) {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-md);
+	font-weight: 650;
+	letter-spacing: -0.01em;
+	line-height: 1.3;
+}
+
+/* --------------------------------------------------------------------------
+   3. Pros / Cons — +/– squares, hairline ledger, small-caps headings
+   -------------------------------------------------------------------------- */
+.entry-content :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons) {
+	--pc: var(--c-free);
+	--pc-v: 0.625rem; /* vertical stroke of the plus; 0 for minus */
+	margin-block: var(--sp-5);
+	margin-inline: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.entry-content :is(ul, ol).is-style-clipto-cons {
+	--pc: var(--c-accent);
+	--pc-v: 0px;
+}
+
+.entry-content :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons) > li {
+	position: relative;
+	margin: 0;
+	padding: var(--sp-3) 0 var(--sp-3) 2.125rem;
+	font-family: var(--ff-serif);
+	font-size: 1.0625rem;
+	line-height: 1.5;
+	color: var(--c-ink);
+	text-wrap: pretty;
+}
+
+.entry-content :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons) > li + li {
+	border-top: 1px solid var(--c-rule);
+}
+
+.entry-content :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons) > li::before {
+	content: "";
+	position: static;
+	display: inline-block;
+	width: 1.25rem;
+	height: 1.25rem;
+	margin: 0 0.875rem 0 -2.125rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--r-xs);
+	vertical-align: -0.24em;
+	transform: none;
+	/* Fallback tint first; the colour-mixed wash replaces it where supported. */
+	background:
+		linear-gradient(var(--pc), var(--pc)) center / 0.625rem 2px no-repeat,
+		linear-gradient(var(--pc), var(--pc)) center / 2px var(--pc-v) no-repeat,
+		var(--c-tint);
+	background:
+		linear-gradient(var(--pc), var(--pc)) center / 0.625rem 2px no-repeat,
+		linear-gradient(var(--pc), var(--pc)) center / 2px var(--pc-v) no-repeat,
+		color-mix(in srgb, var(--pc) 13%, transparent);
+}
+
+.entry-content :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons) li::marker {
+	content: none;
+}
+
+/* A heading directly above a pros/cons list becomes its small-caps label. */
+.entry-content :is(h3, h4, h5, h6):has(+ :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons)) {
+	margin-block: var(--sp-7) 0;
+	padding-top: var(--sp-3);
+	border-top: 2px solid var(--c-rule-strong);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	line-height: 1.3;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--c-ink);
+}
+
+.entry-content :is(h3, h4, h5, h6):has(+ :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons)) + :is(ul, ol) {
+	margin-top: var(--sp-2);
+}
+
+.entry-content .wp-block-column > :is(h3, h4, h5, h6):first-child:has(+ :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons)) {
+	margin-top: 0;
+}
+
+.entry-content .wp-block-column > :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons):last-child {
+	margin-bottom: 0;
+}
+
+.entry-content .wp-block-columns:has(> .wp-block-column > :is(ul, ol):is(.is-style-clipto-pros, .is-style-clipto-cons)) {
+	gap: var(--sp-7) clamp(1.5rem, 3vw, 2.5rem);
+	margin-block: var(--sp-6) var(--sp-8);
+}
+
+/* --------------------------------------------------------------------------
+   4. At a glance — label / value fact list (core/list, items start with <strong>)
+   -------------------------------------------------------------------------- */
+.entry-content :is(ul, ol).is-style-clipto-glance {
+	--gl-key: 9.5rem;
+	margin-block: var(--sp-7);
+	margin-inline: 0;
+	padding: 0;
+	list-style: none;
+	border-top: 2px solid var(--c-rule-strong);
+	font-family: var(--ff-sans);
+}
+
+.entry-content :is(ul, ol).is-style-clipto-glance::before {
+	content: var(--clipto-label-glance, "At a glance");
+	display: block;
+	padding-block: var(--sp-3) var(--sp-2);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--c-accent-text);
+}
+
+.entry-content :is(ul, ol).is-style-clipto-glance > li {
+	margin: 0;
+	padding: var(--sp-3) 0;
+	border-bottom: 1px solid var(--c-rule);
+	font-family: var(--ff-sans);
+	font-size: 0.9375rem;
+	line-height: 1.5;
+	color: var(--c-ink);
+	font-variant-numeric: tabular-nums;
+}
+
+.entry-content :is(ul, ol).is-style-clipto-glance > li::before {
+	content: none;
+}
+
+.entry-content :is(ul, ol).is-style-clipto-glance li::marker {
+	content: none;
+}
+
+.entry-content :is(ul, ol).is-style-clipto-glance > li > strong:first-child {
+	display: block;
+	margin-bottom: 0.125rem;
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--c-ink-3);
+}
+
+@media (min-width: 30em) {
+	.entry-content :is(ul, ol).is-style-clipto-glance > li {
+		padding-left: var(--gl-key);
+	}
+
+	.entry-content :is(ul, ol).is-style-clipto-glance > li > strong:first-child {
+		display: inline-block;
+		width: var(--gl-key);
+		margin: 0 0 0 calc(var(--gl-key) * -1);
+		padding-right: var(--sp-4);
+		vertical-align: baseline;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   5. Index list — numbered rows: bold name, then serif description
+      (features, alternatives, steps)
+   -------------------------------------------------------------------------- */
+.entry-content :is(ul, ol).is-style-clipto-index {
+	--ix-num: 2.25rem;
+	margin-block: var(--sp-7);
+	margin-inline: 0;
+	padding: 0;
+	list-style: none;
+	border-top: 1px solid var(--c-rule);
+	counter-reset: clipto-ix;
+}
+
+.entry-content :is(ul, ol).is-style-clipto-index > li {
+	margin: 0;
+	padding: var(--sp-4) 0 var(--sp-4) var(--ix-num);
+	border-bottom: 1px solid var(--c-rule);
+	font-family: var(--ff-serif);
+	font-size: 1.0625rem;
+	line-height: 1.55;
+	color: var(--c-ink-2);
+	text-wrap: pretty;
+	counter-increment: clipto-ix;
+}
+
+.entry-content :is(ul, ol).is-style-clipto-index > li::before {
+	content: counter(clipto-ix, decimal-leading-zero);
+	position: static;
+	display: inline-block;
+	width: var(--ix-num);
+	margin: 0 0 0 calc(var(--ix-num) * -1);
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	font-variant-numeric: tabular-nums;
+	color: var(--c-ink-3);
+	transform: none;
+	transition: color var(--dur-2) var(--ease-out);
+}
+
+.entry-content :is(ul, ol).is-style-clipto-index li::marker {
+	content: none;
+}
+
+@media (hover: hover) {
+	.entry-content :is(ul, ol).is-style-clipto-index > li:hover::before {
+		color: var(--c-accent);
+	}
+}
+
+/* The name reads as a sans title on its own line; the numeral keeps its baseline. */
+.entry-content :is(ul, ol).is-style-clipto-index > li > strong:first-child,
+.entry-content :is(ul, ol).is-style-clipto-index > li > a:first-child > strong:only-child {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-base);
+	font-weight: 650;
+	letter-spacing: -0.01em;
+	color: var(--c-ink);
+}
+
+.entry-content :is(ul, ol).is-style-clipto-index > li > strong:first-child::after,
+.entry-content :is(ul, ol).is-style-clipto-index > li > a:first-child:has(> strong:only-child)::after {
+	content: "\A";
+	white-space: pre;
+}
+
+/* --------------------------------------------------------------------------
+   6. FAQ — core/details with hairlines, serif question, +/– that turns
+   -------------------------------------------------------------------------- */
+.entry-content details.is-style-clipto-faq {
+	margin-block: 0;
+	margin-inline: 0;
+	padding: 0;
+	border: 0;
+	border-bottom: 1px solid var(--c-rule);
+	background: none;
+}
+
+/* First of a run: top hairline and breathing room above. */
+.entry-content details.is-style-clipto-faq:not(.is-style-clipto-faq + .is-style-clipto-faq) {
+	margin-top: var(--sp-6);
+	border-top: 1px solid var(--c-rule);
+}
+
+/* Last of a run: room below. */
+.entry-content details.is-style-clipto-faq:not(:has(+ .is-style-clipto-faq)) {
+	margin-bottom: var(--sp-8);
+}
+
+.entry-content details.is-style-clipto-faq > summary {
+	position: relative;
+	display: block;
+	min-height: 2.75rem;
+	margin: 0;
+	padding: var(--sp-5) 2.75rem var(--sp-5) 0;
+	list-style: none;
+	font-family: var(--ff-serif);
+	font-size: var(--fs-md);
+	font-weight: 500;
+	line-height: 1.35;
+	letter-spacing: -0.008em;
+	color: var(--c-ink);
+	text-wrap: balance;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+.entry-content details.is-style-clipto-faq > summary::-webkit-details-marker {
+	display: none;
+}
+
+.entry-content details.is-style-clipto-faq > summary::marker {
+	content: "";
+}
+
+/* Two strokes: the vertical one turns flat when open, making + into –. */
+.entry-content details.is-style-clipto-faq > summary::before,
+.entry-content details.is-style-clipto-faq > summary::after {
+	content: "";
+	position: absolute;
+	top: calc(var(--sp-5) + 0.675em - 1px);
+	right: 0.5rem;
+	width: 0.875rem;
+	height: 2px;
+	border-radius: 1px;
+	background: var(--c-ink);
+	transition:
+		transform var(--dur-3) var(--ease-in-out),
+		background-color var(--dur-1) var(--ease-out);
+}
+
+.entry-content details.is-style-clipto-faq > summary::before {
+	transform: rotate(90deg);
+}
+
+.entry-content details.is-style-clipto-faq[open] > summary::before {
+	transform: rotate(180deg);
+}
+
+.entry-content details.is-style-clipto-faq[open] > summary::before,
+.entry-content details.is-style-clipto-faq[open] > summary::after {
+	background: var(--c-accent);
+}
+
+@media (hover: hover) {
+	.entry-content details.is-style-clipto-faq > summary:hover {
+		color: var(--c-accent-text);
+	}
+
+	.entry-content details.is-style-clipto-faq > summary:hover::before,
+	.entry-content details.is-style-clipto-faq > summary:hover::after {
+		background: var(--c-accent);
+	}
+}
+
+.entry-content details.is-style-clipto-faq > summary:focus-visible {
+	outline: 2px solid var(--c-accent);
+	outline-offset: 2px;
+	border-radius: var(--r-xs);
+}
+
+.entry-content details.is-style-clipto-faq > :not(summary) {
+	margin-block: 0;
+	max-width: none;
+	font-family: var(--ff-serif);
+	font-size: 1.0625rem;
+	line-height: 1.6;
+	color: var(--c-ink-2);
+}
+
+.entry-content details.is-style-clipto-faq > :not(summary) + :not(summary) {
+	margin-top: var(--sp-3);
+}
+
+.entry-content details.is-style-clipto-faq > :not(summary):last-child {
+	margin-bottom: var(--sp-5);
+}
+
+/* The answer eases in each time it opens (opacity + transform only). */
+@media (prefers-reduced-motion: no-preference) {
+	.entry-content details.is-style-clipto-faq[open] > :not(summary) {
+		animation: clipto-faq-in var(--dur-3) var(--ease-out) both;
+	}
+}
+
+@keyframes clipto-faq-in {
+	from {
+		opacity: 0;
+		transform: translate3d(0, -6px, 0);
+	}
+}
+
+@media (min-width: 48em) {
+	.entry-content details.is-style-clipto-faq > :not(summary) {
+		padding-right: 2.75rem;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   7. Comparison table — hairline ledger, sticky first column when it
+      scrolls, tabular numerals, ✓/✗ marks, optional highlighted column
+      (extra class clipto-highlight-2 … clipto-highlight-5)
+   -------------------------------------------------------------------------- */
+.entry-content .wp-block-table.is-style-clipto-compare {
+	--cmp-bg: var(--c-paper);
+	--cmp-hi: var(--c-tint);
+	margin-block: var(--sp-7) var(--sp-8);
+	margin-inline: 0;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scrollbar-width: thin;
+	scrollbar-color: var(--c-rule) transparent;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare table {
+	width: 100%;
+	margin: 0;
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	line-height: 1.45;
+	font-variant-numeric: tabular-nums lining-nums;
+	color: var(--c-ink-2);
+	background: none;
+}
+
+/* Wide tables keep readable columns and scroll sideways on small screens. */
+.entry-content .wp-block-table.is-style-clipto-compare table:has(tr > :nth-child(4)) {
+	min-width: 34rem;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare table:has(tr > :nth-child(5)) {
+	min-width: 42rem;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare table:has(tr > :nth-child(6)) {
+	min-width: 50rem;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare :is(thead, tbody, tfoot) {
+	border: 0;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare :is(th, td) {
+	padding: var(--sp-3) var(--sp-4);
+	border: 0;
+	border-bottom: 1px solid var(--c-rule);
+	text-align: left;
+	vertical-align: top;
+	word-break: normal;
+	overflow-wrap: break-word;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare :is(th, td):first-child {
+	padding-left: 0;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare :is(th, td):last-child {
+	padding-right: var(--sp-2);
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare thead :is(th, td) {
+	padding-block: var(--sp-2) var(--sp-3);
+	border-bottom: 2px solid var(--c-rule-strong);
+	vertical-align: bottom;
+	font-weight: 650;
+	letter-spacing: -0.005em;
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare tbody :is(th, td):first-child {
+	font-weight: 600;
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare tfoot :is(th, td) {
+	border-top: 2px solid var(--c-rule-strong);
+	border-bottom: 0;
+	font-weight: 600;
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare :is(th, td) :is(strong, b) {
+	font-weight: 650;
+	color: var(--c-ink);
+}
+
+/* Sticky label column (only takes effect when the table scrolls). */
+.entry-content .wp-block-table.is-style-clipto-compare :is(th, td):first-child {
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	min-width: 7.5rem;
+	background: var(--cmp-bg);
+}
+
+@media (max-width: 47.99em) {
+	.entry-content .wp-block-table.is-style-clipto-compare :is(th, td):first-child {
+		box-shadow: inset -1px 0 0 var(--c-rule);
+	}
+}
+
+/* Highlighted column: tint band with a vermilion cap on the header. */
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-2 :is(th, td):nth-child(2),
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-3 :is(th, td):nth-child(3),
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-4 :is(th, td):nth-child(4),
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-5 :is(th, td):nth-child(5) {
+	padding-inline: var(--sp-4);
+	background: var(--cmp-hi);
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-2 thead :is(th, td):nth-child(2),
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-3 thead :is(th, td):nth-child(3),
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-4 thead :is(th, td):nth-child(4),
+.entry-content .wp-block-table.is-style-clipto-compare.clipto-highlight-5 thead :is(th, td):nth-child(5) {
+	padding-top: var(--sp-3);
+	box-shadow: inset 0 3px 0 var(--c-accent);
+}
+
+/* ✓ / ✗ marks (server-rendered from the characters, see inc/blocks.php). */
+.entry-content .clipto-compare__mark {
+	display: inline-flex;
+	vertical-align: -0.3em;
+}
+
+.entry-content .clipto-compare__mark .icon {
+	width: 1.25rem;
+	height: 1.25rem;
+	stroke-width: 2;
+}
+
+.entry-content .clipto-compare__mark--yes {
+	color: var(--c-free);
+}
+
+.entry-content .clipto-compare__mark--no {
+	color: var(--c-ink-3);
+}
+
+.entry-content .clipto-compare__mark--no .icon {
+	width: 1.125rem;
+	height: 1.125rem;
+	stroke-width: 1.8;
+}
+
+.entry-content .wp-block-table.is-style-clipto-compare :where(figcaption) {
+	position: sticky;
+	left: 0;
+	margin: var(--sp-3) 0 0;
+	padding: 0;
+	border: 0;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	line-height: 1.5;
+	text-align: left;
+	color: var(--c-ink-3);
+}
+
+/* --------------------------------------------------------------------------
+   8. Pull quote — large serif italic between vermilion crop marks
+   -------------------------------------------------------------------------- */
+.entry-content blockquote.wp-block-quote.is-style-clipto-pull {
+	--pq-mark: var(--c-accent);
+	--pq-arm: 1.5rem;
+	--pq-w: 2px;
+	position: relative;
+	margin-block: var(--sp-9);
+	margin-inline: 0;
+	padding: clamp(1.25rem, 0.8rem + 2vw, 2.25rem) clamp(1.125rem, 0.6rem + 2.4vw, 2.25rem);
+	border: 0;
+	border-radius: 0;
+	background:
+		linear-gradient(var(--pq-mark), var(--pq-mark)) top left / var(--pq-arm) var(--pq-w),
+		linear-gradient(var(--pq-mark), var(--pq-mark)) top left / var(--pq-w) var(--pq-arm),
+		linear-gradient(var(--pq-mark), var(--pq-mark)) bottom right / var(--pq-arm) var(--pq-w),
+		linear-gradient(var(--pq-mark), var(--pq-mark)) bottom right / var(--pq-w) var(--pq-arm);
+	background-repeat: no-repeat;
+	text-align: left;
+	quotes: none;
+}
+
+.entry-content blockquote.wp-block-quote.is-style-clipto-pull::before,
+.entry-content blockquote.wp-block-quote.is-style-clipto-pull::after {
+	content: none;
+}
+
+.entry-content blockquote.wp-block-quote.is-style-clipto-pull > :is(p, h2, h3, h4) {
+	margin: 0;
+	max-width: none;
+	font-family: var(--ff-serif);
+	font-size: clamp(1.5rem, 1.2rem + 1.35vw, 2.25rem);
+	font-style: italic;
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: -0.018em;
+	color: var(--c-ink);
+	text-wrap: balance;
+	text-transform: none;
+}
+
+.entry-content blockquote.wp-block-quote.is-style-clipto-pull > * + :is(p, h2, h3, h4) {
+	margin-top: var(--sp-4);
+}
+
+.entry-content blockquote.wp-block-quote.is-style-clipto-pull > cite {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-3);
+	margin-top: var(--sp-5);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-style: normal;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--c-ink-3);
+}
+
+.entry-content blockquote.wp-block-quote.is-style-clipto-pull > cite::before {
+	content: "";
+	flex: none;
+	width: 1.5rem;
+	height: 1px;
+	background: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   9. Verdict — 2px ink rule, label, serif statement, optional score stamp
+   -------------------------------------------------------------------------- */
+.entry-content .wp-block-group.is-style-clipto-verdict {
+	margin-block: var(--sp-9);
+	margin-inline: 0;
+	padding: var(--sp-4) 0 0;
+	border: 0;
+	border-top: 2px solid var(--c-rule-strong);
+	background: none;
+}
+
+.entry-content .wp-block-group.is-style-clipto-verdict > * {
+	margin-block: 0;
+	max-width: none;
+}
+
+.entry-content .wp-block-group.is-style-clipto-verdict > * + * {
+	margin-top: var(--sp-4);
+}
+
+/* Supporting paragraphs… */
+.entry-content .wp-block-group.is-style-clipto-verdict > p:not(.clipto-score) {
+	font-family: var(--ff-serif);
+	font-size: var(--fs-read);
+	line-height: var(--lh-read);
+	color: var(--c-ink-2);
+}
+
+/* …and the first paragraph, which is the verdict itself. */
+.entry-content .wp-block-group.is-style-clipto-verdict > :is(h2, h3, h4, h5, h6):first-child + p:not(.clipto-score),
+.entry-content .wp-block-group.is-style-clipto-verdict > p:first-child:not(.clipto-score) {
+	margin-top: var(--sp-3);
+	font-size: var(--fs-xl);
+	font-weight: 500;
+	line-height: 1.18;
+	letter-spacing: var(--tracking-tight);
+	color: var(--c-ink);
+	text-wrap: balance;
+}
+
+/* Score stamp — shown only when the author writes one. */
+.entry-content .clipto-score {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--sp-1) var(--sp-2);
+	width: fit-content;
+	max-width: 100%;
+	padding: var(--sp-2) var(--sp-3);
+	border: 1px solid var(--c-rule-strong);
+	border-radius: var(--r-sm);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	font-weight: 600;
+	line-height: 1.35;
+	font-variant-numeric: tabular-nums;
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-group.is-style-clipto-verdict > .clipto-score {
+	margin-top: var(--sp-5);
+}
+
+.entry-content .clipto-score :is(strong, b) {
+	font-size: var(--fs-lg);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 1;
+}
+
+/* Lists inside a verdict read as UI text with small ink squares. */
+.entry-content .wp-block-group.is-style-clipto-verdict > :is(ul, ol):not([class*="is-style-"]) {
+	padding-left: 1.25rem;
+	font-family: var(--ff-sans);
+	font-size: 0.9375rem;
+	color: var(--c-ink-2);
+}

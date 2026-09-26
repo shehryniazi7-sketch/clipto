@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 $clipto_nav_items = clipto_primary_nav_items();
 $clipto_has_nav   = $clipto_nav_items || has_nav_menu( 'primary' );
 ?>
-<header class="site-header" data-site-header>
+<header class="site-header<?php echo $clipto_has_nav ? ' has-menu' : ''; ?>" data-site-header>
 	<div class="site-header__bar container">
 
 		<div class="site-header__brand">

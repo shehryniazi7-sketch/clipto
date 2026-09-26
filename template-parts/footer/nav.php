@@ -1,7 +1,7 @@
 <?php
 /**
  * Footer index: Explore (the site's destinations), AI Tools (its existing subcategories)
- * and a site column (Newsletter anchor, Footer menu, privacy policy, RSS). Every link is
+ * and a site column (Newsletter anchor, Footer menu, privacy policy). Every link is
  * resolved from live data; a column with nothing real to show is not printed.
  *
  * @package Clipto
@@ -96,7 +96,6 @@ if ( $clipto_fn_privacy ) {
 	$clipto_fn_items        .= clipto_footer_link( $clipto_fn_privacy, $clipto_fn_privacy_title ? $clipto_fn_privacy_title : __( 'Privacy policy', 'clipto' ), null, is_privacy_policy() );
 }
 if ( $clipto_fn_items ) {
-	$clipto_fn_items .= clipto_footer_link( get_feed_link(), __( 'RSS feed', 'clipto' ) );
 	$clipto_fn_cols[] = array(
 		'key'   => 'site',
 		'title' => get_bloginfo( 'name' ),

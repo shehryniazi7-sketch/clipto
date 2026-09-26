@@ -534,7 +534,8 @@ function clipto_customize_register( $wp_customize ) {
 				'type'              => 'theme_mod',
 				'capability'        => 'edit_theme_options',
 				'sanitize_callback' => $def['sanitize'],
-				'transport'         => 'postMessage',
+				// Switching provider re-evaluates the controls' active_callback (full refresh).
+				'transport'         => 'clipto_nl_mode' === $id ? 'refresh' : 'postMessage',
 			)
 		);
 		$wp_customize->add_control( $id, array_merge( array( 'section' => 'clipto_newsletter' ), $def['control'] ) );

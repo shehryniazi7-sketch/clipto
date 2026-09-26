@@ -149,12 +149,19 @@ $clipto_nl_reveal = $clipto_nl_subscribed ? '' : ' data-reveal';
 
 					<?php if ( $clipto_nl_has_trust ) : ?>
 						<p class="newsletter__trust" id="<?php echo esc_attr( $clipto_nl_trust_id ); ?>">
-							<?php if ( '' !== $clipto_nl['trust'] ) : ?>
-								<span><?php echo esc_html( $clipto_nl['trust'] ); ?></span>
-							<?php endif; ?>
-							<?php if ( '' !== $clipto_nl['privacy_url'] ) : ?>
-								<a class="link-u" href="<?php echo esc_url( $clipto_nl['privacy_url'] ); ?>"><?php esc_html_e( 'Privacy policy', 'clipto' ); ?></a>
-							<?php endif; ?>
+							<?php
+							if ( '' !== $clipto_nl['trust'] ) {
+								clipto_the_icon( 'check', array( 'class' => 'newsletter__trust-icon' ) );
+							}
+							?>
+							<span class="newsletter__trust-text">
+								<?php if ( '' !== $clipto_nl['trust'] ) : ?>
+									<span><?php echo esc_html( $clipto_nl['trust'] ); ?></span>
+								<?php endif; ?>
+								<?php if ( '' !== $clipto_nl['privacy_url'] ) : ?>
+									<a class="link-u" href="<?php echo esc_url( $clipto_nl['privacy_url'] ); ?>"><?php esc_html_e( 'Privacy policy', 'clipto' ); ?></a>
+								<?php endif; ?>
+							</span>
 						</p>
 					<?php endif; ?>
 
