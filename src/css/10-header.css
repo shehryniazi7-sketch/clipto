@@ -1,0 +1,1345 @@
+/* ==========================================================================
+   Masthead — brand, sticky site header, primary navigation, the AI Tools
+   mega-menu, header controls, search dialog, mobile menu sheet and theme
+   toggle.
+
+   Hooks other partials may rely on:
+     .site-header.is-scrolled      set by header.js after 8px of scroll
+     html.has-modal                a modal dialog is open (page scroll locked)
+     [data-search-open]            opens the search dialog
+     [data-theme-toggle]           toggles light/dark
+   Sticky elements elsewhere should sit below the header:
+     top: calc(var(--wp-admin--admin-bar--height, 0px) + var(--header-h))
+   ========================================================================== */
+
+/* Brand ------------------------------------------------------------------ */
+.brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-height: 2.75rem;
+	color: var(--c-ink);
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.brand__mark {
+	width: 1.375rem;
+	height: 1.375rem;
+}
+
+.logo-mark__dot {
+	fill: var(--c-accent);
+	transform-box: fill-box;
+	transform-origin: center;
+	transition: transform var(--dur-3) var(--ease-out);
+}
+
+.brand__word {
+	font-family: var(--ff-serif);
+	font-size: 1.375rem;
+	font-weight: 600;
+	letter-spacing: -0.028em;
+	line-height: 1;
+	/* Optical: centre the cap-to-baseline band (not the line box) on the mark. */
+	transform: translateY(0.06em);
+}
+
+.brand__logo {
+	width: auto;
+	height: auto;
+	max-height: 2rem;
+	max-width: min(12rem, 48vw);
+	object-fit: contain;
+}
+
+@media (hover: hover) {
+	.brand:hover .logo-mark__dot {
+		transform: scale(0.78);
+	}
+}
+
+/* Header shell ------------------------------------------------------------ */
+.site-header {
+	position: sticky;
+	top: var(--wp-admin--admin-bar--height, 0px);
+	z-index: 60;
+	background-color: var(--c-paper);
+	border-bottom: 1px solid transparent;
+	transition:
+		background-color var(--dur-3) var(--ease-out),
+		border-color var(--dur-3) var(--ease-out);
+}
+
+/* Scrolled: a hairline appears and the paper turns very slightly translucent — enough to
+   feel the page moving underneath, never enough to ghost text behind the masthead. */
+.site-header.is-scrolled {
+	background-color: color-mix(in srgb, var(--c-paper) 94%, transparent);
+	border-bottom-color: var(--c-rule);
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
+}
+
+/* The admin bar stops being fixed below 600px, so the header sticks to the very top. */
+@media (max-width: 37.5em) {
+	.admin-bar .site-header {
+		top: 0;
+	}
+}
+
+.site-header__bar {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: var(--sp-3);
+	height: var(--header-h);
+}
+
+.site-header__brand {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	margin-right: auto;
+}
+
+/* Controls ------------------------------------------------------------------ */
+.site-header__actions {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-1);
+	/* Optical edge: the last icon, not its 44px hit area, lines up with the gutter. */
+	margin-right: -0.75rem;
+}
+
+.site-header__search,
+.site-header__menu {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--sp-2);
+	min-width: 2.75rem;
+	height: 2.75rem;
+	padding-inline: 0.75rem;
+	border-radius: var(--r-sm);
+	color: var(--c-ink);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+	transition:
+		background-color var(--dur-1) var(--ease-out),
+		border-color var(--dur-1) var(--ease-out),
+		color var(--dur-1) var(--ease-out);
+}
+
+.site-header__search:hover,
+.site-header__menu:hover {
+	background-color: var(--c-tint);
+}
+
+.site-header__search-label,
+.site-header__menu-label {
+	/* Visually hidden until there is room — never display:none (it names the button). */
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.site-header__kbd {
+	display: none;
+}
+
+/* Without JS: the dialog buttons do nothing, so show the plain search link and hide them. */
+.site-header__search-link {
+	display: none;
+}
+
+html:not(.js) .site-header__search-link {
+	display: inline-grid;
+}
+
+html:not(.js) .site-header__search,
+html:not(.js) .site-header__menu,
+html:not(.js) [data-theme-toggle] {
+	display: none;
+}
+
+.site-header__menu {
+	flex-direction: row-reverse;
+	font-weight: 600;
+}
+
+.site-header__menu[aria-expanded="true"] {
+	background-color: var(--c-tint);
+}
+
+@media (min-width: 22.5em) {
+	.site-header__menu-label {
+		position: static;
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip: auto;
+	}
+}
+
+/* Theme toggle: shows the icon of the theme it switches to. */
+.theme-toggle__icons {
+	display: grid;
+	place-items: center;
+}
+
+.theme-toggle__icons > .icon {
+	grid-area: 1 / 1;
+	transition:
+		opacity var(--dur-3) var(--ease-out),
+		transform var(--dur-3) var(--ease-out);
+}
+
+.theme-toggle__icon--sun {
+	opacity: 0;
+	transform: rotate(-70deg) scale(0.55);
+}
+
+:root[data-theme="dark"] .theme-toggle__icon--moon {
+	opacity: 0;
+	transform: rotate(70deg) scale(0.55);
+}
+
+:root[data-theme="dark"] .theme-toggle__icon--sun {
+	opacity: 1;
+	transform: none;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) .theme-toggle__icon--moon {
+		opacity: 0;
+		transform: rotate(70deg) scale(0.55);
+	}
+
+	:root:not([data-theme="light"]) .theme-toggle__icon--sun {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* On phones the theme switch lives in the menu sheet; the bar keeps brand · search · menu. */
+@media (max-width: 47.99em) {
+	.site-header.has-menu .site-header__actions > .theme-toggle {
+		display: none;
+	}
+}
+
+/* Primary navigation (desktop) ---------------------------------------------- */
+.site-nav {
+	display: none;
+}
+
+.site-nav__list {
+	display: flex;
+	align-items: stretch;
+	gap: clamp(1.25rem, 0.2rem + 1.65vw, 2.125rem);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.site-nav__item {
+	display: flex;
+	align-items: center;
+}
+
+.site-nav__link {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.75rem;
+	font-family: var(--ff-sans);
+	font-size: 0.9375rem;
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.006em;
+	color: var(--c-ink-2);
+	white-space: nowrap;
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+.site-nav__link::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0.4rem;
+	height: 2px;
+	background: var(--c-accent);
+	transform: scaleX(0);
+	transform-origin: left center;
+	transition: transform var(--dur-2) var(--ease-out);
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus-visible,
+.site-nav__link[aria-current],
+.site-nav__item.is-open > .site-nav__link {
+	color: var(--c-ink);
+}
+
+.site-nav__link:hover::after,
+.site-nav__link:focus-visible::after,
+.site-nav__link[aria-current]::after,
+.site-nav__item.is-open > .site-nav__link::after {
+	transform: scaleX(1);
+}
+
+/* Inside a section (a subcategory, a post filed there): the indicator is present but quieter. */
+.site-nav__link[aria-current="true"]:not(:hover, :focus-visible)::after {
+	background: var(--c-ink);
+}
+
+.site-nav__link:focus-visible {
+	outline-offset: 2px;
+}
+
+/* Mega-menu disclosure button (sits next to the real "AI Tools" link). Its hit area
+   reaches into the gap before the next item, so touch targets stay 44px wide. */
+.site-nav__toggle {
+	position: relative;
+	display: none;
+	place-items: center;
+	width: 2rem;
+	height: 2.75rem;
+	margin-right: -0.5rem;
+	border-radius: var(--r-sm);
+	color: var(--c-ink-3);
+	transition:
+		color var(--dur-1) var(--ease-out),
+		background-color var(--dur-1) var(--ease-out);
+}
+
+.site-nav__toggle::before {
+	content: "";
+	position: absolute;
+	inset: 0 -0.75rem 0 0;
+}
+
+.site-nav__toggle:focus-visible {
+	outline-offset: -2px;
+}
+
+.site-nav__toggle .icon {
+	width: 0.9375rem;
+	height: 0.9375rem;
+	stroke-width: 2;
+	transition: transform var(--dur-3) var(--ease-out);
+}
+
+.site-nav__toggle:hover,
+.site-nav__toggle[aria-expanded="true"] {
+	color: var(--c-ink);
+}
+
+.site-nav__toggle[aria-expanded="true"] .icon {
+	transform: rotate(180deg);
+}
+
+@media (min-width: 64em) {
+	.site-header__bar {
+		gap: var(--sp-4);
+	}
+
+	.site-header__brand {
+		margin-right: 0;
+	}
+
+	.site-nav {
+		display: flex;
+		align-items: stretch;
+		align-self: stretch;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	/* Hairline between the wordmark and the sections. */
+	.site-nav::before {
+		content: "";
+		align-self: center;
+		flex: none;
+		width: 1px;
+		height: 1.25rem;
+		margin-inline: clamp(var(--sp-3), 1.4vw, var(--sp-5)) clamp(var(--sp-5), 2.2vw, var(--sp-7));
+		background: var(--c-rule);
+	}
+
+	.site-nav__toggle {
+		display: inline-grid;
+	}
+
+	.site-header__menu {
+		display: none;
+	}
+
+	/* Search reads as a quiet field with its keyboard shortcut. */
+	.site-header__search {
+		justify-content: flex-start;
+		gap: var(--sp-2);
+		height: 2.5rem;
+		min-width: 10.5rem;
+		padding: 0 0.375rem 0 0.75rem;
+		border: 1px solid var(--c-rule);
+		color: var(--c-ink-3);
+		background-color: transparent;
+	}
+
+	/* Keep a 44px hit area around the 40px field. */
+	.site-header__search::before {
+		content: "";
+		position: absolute;
+		inset: -2px 0;
+	}
+
+	.site-header__search .icon {
+		width: 1.0625rem;
+		height: 1.0625rem;
+		color: var(--c-ink-2);
+	}
+
+	.site-header__search:hover {
+		color: var(--c-ink-2);
+		background-color: var(--c-surface);
+		border-color: color-mix(in srgb, var(--c-ink) 32%, var(--c-rule));
+	}
+
+	.site-header__search-label {
+		position: static;
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip: auto;
+		margin-right: auto;
+		padding-right: var(--sp-4);
+		font-weight: 400;
+	}
+
+	.site-header__actions {
+		gap: var(--sp-2);
+	}
+}
+
+@media (min-width: 64em) and (hover: hover) and (pointer: fine) {
+	.site-header__kbd {
+		display: inline-grid;
+		place-items: center;
+		min-width: 1.5rem;
+		height: 1.5rem;
+		padding-inline: 0.3rem;
+		font-family: var(--ff-sans);
+		font-size: var(--fs-xs);
+		font-weight: 500;
+		line-height: 1;
+		color: var(--c-ink-3);
+		background: var(--c-tint);
+		border-radius: var(--r-xs);
+	}
+}
+
+@media (min-width: 80em) {
+	.site-header__search {
+		min-width: 12.5rem;
+	}
+}
+
+/* No-JS phones/tablets: the menu dialog can't open, so the sections become a scrolling row. */
+@media (max-width: 63.99em) {
+	html:not(.js) .site-header__bar {
+		flex-wrap: wrap;
+		height: auto;
+		min-height: var(--header-h);
+		padding-top: calc((var(--header-h) - 2.75rem) / 2);
+		row-gap: 0;
+	}
+
+	html:not(.js) .site-nav {
+		display: block;
+		order: 3;
+		width: calc(100% + var(--gutter) * 2);
+		margin-inline: calc(var(--gutter) * -1);
+		padding-inline: var(--gutter);
+		overflow-x: auto;
+		scrollbar-width: none;
+		border-top: 1px solid var(--c-rule);
+		-webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--gutter)), transparent);
+		mask-image: linear-gradient(90deg, #000 calc(100% - var(--gutter)), transparent);
+	}
+
+	html:not(.js) .site-nav__list {
+		gap: var(--sp-5);
+	}
+
+	html:not(.js) .site-nav .mega {
+		display: none;
+	}
+}
+
+/* AI Tools mega-menu ---------------------------------------------------------- */
+.mega {
+	position: absolute;
+	top: 100%;
+	left: var(--gutter);
+	right: var(--gutter);
+	z-index: 2;
+	background: var(--c-surface);
+	border: 1px solid var(--c-rule);
+	border-radius: 0 0 var(--r-md) var(--r-md);
+	box-shadow: var(--shadow-float);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transform: translate3d(0, -6px, 0);
+	transition:
+		opacity var(--dur-2) var(--ease-out),
+		transform var(--dur-2) var(--ease-out),
+		visibility 0s linear var(--dur-2);
+}
+
+.site-nav__item.is-open > .mega {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transform: none;
+	transition:
+		opacity var(--dur-3) var(--ease-out),
+		transform var(--dur-3) var(--ease-out),
+		visibility 0s linear 0s;
+}
+
+/* Without JS the panel still opens on hover or keyboard focus. */
+html:not(.js) .site-nav__item--has-mega:is(:hover, :focus-within) > .mega {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transform: none;
+}
+
+.mega__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+	grid-template-areas:
+		"intro intro"
+		"cats feature";
+	gap: var(--sp-6) clamp(var(--sp-6), 3vw, var(--sp-9));
+	padding: var(--sp-6) clamp(var(--sp-6), 2.5vw, var(--sp-8)) var(--sp-7);
+}
+
+.mega--no-feature .mega__grid {
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-areas:
+		"intro"
+		"cats";
+}
+
+.mega__intro {
+	grid-area: intro;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--sp-2) var(--sp-5);
+	padding-bottom: var(--sp-5);
+	border-bottom: 1px solid var(--c-rule);
+}
+
+.mega__lede {
+	flex: 1 1 18rem;
+	font-family: var(--ff-serif);
+	font-size: var(--fs-md);
+	font-weight: 400;
+	line-height: 1.35;
+	letter-spacing: -0.01em;
+	color: var(--c-ink);
+	text-wrap: balance;
+}
+
+.mega__nowrap {
+	white-space: nowrap;
+}
+
+.mega__stats {
+	flex: none;
+}
+
+.mega__all {
+	flex: none;
+	min-height: 0;
+}
+
+.mega__cats {
+	grid-area: cats;
+	min-width: 0;
+}
+
+.mega__feature {
+	grid-area: feature;
+	min-width: 0;
+}
+
+.mega__label {
+	margin-bottom: var(--sp-3);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-2xs);
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--c-ink-3);
+}
+
+.mega__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	column-gap: var(--sp-7);
+}
+
+.mega__list--split {
+	columns: 2;
+}
+
+.mega--no-feature .mega__list {
+	columns: 3;
+}
+
+.mega__list > li {
+	break-inside: avoid;
+	border-top: 1px solid var(--c-rule);
+}
+
+.mega__cat {
+	display: flex;
+	align-items: baseline;
+	gap: var(--sp-3);
+	min-height: 2.75rem;
+	padding: 0.7rem var(--sp-2);
+	margin-inline: calc(var(--sp-2) * -1);
+	color: var(--c-ink);
+	border-radius: var(--r-xs);
+	transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.mega__num {
+	flex: none;
+	min-width: 1.4rem;
+	font-size: var(--fs-2xs);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.04em;
+	color: var(--c-ink-3);
+	transition: color var(--dur-2) var(--ease-out);
+}
+
+.mega__name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 0.9375rem;
+	font-weight: 500;
+	line-height: 1.3;
+	transition:
+		transform var(--dur-2) var(--ease-out),
+		color var(--dur-1) var(--ease-out);
+}
+
+.mega__leader {
+	flex: 1 1 var(--sp-4);
+	min-width: var(--sp-4);
+	align-self: baseline;
+	border-bottom: 1px dotted color-mix(in srgb, var(--c-ink-3) 55%, transparent);
+	opacity: 0;
+	transition: opacity var(--dur-2) var(--ease-out);
+}
+
+.mega__count {
+	flex: none;
+	font-size: var(--fs-xs);
+	font-variant-numeric: tabular-nums;
+	color: var(--c-ink-3);
+}
+
+.mega__cat:hover,
+.mega__cat:focus-visible {
+	background-color: var(--c-tint);
+}
+
+.mega__cat:hover .mega__num,
+.mega__cat:focus-visible .mega__num,
+.mega__cat[aria-current] .mega__num {
+	color: var(--c-accent-text);
+}
+
+.mega__cat:hover .mega__name,
+.mega__cat:focus-visible .mega__name {
+	transform: translateX(2px);
+}
+
+.mega__cat:hover .mega__leader,
+.mega__cat:focus-visible .mega__leader {
+	opacity: 1;
+}
+
+.mega__cat[aria-current] .mega__name {
+	color: var(--c-accent-text);
+}
+
+.mega__story {
+	display: grid;
+	gap: var(--sp-3);
+	color: var(--c-ink);
+}
+
+.mega__story-kicker {
+	margin-top: var(--sp-1);
+}
+
+.mega__story-title {
+	font-family: var(--ff-serif);
+	font-size: var(--fs-md);
+	font-weight: 500;
+	line-height: 1.22;
+	letter-spacing: -0.012em;
+	text-wrap: balance;
+}
+
+.mega__story:hover .headline-link,
+.mega__story:focus-visible .headline-link {
+	background-size: 100% 1px;
+}
+
+.mega__meta {
+	margin-top: var(--sp-2);
+}
+
+@media (min-width: 80em) {
+	.mega__grid {
+		grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 3fr);
+		grid-template-areas: "intro cats feature";
+		padding-block: var(--sp-7) var(--sp-8);
+	}
+
+	.mega--no-feature .mega__grid {
+		grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+		grid-template-areas: "intro cats";
+	}
+
+	.mega__intro {
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-items: flex-start;
+		gap: var(--sp-3);
+		padding: 0 clamp(var(--sp-5), 2vw, var(--sp-7)) 0 0;
+		border-bottom: 0;
+		border-right: 1px solid var(--c-rule);
+	}
+
+	.mega__lede {
+		flex: none;
+		font-size: var(--fs-lg);
+		line-height: 1.25;
+		letter-spacing: -0.016em;
+	}
+
+	.mega__all {
+		margin-top: var(--sp-2);
+	}
+}
+
+/* Shared modal dialogs: the <dialog> is a transparent full-viewport layer; its
+   first child is the visible sheet. JS adds .is-closing to play the exit. ---------- */
+html.has-modal {
+	overflow: hidden;
+}
+
+.search-dialog,
+.menu-sheet {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--c-ink);
+	overscroll-behavior: contain;
+}
+
+.search-dialog::backdrop,
+.menu-sheet::backdrop {
+	background: var(--c-scrim, rgb(0 0 0 / 0.45));
+}
+
+@keyframes clipto-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes clipto-fade-out {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes clipto-drop-in {
+	from {
+		opacity: 0;
+		transform: translate3d(0, -12px, 0);
+	}
+}
+
+@keyframes clipto-lift-out {
+	to {
+		opacity: 0;
+		transform: translate3d(0, -8px, 0);
+	}
+}
+
+@keyframes clipto-slide-in {
+	from {
+		transform: translate3d(100%, 0, 0);
+	}
+}
+
+@keyframes clipto-slide-out {
+	to {
+		transform: translate3d(100%, 0, 0);
+	}
+}
+
+@keyframes clipto-nudge-in {
+	from {
+		opacity: 0;
+		transform: translate3d(14px, 0, 0);
+	}
+}
+
+@keyframes clipto-rise-in {
+	from {
+		opacity: 0;
+		transform: translate3d(0, -4px, 0);
+	}
+}
+
+.search-dialog[open]::backdrop,
+.menu-sheet[open]::backdrop {
+	animation: clipto-fade-in var(--dur-3, 320ms) var(--ease-out, ease-out);
+}
+
+.search-dialog.is-closing::backdrop,
+.menu-sheet.is-closing::backdrop {
+	animation: clipto-fade-out var(--dur-3, 320ms) var(--ease-in-out, ease-in-out) forwards;
+}
+
+/* Search dialog ---------------------------------------------------------------- */
+.search-dialog {
+	overflow-y: auto;
+}
+
+.search-dialog__sheet {
+	background: var(--c-surface);
+	border-bottom: 1px solid var(--c-rule);
+	box-shadow: var(--shadow-float);
+}
+
+.search-dialog[open] .search-dialog__sheet {
+	animation: clipto-drop-in var(--dur-3) var(--ease-out);
+}
+
+.search-dialog.is-closing .search-dialog__sheet {
+	animation: clipto-lift-out var(--dur-2) var(--ease-in-out) forwards;
+}
+
+.search-dialog__inner {
+	padding-bottom: clamp(var(--sp-6), 4vw, var(--sp-9));
+}
+
+.search-dialog__top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sp-4);
+	height: var(--header-h);
+	margin-right: -0.75rem;
+}
+
+.search-dialog__eyebrow {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-3);
+	min-width: 0;
+}
+
+.search-dialog__mark {
+	width: 1.125rem;
+	height: 1.125rem;
+	color: var(--c-ink);
+}
+
+.search-dialog__title {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--c-ink-2);
+}
+
+.search-dialog__close {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sp-2);
+	min-width: 2.75rem;
+	height: 2.75rem;
+	padding-inline: 0.75rem;
+	border-radius: var(--r-sm);
+	color: var(--c-ink);
+	transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.search-dialog__close:hover {
+	background-color: var(--c-tint);
+}
+
+.search-dialog__esc {
+	display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.search-dialog__esc {
+		display: inline-grid;
+		place-items: center;
+		height: 1.5rem;
+		padding-inline: 0.4rem;
+		font-family: var(--ff-sans);
+		font-size: var(--fs-2xs);
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		color: var(--c-ink-3);
+		background: var(--c-tint);
+		border-radius: var(--r-xs);
+	}
+}
+
+.search-dialog__form {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-3);
+	margin-top: clamp(var(--sp-2), 2vw, var(--sp-6));
+	padding-bottom: var(--sp-3);
+	border-bottom: 2px solid var(--c-rule-strong);
+	transition: border-color var(--dur-2) var(--ease-out);
+}
+
+.search-dialog__form:focus-within {
+	border-bottom-color: var(--c-accent);
+}
+
+.search-dialog__icon {
+	display: none;
+	width: clamp(1.5rem, 1rem + 1.2vw, 2rem);
+	height: clamp(1.5rem, 1rem + 1.2vw, 2rem);
+	stroke-width: 1.4;
+	color: var(--c-ink-3);
+}
+
+.search-dialog__input {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: var(--sp-2) 0;
+	font-family: var(--ff-serif);
+	font-size: clamp(1.25rem, 0.75rem + 2.5vw, 3rem);
+	font-weight: 400;
+	line-height: 1.15;
+	letter-spacing: -0.022em;
+	color: var(--c-ink);
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	caret-color: var(--c-accent);
+	text-overflow: ellipsis;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.search-dialog__input::placeholder {
+	color: var(--c-ink-3);
+	font-style: italic;
+	opacity: 1;
+}
+
+.search-dialog__input:focus,
+.search-dialog__input:focus-visible {
+	outline: none;
+}
+
+.search-dialog__input::-webkit-search-cancel-button,
+.search-dialog__input::-webkit-search-decoration {
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.search-dialog__submit {
+	flex: none;
+	padding-inline: 0.8rem;
+}
+
+.search-dialog__submit-label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.search-dialog__browse {
+	display: grid;
+	gap: var(--sp-5);
+	margin-top: clamp(var(--sp-5), 3vw, var(--sp-7));
+}
+
+.search-dialog__group {
+	display: grid;
+	gap: var(--sp-3);
+	min-width: 0;
+}
+
+.search-dialog__label {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-2xs);
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--c-ink-3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.search-dialog[open] .search-dialog__browse {
+		animation: clipto-rise-in var(--dur-4) var(--ease-out) 80ms both;
+	}
+}
+
+@media (min-width: 30em) {
+	.search-dialog__icon {
+		display: block;
+	}
+}
+
+@media (min-width: 48em) {
+	.search-dialog__submit {
+		padding-inline: 1.15rem;
+	}
+
+	.search-dialog__submit-label {
+		position: static;
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip: auto;
+	}
+
+	.search-dialog__group {
+		grid-template-columns: 11rem minmax(0, 1fr);
+		align-items: baseline;
+		gap: var(--sp-5);
+	}
+
+	.search-dialog__label {
+		padding-top: 0.2rem;
+	}
+
+	.search-dialog__chips.scroller {
+		flex-wrap: wrap;
+		overflow: visible;
+		margin-inline: 0;
+		padding-inline: 0;
+		-webkit-mask-image: none;
+		mask-image: none;
+	}
+}
+
+/* Mobile menu sheet ----------------------------------------------------------- */
+.menu-sheet {
+	overflow: hidden;
+}
+
+.menu-sheet__panel {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	width: min(100%, 27rem);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	background: var(--c-paper);
+	border-left: 1px solid var(--c-rule);
+}
+
+@media (max-width: 26.99em) {
+	.menu-sheet__panel {
+		border-left: 0;
+	}
+}
+
+.menu-sheet[open] .menu-sheet__panel {
+	animation: clipto-slide-in var(--dur-3) var(--ease-out);
+}
+
+.menu-sheet.is-closing .menu-sheet__panel {
+	animation: clipto-slide-out var(--dur-3) var(--ease-in-out) forwards;
+}
+
+.menu-sheet__head {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sp-4);
+	height: var(--header-h);
+	padding-inline: var(--gutter) calc(var(--gutter) - 0.75rem);
+	background: var(--c-paper);
+	border-bottom: 1px solid var(--c-rule);
+}
+
+.menu-sheet__nav {
+	padding: var(--sp-2) var(--gutter) var(--sp-6);
+}
+
+.menu-sheet__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.menu-sheet__item {
+	border-bottom: 1px solid var(--c-rule);
+}
+
+.menu-sheet__link {
+	display: grid;
+	grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+	align-items: baseline;
+	gap: var(--sp-2);
+	padding-block: var(--sp-4);
+	color: var(--c-ink);
+}
+
+.menu-sheet__num {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.04em;
+	color: var(--c-ink-3);
+	transition: color var(--dur-2) var(--ease-out);
+}
+
+.menu-sheet__label {
+	font-family: var(--ff-serif);
+	font-size: clamp(1.625rem, 1.35rem + 1.2vw, 2rem);
+	font-weight: 500;
+	line-height: 1.1;
+	letter-spacing: -0.022em;
+	text-decoration-line: underline;
+	text-decoration-thickness: 2px;
+	text-decoration-color: transparent;
+	text-underline-offset: 0.2em;
+	transition:
+		transform var(--dur-2) var(--ease-out),
+		text-decoration-color var(--dur-2) var(--ease-out);
+}
+
+.menu-sheet__count {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-variant-numeric: tabular-nums;
+	color: var(--c-ink-3);
+}
+
+.menu-sheet__link:hover .menu-sheet__num,
+.menu-sheet__link:focus-visible .menu-sheet__num,
+.menu-sheet__link[aria-current] .menu-sheet__num {
+	color: var(--c-accent-text);
+}
+
+.menu-sheet__link[aria-current] .menu-sheet__label {
+	text-decoration-color: var(--c-accent);
+}
+
+/* Inside a section (as on the desktop bar): present but quieter. */
+.menu-sheet__link[aria-current="true"] .menu-sheet__label {
+	text-decoration-color: var(--c-ink);
+}
+
+@media (hover: hover) {
+	.menu-sheet__link:hover .menu-sheet__label {
+		transform: translateX(3px);
+	}
+}
+
+/* AI Tools subcategories */
+.menu-sheet__sub {
+	margin: calc(var(--sp-2) * -1) 0 var(--sp-3) calc(2.25rem + var(--sp-2));
+}
+
+.menu-sheet__sub-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sp-2);
+	min-height: 2.75rem;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	font-weight: 500;
+	color: var(--c-ink-2);
+	cursor: pointer;
+	list-style: none;
+	border-radius: var(--r-xs);
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+.menu-sheet__sub-toggle::-webkit-details-marker,
+.menu-sheet__sub-toggle::marker {
+	display: none;
+	content: "";
+}
+
+.menu-sheet__sub-toggle:hover {
+	color: var(--c-ink);
+}
+
+.menu-sheet__sub-icon {
+	width: 1rem;
+	height: 1rem;
+	stroke-width: 2;
+	transition: transform var(--dur-3) var(--ease-out);
+}
+
+.menu-sheet__sub[open] .menu-sheet__sub-icon {
+	transform: rotate(180deg);
+}
+
+.menu-sheet__sub-list {
+	margin: 0 0 var(--sp-2);
+	padding: 0;
+	list-style: none;
+}
+
+.menu-sheet__sub[open] .menu-sheet__sub-list {
+	animation: clipto-rise-in var(--dur-3) var(--ease-out);
+}
+
+.menu-sheet__sub-link {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--sp-4);
+	min-height: 2.75rem;
+	padding-block: 0.7rem;
+	border-top: 1px solid var(--c-rule);
+	font-family: var(--ff-sans);
+	font-size: 0.9375rem;
+	font-weight: 500;
+	line-height: 1.3;
+	color: var(--c-ink);
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+.menu-sheet__sub-link:hover,
+.menu-sheet__sub-link[aria-current] {
+	color: var(--c-accent-text);
+}
+
+.menu-sheet__sub-count {
+	font-size: var(--fs-xs);
+	font-variant-numeric: tabular-nums;
+	color: var(--c-ink-3);
+}
+
+.menu-sheet__foot {
+	display: grid;
+	gap: var(--sp-4);
+	margin-top: auto;
+	padding: var(--sp-6) var(--gutter) calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
+	background: var(--c-tint);
+	border-top: 1px solid var(--c-rule);
+}
+
+.menu-sheet__search {
+	max-width: none;
+}
+
+.menu-sheet__theme {
+	display: inline-flex;
+	align-items: center;
+	justify-self: start;
+	gap: var(--sp-3);
+	min-height: 2.75rem;
+	padding: 0.5rem 1rem 0.5rem 0.75rem;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	font-weight: 500;
+	color: var(--c-ink);
+	border: 1px solid var(--c-rule);
+	border-radius: var(--r-sm);
+	background: var(--c-paper);
+	transition: border-color var(--dur-1) var(--ease-out);
+}
+
+.menu-sheet__theme:hover {
+	border-color: var(--c-ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.menu-sheet[open]:not(.is-closing) .menu-sheet__item {
+		animation: clipto-nudge-in var(--dur-4) var(--ease-out) both;
+		animation-delay: calc(90ms + min(var(--i, 0), 6) * var(--stagger));
+	}
+}
+
+/* Forced colours & print ------------------------------------------------------ */
+@media (forced-colors: active) {
+	.site-nav__link::after {
+		background: CanvasText;
+	}
+
+	.mega,
+	.search-dialog__sheet,
+	.menu-sheet__panel {
+		border: 1px solid CanvasText;
+	}
+}
+
+@media print {
+	.site-header {
+		position: static;
+		border-bottom: 1px solid var(--c-rule);
+	}
+
+	.site-nav,
+	.site-header__actions,
+	.search-dialog,
+	.menu-sheet {
+		display: none !important;
+	}
+}

@@ -1,0 +1,84 @@
+/* ==========================================================================
+   Layout: containers, grid, sections
+   ========================================================================== */
+
+.container {
+	width: 100%;
+	max-width: calc(var(--container) + var(--gutter) * 2);
+	margin-inline: auto;
+	padding-inline: var(--gutter);
+}
+
+.container--narrow {
+	max-width: calc(48rem + var(--gutter) * 2);
+}
+
+.container--read {
+	max-width: calc(var(--measure) + var(--gutter) * 2);
+}
+
+.grid-12 {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: var(--grid-gap);
+}
+
+.section {
+	padding-block: var(--section-gap);
+}
+
+.section + .section {
+	padding-top: 0;
+}
+
+.section--flush-top {
+	padding-top: 0;
+}
+
+.stack > * + * {
+	margin-top: var(--stack, var(--sp-4));
+}
+
+.cluster {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--cluster, var(--sp-3));
+}
+
+/* Horizontal scroller for chip rows on small screens */
+.scroller {
+	display: flex;
+	gap: var(--sp-2);
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x proximity;
+	scroll-padding-inline: var(--gutter);
+	scrollbar-width: none;
+	margin-inline: calc(var(--gutter) * -1);
+	padding-inline: var(--gutter);
+	padding-block: var(--sp-1);
+	-webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+	mask-image: linear-gradient(90deg, transparent 0, #000 var(--gutter), #000 calc(100% - var(--gutter)), transparent 100%);
+}
+
+.scroller::-webkit-scrollbar {
+	display: none;
+}
+
+.scroller > * {
+	position: relative; /* contains screen-reader-only children so they can't widen the page */
+	scroll-snap-align: start;
+	flex-shrink: 0;
+}
+
+@media (min-width: 64em) {
+	.scroller {
+		flex-wrap: wrap;
+		overflow: visible;
+		margin-inline: 0;
+		padding-inline: 0;
+		-webkit-mask-image: none;
+		mask-image: none;
+	}
+}

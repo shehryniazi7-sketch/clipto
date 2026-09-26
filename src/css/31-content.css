@@ -1,0 +1,914 @@
+/* ==========================================================================
+   Long-form typography — the body of articles and pages (.entry-content).
+
+   Every selector starts with .entry-content: build.mjs rewrites that scope to
+   `body` for the block editor, so the editor canvas reads like the site.
+   Element rules are wrapped in :where() to keep specificity at (0,1,x), so
+   the editorial block styles in 35-blocks.css always win. Rules that must beat
+   core block CSS (quote, pullquote, code, table, separator, buttons) use
+   explicit block classes instead.
+
+   Breakout widths (.alignwide / .alignfull) read custom properties set by the
+   reading layout in 30-article.css; with nothing set they stay in the column.
+   ========================================================================== */
+
+.entry-content {
+	font-family: var(--ff-serif);
+	font-size: var(--fs-read);
+	line-height: var(--lh-read);
+	font-weight: 400;
+	color: var(--c-ink);
+	background-color: var(--c-paper); /* the page colour; in the editor, the canvas */
+	overflow-wrap: break-word;
+	font-kerning: normal;
+	font-variant-ligatures: common-ligatures;
+	text-rendering: optimizeLegibility;
+}
+
+/* Editor parity: the post title in the block editor canvas reads like the article
+   H1 (this class never appears inside front-end content). */
+.entry-content .editor-post-title {
+	font-family: var(--ff-serif);
+	font-size: var(--fs-3xl);
+	font-weight: 500;
+	line-height: 1.06;
+	letter-spacing: var(--tracking-display);
+	text-wrap: balance;
+	color: var(--c-ink);
+}
+
+/* Flow ------------------------------------------------------------------------
+   One rhythm: blocks carry space below; headings carry space above (margins
+   collapse, the larger wins). */
+.entry-content :where(p, ul, ol, dl, blockquote, figure, pre, table, details, address, .wp-block-group, .wp-block-columns, .wp-block-buttons, .wp-block-embed, .wp-block-media-text, .wp-block-cover, .wp-block-gallery, .wp-block-file, .wp-block-audio, .wp-block-video, .wp-block-footnotes, .wp-block-math) {
+	margin-block: 0 1.35em;
+}
+
+.entry-content > :first-child {
+	margin-top: 0;
+}
+
+.entry-content > :last-child,
+.entry-content :where(blockquote, li, dd, td, th, details, figure, .wp-block-group, .wp-block-column, .wp-block-media-text__content, .wp-block-cover__inner-container) > :last-child {
+	margin-bottom: 0;
+}
+
+.entry-content :where(p) {
+	text-wrap: pretty;
+}
+
+/* The lede: the opening paragraph reads a touch larger. */
+.entry-content > p:first-child:not([class]) {
+	font-size: 1.1em;
+	line-height: 1.6;
+}
+
+/* Headings -------------------------------------------------------------------- */
+.entry-content :where(h2, h3, h4, h5, h6) {
+	color: var(--c-ink);
+	text-wrap: balance;
+	/* html scroll-padding clears the sticky header; this clears the admin bar. */
+	scroll-margin-top: calc(var(--wp-admin--admin-bar--height, 0px) + var(--sp-2));
+}
+
+.entry-content :where(h2) {
+	margin: 2.2em 0 0.55em;
+	font-family: var(--ff-serif);
+	font-size: var(--fs-xl);
+	font-weight: 600;
+	line-height: 1.16;
+	letter-spacing: -0.02em;
+}
+
+.entry-content :where(h3) {
+	margin: 1.9em 0 0.5em;
+	font-family: var(--ff-sans);
+	font-size: 1.2rem;
+	font-weight: 650;
+	line-height: 1.3;
+	letter-spacing: -0.012em;
+}
+
+.entry-content :where(h4) {
+	margin: 1.7em 0 0.4em;
+	font-family: var(--ff-sans);
+	font-size: 1.0625rem;
+	font-weight: 650;
+	line-height: 1.35;
+	letter-spacing: -0.006em;
+}
+
+.entry-content :where(h5, h6) {
+	margin: 1.6em 0 0.4em;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--c-ink-2);
+}
+
+.entry-content :where(h2 + h3, h3 + h4, h2 + h4) {
+	margin-top: 0.9em;
+}
+
+.entry-content :where(h2, h3, h4, h5, h6) :where(a) {
+	color: inherit;
+}
+
+/* Links -------------------------------------------------------------------------
+   Accent text, hairline underline that thickens on hover. */
+.entry-content :where(a) {
+	color: var(--c-accent-text);
+	text-decoration-line: underline;
+	text-decoration-thickness: 1px;
+	text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+	text-underline-offset: 0.18em;
+	text-decoration-skip-ink: auto;
+	transition:
+		color var(--dur-1) var(--ease-out),
+		text-decoration-color var(--dur-2) var(--ease-out),
+		text-decoration-thickness var(--dur-2) var(--ease-out);
+}
+
+.entry-content :where(a):hover {
+	text-decoration-thickness: 2px;
+	text-decoration-color: currentColor;
+}
+
+.entry-content :where(a):focus-visible {
+	text-decoration: none;
+}
+
+/* Inline semantics ------------------------------------------------------------ */
+.entry-content :where(strong, b) {
+	font-weight: 650;
+}
+
+.entry-content :where(small) {
+	font-size: 0.82em;
+}
+
+.entry-content :where(sub, sup) {
+	font-size: 0.7em;
+	line-height: 0;
+}
+
+.entry-content :where(abbr[title]) {
+	text-decoration: underline dotted;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.2em;
+	cursor: help;
+}
+
+.entry-content :where(mark) {
+	padding: 0.05em 0.2em;
+	color: inherit;
+	background: var(--c-accent-soft);
+	border-radius: var(--r-xs);
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+.entry-content :where(kbd) {
+	display: inline-block;
+	min-width: 1.6em;
+	padding: 0.1em 0.45em;
+	font-family: var(--ff-sans);
+	font-size: 0.72em;
+	font-weight: 600;
+	line-height: 1.4;
+	text-align: center;
+	vertical-align: 0.12em;
+	color: var(--c-ink);
+	background: var(--c-surface);
+	border: 1px solid var(--c-rule);
+	border-bottom-width: 2px;
+	border-radius: var(--r-sm);
+}
+
+.entry-content :where(code):where(:not(pre code)) {
+	padding: 0.12em 0.36em;
+	font-family: var(--ff-mono);
+	font-size: 0.8em;
+	color: var(--c-ink);
+	background: var(--c-tint);
+	border-radius: var(--r-xs);
+	overflow-wrap: anywhere;
+}
+
+/* Lists ------------------------------------------------------------------------
+   Unordered: a small vermilion square (the logo's centre). Ordered: tabular
+   sans numerals in accent. Styled lists (is-style-*) are left to 35-blocks. */
+.entry-content :where(ul, ol) {
+	padding-left: 1.5em;
+}
+
+.entry-content :where(li) + :where(li) {
+	margin-top: 0.45em;
+}
+
+.entry-content :where(li) > :where(ul, ol) {
+	margin: 0.45em 0 0;
+}
+
+.entry-content :where(ul:not([class*="is-style-"])) {
+	list-style: none;
+}
+
+.entry-content :where(ul:not([class*="is-style-"])) > li {
+	position: relative;
+}
+
+.entry-content :where(ul:not([class*="is-style-"])) > li::before {
+	content: "";
+	position: absolute;
+	top: 0.68em;
+	left: -1.15em;
+	width: 0.34em;
+	height: 0.34em;
+	background: var(--c-accent);
+}
+
+/* Nested bullets: an en-dash in muted ink. */
+.entry-content :where(li) :where(ul:not([class*="is-style-"])) > li::before {
+	top: 0.82em;
+	width: 0.55em;
+	height: 1.5px;
+	background: var(--c-ink-3);
+}
+
+.entry-content :where(ol:not([class*="is-style-"]):not([start]):not([reversed])) {
+	list-style: none;
+	padding-left: 2.2em;
+	counter-reset: clipto-ol;
+}
+
+.entry-content :where(ol:not([class*="is-style-"]):not([start]):not([reversed])) > li {
+	counter-increment: clipto-ol;
+}
+
+.entry-content :where(ol:not([class*="is-style-"]):not([start]):not([reversed])) > li::before {
+	content: counter(clipto-ol, decimal-leading-zero);
+	display: inline-block;
+	width: 2.9em;
+	margin-left: -2.9em;
+	font-family: var(--ff-sans);
+	font-size: 0.76em;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.02em;
+	color: var(--c-accent-text);
+}
+
+.entry-content :where(ol[start], ol[reversed]) {
+	padding-left: 1.7em;
+}
+
+.entry-content :where(ol[start], ol[reversed]) > li::marker {
+	font-family: var(--ff-sans);
+	font-size: 0.8em;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	color: var(--c-accent-text);
+}
+
+.entry-content :where(dt) {
+	font-family: var(--ff-sans);
+	font-size: 0.85em;
+	font-weight: 650;
+}
+
+.entry-content :where(dd) {
+	margin: 0.2em 0 0.9em;
+	color: var(--c-ink-2);
+}
+
+/* Quotes -------------------------------------------------------------------------
+   Serif italic behind a 2px vermilion rule. Clipto quote styles (35-blocks) opt out. */
+.entry-content :where(blockquote:not([class*="is-style-clipto"])),
+.entry-content .wp-block-quote:not([class*="is-style-clipto"]) {
+	margin: 1.9em 0;
+	padding: 0.15em 0 0.15em 1.25em;
+	border: 0;
+	border-left: 2px solid var(--c-accent);
+	font-family: var(--ff-serif);
+	font-size: 1.12em;
+	font-style: italic;
+	line-height: 1.52;
+	color: var(--c-ink);
+}
+
+.entry-content :where(blockquote:not([class*="is-style-clipto"])) :where(p) + :where(p) {
+	margin-top: 0.8em;
+}
+
+.entry-content :where(blockquote:not([class*="is-style-clipto"])) :where(p) {
+	margin-bottom: 0;
+}
+
+.entry-content :where(blockquote:not([class*="is-style-clipto"])) :where(cite, footer),
+.entry-content .wp-block-quote:not([class*="is-style-clipto"]) cite {
+	display: block;
+	margin-top: 1em;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-style: normal;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	line-height: 1.4;
+	text-transform: uppercase;
+	color: var(--c-ink-3);
+}
+
+.entry-content :where(blockquote:not([class*="is-style-clipto"])) :where(cite)::before {
+	content: "— ";
+}
+
+/* Core pull quote: large serif between an ink rule and a hairline. */
+.entry-content .wp-block-pullquote {
+	margin: 2.2em 0;
+	padding: 1.4em 0 1.5em;
+	border: 0;
+	border-top: 2px solid var(--c-rule-strong);
+	border-bottom: 1px solid var(--c-rule);
+	text-align: left;
+	color: var(--c-ink);
+}
+
+.entry-content .wp-block-pullquote blockquote {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.entry-content .wp-block-pullquote p {
+	margin: 0;
+	font-family: var(--ff-serif);
+	font-size: var(--fs-xl);
+	font-style: italic;
+	font-weight: 500;
+	line-height: 1.24;
+	letter-spacing: -0.016em;
+	text-wrap: balance;
+}
+
+.entry-content .wp-block-pullquote cite {
+	display: block;
+	margin-top: 1.1em;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-style: normal;
+	font-weight: 600;
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+	color: var(--c-ink-3);
+}
+
+/* Figures, images, media ----------------------------------------------------------- */
+.entry-content :where(figure) {
+	margin-inline: 0;
+}
+
+.entry-content :where(figure, .wp-block-image) :where(img, video) {
+	border-radius: var(--r-xs);
+}
+
+.entry-content :where(img, video, iframe, embed, object) {
+	max-width: 100%;
+}
+
+.entry-content :where(video) {
+	width: 100%;
+	height: auto;
+}
+
+.entry-content :where(.wp-block-image, .wp-block-embed, .wp-block-video, .wp-block-gallery, figure.wp-block-table, .wp-block-media-text) {
+	margin-block: 2em;
+}
+
+.entry-content figcaption,
+.entry-content .wp-element-caption {
+	margin: var(--sp-3) 0 0;
+	padding-top: var(--sp-2);
+	border-top: 1px solid var(--c-rule);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-style: normal;
+	line-height: 1.5;
+	text-align: left;
+	color: var(--c-ink-3);
+}
+
+.entry-content :where(figcaption) :where(a) {
+	color: inherit;
+}
+
+/* Linked images: the frame holds still, the picture leans in slightly. */
+.entry-content :where(.wp-block-image) > a {
+	display: block;
+	overflow: hidden;
+	border-radius: var(--r-xs);
+}
+
+.entry-content :where(.wp-block-image) > a > img {
+	transition: transform var(--dur-4) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+}
+
+@media (hover: hover) {
+	.entry-content :where(.wp-block-image) > a:hover > img {
+		transform: scale(1.02);
+	}
+}
+
+.entry-content :where(iframe) {
+	border: 0;
+}
+
+.entry-content :where(.wp-block-embed) :where(iframe) {
+	display: block;
+	width: 100%;
+}
+
+.entry-content :where(.wp-block-embed:not(.wp-has-aspect-ratio)) :where(iframe[src*="youtube"], iframe[src*="vimeo"]) {
+	height: auto;
+	aspect-ratio: 16 / 9;
+}
+
+/* Floats (the column is narrow on phones: floats begin at 30em) */
+.entry-content .alignleft,
+.entry-content .alignright {
+	margin-block: 0.35em 1em;
+}
+
+@media (min-width: 30em) {
+	.entry-content .alignleft {
+		float: left;
+		max-width: 50%;
+		margin-right: 1.5em;
+	}
+
+	.entry-content .alignright {
+		float: right;
+		max-width: 50%;
+		margin-left: 1.5em;
+	}
+}
+
+.entry-content .aligncenter {
+	margin-inline: auto;
+	text-align: center;
+}
+
+.entry-content :where(h2, h3, h4, hr, .wp-block-separator, figure.wp-block-table, .wp-block-columns, .wp-block-group) {
+	clear: both;
+}
+
+/* Breakouts (widths come from the reading layout — see 30-article.css). */
+.entry-content > .alignwide {
+	width: var(--content-wide-w, 100%);
+	max-width: none;
+	margin-left: var(--content-wide-ml, 0px);
+	margin-right: 0;
+}
+
+.entry-content > .alignfull {
+	width: var(--content-full-w, 100%);
+	max-width: none;
+	margin-left: var(--content-full-ml, 0px);
+	margin-right: 0;
+}
+
+.entry-content > .alignfull:where(.wp-block-image, .wp-block-cover, .wp-block-embed) :where(img, video) {
+	border-radius: 0;
+}
+
+.entry-content > .alignfull :where(figcaption) {
+	width: min(100% - 2 * var(--gutter), var(--measure));
+	margin-inline: auto;
+}
+
+/* Tables -----------------------------------------------------------------------------
+   Sans, hairlines, a tinted header row. Columns size to their content (auto layout —
+   the editor's "fixed width" default gives a one-word column as much room as a
+   sentence) and wide tables scroll inside their figure instead of breaking the page;
+   soft edge shades appear only while there is more to scroll. Figures are
+   proportional (this face's tabular set widens punctuation too); cells that hold a
+   number — aligned right/centre in the editor, or tagged .is-numeric by
+   inc/blocks.php — use tabular figures so digits line up. Comparison tables
+   (35-blocks) opt out of the table rules but share the scroller. */
+.entry-content figure.wp-block-table {
+	--shade: color-mix(in srgb, var(--c-ink) 13%, transparent);
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scrollbar-width: thin;
+	scrollbar-color: var(--c-rule) transparent;
+	/* Scroll shades: covers travel with the content (local), shades stay put. */
+	background:
+		linear-gradient(90deg, var(--c-paper) 40%, transparent) left / 2.5rem 100% no-repeat local,
+		linear-gradient(270deg, var(--c-paper) 40%, transparent) right / 2.5rem 100% no-repeat local,
+		radial-gradient(farthest-side at 0 50%, var(--shade), transparent) left / 0.875rem 100% no-repeat scroll,
+		radial-gradient(farthest-side at 100% 50%, var(--shade), transparent) right / 0.875rem 100% no-repeat scroll;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table {
+	width: 100%;
+	margin: 0;
+	table-layout: auto;
+	border-collapse: collapse;
+	border-spacing: 0;
+	font-family: var(--ff-sans);
+	font-size: 0.9375rem;
+	line-height: 1.45;
+	font-variant-numeric: lining-nums;
+	color: var(--c-ink);
+}
+
+.entry-content :not(.is-style-clipto-compare) > table :is(.has-text-align-right, .has-text-align-center, .is-numeric) {
+	font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Four columns and up: keep cells legible and let the figure scroll. */
+.entry-content :not(.is-style-clipto-compare) > table:has(tr > :nth-child(4)) {
+	min-width: 34rem;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table :is(th, td) {
+	padding: 0.72em 0.9em;
+	border: 0;
+	border-bottom: 1px solid var(--c-rule);
+	text-align: left;
+	vertical-align: top;
+	word-break: normal;
+	overflow-wrap: normal;
+	hyphens: manual;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table :is(th, td):first-child {
+	padding-left: 0.75em;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table :is(th, td):last-child {
+	padding-right: 0.75em;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table :is(th, td).has-text-align-right {
+	text-align: right;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table :is(th, td).has-text-align-center {
+	text-align: center;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table thead {
+	border: 0;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table thead :is(th, td) {
+	padding-block: 0.8em 0.7em;
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	line-height: 1.3;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	vertical-align: bottom;
+	text-wrap: balance;
+	color: var(--c-ink-2);
+	background: var(--c-tint);
+	border-bottom: 1px solid var(--c-rule-strong);
+}
+
+.entry-content :not(.is-style-clipto-compare) > table tbody th {
+	font-weight: 650;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table tfoot {
+	border: 0;
+}
+
+.entry-content :not(.is-style-clipto-compare) > table tfoot :is(th, td) {
+	font-weight: 600;
+	border-top: 1px solid var(--c-rule-strong);
+	border-bottom: 0;
+}
+
+@media (hover: hover) {
+	.entry-content :not(.is-style-clipto-compare) > table tbody tr:hover > * {
+		background: color-mix(in srgb, var(--c-tint) 55%, transparent);
+	}
+}
+
+.entry-content :not(.is-style-clipto-compare) > table.is-style-stripes tbody tr:nth-child(odd) > *,
+.entry-content .is-style-stripes:not(.is-style-clipto-compare) > table tbody tr:nth-child(odd) > * {
+	background: color-mix(in srgb, var(--c-tint) 60%, transparent);
+}
+
+.entry-content .wp-block-table.is-style-stripes {
+	border-bottom: 0;
+}
+
+/* The last row's hairline already closes the table: the caption needs no second rule. */
+.entry-content figure.wp-block-table > figcaption {
+	margin-top: var(--sp-2);
+	padding-top: 0;
+	border-top: 0;
+}
+
+/* Phones: tables run to the screen edges, so a scrolled table uses the full width
+   (at rest it still lines up with the text). */
+@media (max-width: 47.99em) {
+	.entry-content > figure.wp-block-table {
+		margin-inline: calc(var(--gutter) * -1);
+		padding-inline: var(--gutter);
+	}
+
+	.entry-content :not(.is-style-clipto-compare) > table :is(th, td) {
+		padding-inline: 0.6em;
+	}
+
+	.entry-content :not(.is-style-clipto-compare) > table :is(th, td):first-child {
+		padding-left: 0.5em;
+	}
+}
+
+/* Code -------------------------------------------------------------------------------- */
+.entry-content :where(pre),
+.entry-content .wp-block-code,
+.entry-content .wp-block-preformatted {
+	margin: 1.8em 0;
+	padding: 1.1em 1.25em;
+	overflow-x: auto;
+	font-family: var(--ff-mono);
+	font-size: 0.875rem;
+	line-height: 1.65;
+	tab-size: 2;
+	white-space: pre;
+	color: var(--c-ink);
+	background: var(--c-tint);
+	border: 0;
+	border-left: 2px solid var(--c-rule-strong);
+	border-radius: var(--r-sm);
+	scrollbar-width: thin;
+	scrollbar-color: var(--c-rule) transparent;
+}
+
+.entry-content :where(pre) :where(code),
+.entry-content .wp-block-code code {
+	display: block;
+	padding: 0;
+	font-family: inherit;
+	font-size: inherit;
+	white-space: inherit;
+	overflow-wrap: normal;
+	background: none;
+}
+
+/* Phones: code runs to the screen edges as a tint band — more characters per line,
+   and a scrolled line slides off the edge instead of under a margin. */
+@media (max-width: 47.99em) {
+	.entry-content > :is(pre, .wp-block-code, .wp-block-preformatted):not(.wp-block-verse) {
+		margin-inline: calc(var(--gutter) * -1);
+		padding: 1em var(--gutter);
+		font-size: 0.8125rem;
+		border-left: 0;
+		border-radius: 0;
+	}
+}
+
+.entry-content .wp-block-verse {
+	padding: 0;
+	font-family: var(--ff-serif);
+	font-style: italic;
+	white-space: pre-wrap;
+	background: none;
+	overflow: visible;
+}
+
+/* Separators ------------------------------------------------------------------------
+   Default: a miniature Clipto crop mark with the vermilion square — a section break
+   that belongs to the publication. Wide: a hairline. Dots: three muted squares. */
+.entry-content :where(hr),
+.entry-content hr.wp-block-separator:not(.is-style-wide):not(.is-style-dots) {
+	width: 1.375rem;
+	height: 1.375rem;
+	margin: 2.6em auto;
+	padding: 0;
+	border: 0;
+	opacity: 1;
+	color: var(--c-ink);
+	background:
+		linear-gradient(currentColor, currentColor) top left / 0.5rem 1.5px,
+		linear-gradient(currentColor, currentColor) top left / 1.5px 0.5rem,
+		linear-gradient(currentColor, currentColor) bottom right / 0.5rem 1.5px,
+		linear-gradient(currentColor, currentColor) bottom right / 1.5px 0.5rem,
+		linear-gradient(var(--c-accent), var(--c-accent)) center / 0.375rem 0.375rem;
+	background-repeat: no-repeat;
+}
+
+.entry-content hr.wp-block-separator.is-style-wide {
+	width: auto;
+	height: 0;
+	margin: 2.4em 0;
+	border: 0;
+	border-top: 1px solid var(--c-rule);
+	background: none;
+	opacity: 1;
+}
+
+.entry-content hr.wp-block-separator.is-style-dots {
+	height: 0.375rem;
+	width: 2.375rem;
+	margin: 2.6em auto;
+	border: 0;
+	opacity: 1;
+	background:
+		linear-gradient(var(--c-ink-3), var(--c-ink-3)) left center / 0.375rem 0.375rem,
+		linear-gradient(var(--c-ink-3), var(--c-ink-3)) center / 0.375rem 0.375rem,
+		linear-gradient(var(--c-ink-3), var(--c-ink-3)) right center / 0.375rem 0.375rem;
+	background-repeat: no-repeat;
+}
+
+.entry-content hr.wp-block-separator.is-style-dots::before {
+	content: none;
+}
+
+/* Details (plain; FAQ styling lives in 35-blocks) --------------------------------------- */
+.entry-content :where(details:not(.is-style-clipto-faq)) {
+	border-top: 1px solid var(--c-rule);
+	border-bottom: 1px solid var(--c-rule);
+}
+
+.entry-content :where(details:not(.is-style-clipto-faq)) > :where(summary) {
+	display: flex;
+	align-items: center;
+	gap: 0.75em;
+	min-height: 2.75rem;
+	padding-block: 0.6em;
+	list-style: none;
+	cursor: pointer;
+	font-family: var(--ff-sans);
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1.35;
+	color: var(--c-ink);
+}
+
+.entry-content :where(details:not(.is-style-clipto-faq)) > :where(summary)::-webkit-details-marker {
+	display: none;
+}
+
+.entry-content :where(details:not(.is-style-clipto-faq)) > :where(summary)::before {
+	content: "";
+	flex: none;
+	width: 0.7em;
+	height: 0.7em;
+	background:
+		linear-gradient(var(--c-accent), var(--c-accent)) center / 100% 2px,
+		linear-gradient(var(--c-accent), var(--c-accent)) center / 2px 100%;
+	background-repeat: no-repeat;
+	transition: transform var(--dur-3) var(--ease-in-out);
+}
+
+.entry-content :where(details:not(.is-style-clipto-faq))[open] > :where(summary)::before {
+	transform: rotate(45deg);
+}
+
+.entry-content :where(details:not(.is-style-clipto-faq)) > :where(:not(summary)) {
+	margin-inline: 0;
+}
+
+.entry-content :where(details:not(.is-style-clipto-faq))[open] > :where(summary) {
+	margin-bottom: 0.4em;
+}
+
+.entry-content :where(details:not(.is-style-clipto-faq))[open] > :last-child {
+	margin-bottom: 1em;
+}
+
+/* Buttons (core/buttons) — the theme's .btn, in the content ----------------------------- */
+.entry-content .wp-block-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sp-3);
+	margin-block: 1.8em;
+}
+
+.entry-content .wp-block-button__link,
+.entry-content .wp-block-file__button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--sp-2);
+	min-height: 2.75rem;
+	padding: 0.65rem 1.15rem;
+	font-family: var(--ff-sans);
+	font-size: 0.9375rem;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: -0.005em;
+	text-decoration: none;
+	color: var(--c-paper);
+	background-color: var(--c-ink);
+	border: 1px solid var(--c-ink);
+	border-radius: var(--r-sm);
+	transition:
+		background-color var(--dur-2) var(--ease-out),
+		border-color var(--dur-2) var(--ease-out),
+		color var(--dur-2) var(--ease-out),
+		transform var(--dur-2) var(--ease-out);
+}
+
+.entry-content .wp-block-button__link:hover,
+.entry-content .wp-block-file__button:hover {
+	color: var(--c-paper);
+	background-color: var(--c-accent-text);
+	border-color: var(--c-accent-text);
+}
+
+.entry-content .wp-block-button__link:active {
+	transform: translateY(1px);
+}
+
+.entry-content .is-style-outline > .wp-block-button__link,
+.entry-content .wp-block-button__link.is-style-outline {
+	color: var(--c-ink);
+	background-color: transparent;
+	border-color: var(--c-rule);
+}
+
+.entry-content .is-style-outline > .wp-block-button__link:hover {
+	color: var(--c-ink);
+	background-color: transparent;
+	border-color: var(--c-ink);
+}
+
+/* Drop cap ------------------------------------------------------------------------------ */
+.entry-content .has-drop-cap:not(:focus)::first-letter {
+	float: left;
+	margin: 0.08em 0.1em 0 -0.02em;
+	font-family: var(--ff-serif);
+	font-size: 3.55em;
+	font-style: normal;
+	font-weight: 500;
+	line-height: 0.8;
+	text-transform: uppercase;
+	color: var(--c-ink);
+}
+
+@supports (initial-letter: 3) or (-webkit-initial-letter: 3) {
+	.entry-content .has-drop-cap:not(:focus)::first-letter {
+		float: none;
+		margin: 0 0.12em 0 0;
+		font-size: 1em;
+		line-height: 1;
+		-webkit-initial-letter: 3;
+		initial-letter: 3;
+	}
+}
+
+/* Columns, groups, media & text ------------------------------------------------------------ */
+.entry-content .wp-block-columns {
+	gap: var(--sp-6) var(--grid-gap);
+	margin-block: 1.8em;
+}
+
+.entry-content :where(.wp-block-group.has-background) {
+	padding: 1.25em 1.5em;
+	border-radius: var(--r-sm);
+}
+
+.entry-content :where(.wp-block-media-text) {
+	gap: var(--grid-gap);
+}
+
+/* Footnotes --------------------------------------------------------------------------------- */
+.entry-content :where(.wp-block-footnotes) {
+	padding-top: 1.2em;
+	border-top: 1px solid var(--c-rule);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	line-height: 1.55;
+	color: var(--c-ink-2);
+}
+
+.entry-content :where(sup.fn) :where(a) {
+	padding-inline: 0.1em;
+	font-family: var(--ff-sans);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+/* Small screens: keep long words and URLs from widening the page. */
+@media (max-width: 29.99em) {
+	/* Not table cells: that would let a column shrink to one letter. */
+	.entry-content :where(p, li, figcaption) {
+		overflow-wrap: anywhere;
+	}
+
+	.entry-content :where(blockquote:not([class*="is-style-clipto"])),
+	.entry-content .wp-block-quote:not([class*="is-style-clipto"]) {
+		padding-left: 1em;
+		font-size: 1.06em;
+	}
+}
