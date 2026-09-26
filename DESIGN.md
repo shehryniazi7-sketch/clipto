@@ -171,8 +171,10 @@ touch targets ≥ 44×44px; contrast ≥ 4.5:1 for text.
 
 ## 10. Performance budget
 
-- CSS: one stylesheet (`assets/css/main.css`, built & minified). Target < 60 KB raw.
-- JS: `assets/js/main.js` (all pages, deferred, < 10 KB) + `assets/js/article.js` (singular only).
+- CSS: `assets/css/main.css` (tokens, base, components, header, footer) + exactly one template bundle per
+  page — `home.css` (front page), `article.css` (posts & pages), `archive.css` (archives, search, author, 404).
+  Target ≤ 25 KB gzipped per page.
+- JS: `assets/js/main.js` (all pages, deferred, ≈ 10 KB) + `assets/js/article.js` (singular only, ≈ 7 KB).
   No jQuery, no animation libraries, no third-party scripts.
 - Fonts: 3 woff2 files, 2 preloaded. Italic is not preloaded.
 - Emoji script/styles, oEmbed discovery JS and unused core block CSS are removed/split.
