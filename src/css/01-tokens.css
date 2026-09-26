@@ -1,0 +1,172 @@
+/* ==========================================================================
+   Clipto design tokens — see DESIGN.md. Every value in the theme derives
+   from these custom properties. Dark mode re-points colour tokens only.
+   ========================================================================== */
+
+:root {
+	color-scheme: light;
+
+	/* Colour — light */
+	--c-paper: #f6f4ee;
+	--c-surface: #ffffff;
+	--c-tint: #ece8de;
+	--c-ink: #121417;
+	--c-ink-2: #3b4047;
+	--c-ink-3: #62666d;
+	--c-rule: #d9d4c7;
+	--c-rule-strong: #121417;
+	--c-accent: #e2491f;
+	--c-accent-text: #b3360f;
+	--c-accent-soft: rgb(226 73 31 / 0.1);
+	--c-free: #1b7446;
+	--c-invert-bg: #121417;
+	--c-invert-ink: #f6f4ee;
+	--c-invert-ink-2: #b9b5ab;
+	--c-invert-rule: #2e3237;
+	--c-invert-accent: #ff6b3d;
+	--c-scrim: rgb(18 20 23 / 0.42);
+	--c-header: rgb(246 244 238 / 0.88);
+
+	/* Typography */
+	--ff-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+	--ff-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--ff-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+
+	--fs-2xs: 0.6875rem;
+	--fs-xs: 0.75rem;
+	--fs-sm: 0.875rem;
+	--fs-base: 1rem;
+	--fs-md: 1.125rem;
+	--fs-lg: clamp(1.25rem, 1.15rem + 0.45vw, 1.5rem);
+	--fs-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2rem);
+	--fs-2xl: clamp(1.875rem, 1.45rem + 1.7vw, 2.75rem);
+	--fs-3xl: clamp(2.25rem, 1.6rem + 2.6vw, 3.75rem);
+	--fs-4xl: clamp(2.75rem, 1.75rem + 4.4vw, 5.5rem);
+	--fs-read: clamp(1.125rem, 1.07rem + 0.25vw, 1.25rem);
+
+	--lh-tight: 1.08;
+	--lh-snug: 1.2;
+	--lh-ui: 1.5;
+	--lh-read: 1.68;
+
+	--tracking-tight: -0.022em;
+	--tracking-display: -0.032em;
+	--tracking-label: 0.08em;
+
+	--measure: 40rem;
+
+	/* Space (4px base) */
+	--sp-1: 0.25rem;
+	--sp-2: 0.5rem;
+	--sp-3: 0.75rem;
+	--sp-4: 1rem;
+	--sp-5: 1.25rem;
+	--sp-6: 1.5rem;
+	--sp-7: 2rem;
+	--sp-8: 2.5rem;
+	--sp-9: 3rem;
+	--sp-10: 4rem;
+	--sp-11: 6rem;
+	--sp-12: 8rem;
+	--section-gap: clamp(3.5rem, 2rem + 5vw, 7rem);
+	--gutter: clamp(1rem, 3.5vw, 2.5rem);
+	--grid-gap: clamp(1rem, 2.2vw, 2rem);
+	--container: 82.5rem;
+	--header-h: 4rem;
+
+	/* Shape & depth */
+	--r-xs: 2px;
+	--r-sm: 4px;
+	--r-md: 8px;
+	--r-pill: 999px;
+	--shadow-float: 0 1px 2px rgb(18 20 23 / 0.06), 0 12px 32px -8px rgb(18 20 23 / 0.18);
+
+	/* Motion */
+	--dur-1: 120ms;
+	--dur-2: 200ms;
+	--dur-3: 320ms;
+	--dur-4: 600ms;
+	--ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+	--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+	--stagger: 60ms;
+
+	/* WordPress preset colours follow the tokens (so editor content adapts in dark mode). */
+	--wp--preset--color--paper: var(--c-paper);
+	--wp--preset--color--surface: var(--c-surface);
+	--wp--preset--color--tint: var(--c-tint);
+	--wp--preset--color--ink: var(--c-ink);
+	--wp--preset--color--ink-2: var(--c-ink-2);
+	--wp--preset--color--ink-3: var(--c-ink-3);
+	--wp--preset--color--rule: var(--c-rule);
+	--wp--preset--color--accent: var(--c-accent);
+	--wp--preset--color--accent-text: var(--c-accent-text);
+	--wp--preset--color--free: var(--c-free);
+}
+
+/* Dark palette — tuned, not inverted. Applied when explicitly chosen… */
+:root[data-theme="dark"] {
+	color-scheme: dark;
+	--c-paper: #0d0f11;
+	--c-surface: #15181b;
+	--c-tint: #1b1f23;
+	--c-ink: #ece9e1;
+	--c-ink-2: #bdb8ad;
+	--c-ink-3: #8f8b82;
+	--c-rule: #2a2f35;
+	--c-rule-strong: #ece9e1;
+	--c-accent: #ff6b3d;
+	--c-accent-text: #ff8a63;
+	--c-accent-soft: rgb(255 107 61 / 0.12);
+	--c-free: #4cc38a;
+	--c-invert-bg: #ece9e1;
+	--c-invert-ink: #121417;
+	--c-invert-ink-2: #4a4e55;
+	--c-invert-rule: #cfcabe;
+	--c-invert-accent: #b3360f;
+	--c-scrim: rgb(0 0 0 / 0.6);
+	--c-header: rgb(13 15 17 / 0.86);
+	--shadow-float: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+}
+
+/* …or by the OS when the reader has not made an explicit choice. */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		color-scheme: dark;
+		--c-paper: #0d0f11;
+		--c-surface: #15181b;
+		--c-tint: #1b1f23;
+		--c-ink: #ece9e1;
+		--c-ink-2: #bdb8ad;
+		--c-ink-3: #8f8b82;
+		--c-rule: #2a2f35;
+		--c-rule-strong: #ece9e1;
+		--c-accent: #ff6b3d;
+		--c-accent-text: #ff8a63;
+		--c-accent-soft: rgb(255 107 61 / 0.12);
+		--c-free: #4cc38a;
+		--c-invert-bg: #ece9e1;
+		--c-invert-ink: #121417;
+		--c-invert-ink-2: #4a4e55;
+		--c-invert-rule: #cfcabe;
+		--c-invert-accent: #b3360f;
+		--c-scrim: rgb(0 0 0 / 0.6);
+		--c-header: rgb(13 15 17 / 0.86);
+		--shadow-float: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+	}
+}
+
+@media (min-width: 64em) {
+	:root {
+		--header-h: 4.25rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--dur-1: 1ms;
+		--dur-2: 1ms;
+		--dur-3: 1ms;
+		--dur-4: 1ms;
+		--stagger: 0ms;
+	}
+}

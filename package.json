@@ -1,0 +1,14 @@
+{
+  "name": "clipto-theme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build tooling for the Clipto WordPress theme (CSS + JS bundles).",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "lightningcss": "^1.33.0"
+  }
+}

@@ -1,0 +1,303 @@
+/* ==========================================================================
+   Cards — one anatomy, several compositions. Borders not shadows; the whole
+   card is clickable through a stretched headline link.
+   ========================================================================== */
+
+.card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-4);
+	min-width: 0;
+}
+
+.card__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--sp-2);
+	min-width: 0;
+}
+
+.card__top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--sp-2) var(--sp-3);
+}
+
+.card__kicker {
+	position: relative;
+	z-index: 2;
+}
+
+.card__title {
+	font-family: var(--ff-serif);
+	font-weight: 600;
+	font-size: var(--fs-md);
+	line-height: 1.22;
+	letter-spacing: -0.012em;
+	color: var(--c-ink);
+}
+
+.card__link {
+	color: inherit;
+}
+
+.card__link::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+.card__link:focus-visible {
+	outline: none;
+}
+
+.card__link:focus-visible::after {
+	outline: 2px solid var(--c-accent);
+	outline-offset: 6px;
+	border-radius: var(--r-xs);
+}
+
+.card__excerpt {
+	font-family: var(--ff-serif);
+	font-size: 1.0625rem;
+	line-height: 1.5;
+	color: var(--c-ink-2);
+}
+
+.card__meta {
+	margin-top: var(--sp-1);
+}
+
+.card .badges {
+	position: relative;
+	z-index: 2;
+}
+
+.card__media {
+	position: relative;
+}
+
+/* Lead: the biggest story in a composition ------------------------------- */
+.card--lead {
+	gap: var(--sp-5);
+}
+
+.card--lead .card__title {
+	font-size: var(--fs-2xl);
+	font-weight: 500;
+	line-height: 1.08;
+	letter-spacing: var(--tracking-display);
+}
+
+.card--lead .card__excerpt {
+	font-size: var(--fs-md);
+	max-width: 58ch;
+}
+
+.card--lead .card__body {
+	gap: var(--sp-3);
+}
+
+/* Feature ----------------------------------------------------------------- */
+.card--feature .card__title {
+	font-size: var(--fs-xl);
+	font-weight: 500;
+	line-height: 1.12;
+	letter-spacing: var(--tracking-tight);
+}
+
+.card--feature .card__body {
+	gap: var(--sp-3);
+}
+
+/* Standard ---------------------------------------------------------------- */
+.card--standard .card__title {
+	font-size: var(--fs-lg);
+	font-weight: 500;
+	line-height: 1.16;
+}
+
+/* Compact: text only, hairline above ------------------------------------ */
+.card--compact {
+	padding-top: var(--sp-4);
+	border-top: 1px solid var(--c-rule);
+	gap: var(--sp-2);
+}
+
+.card--compact .card__title {
+	font-size: var(--fs-md);
+	font-weight: 500;
+}
+
+/* Row: square thumb + text ---------------------------------------------- */
+.card--row {
+	display: grid;
+	grid-template-columns: 5rem minmax(0, 1fr);
+	align-items: start;
+	gap: var(--sp-4);
+	padding-block: var(--sp-4);
+	border-top: 1px solid var(--c-rule);
+}
+
+.card--row .card__title {
+	font-size: 1.0625rem;
+	font-weight: 500;
+	line-height: 1.25;
+}
+
+.card--row .card__body {
+	gap: var(--sp-1);
+}
+
+@media (min-width: 48em) {
+	.card--row {
+		grid-template-columns: 6rem minmax(0, 1fr);
+	}
+}
+
+/* Numbered: ordered story lists ---------------------------------------- */
+.card--numbered {
+	display: grid;
+	grid-template-columns: 2.25rem minmax(0, 1fr);
+	gap: var(--sp-3);
+	padding-block: var(--sp-4);
+	border-top: 1px solid var(--c-rule);
+}
+
+.card__num {
+	padding-top: 0.2em;
+	font-family: var(--ff-sans);
+	font-size: var(--fs-sm);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	color: var(--c-ink-3);
+	transition: color var(--dur-2) var(--ease-out);
+}
+
+.card--numbered:hover .card__num {
+	color: var(--c-accent);
+}
+
+.card--numbered .card__title {
+	font-size: var(--fs-md);
+	font-weight: 500;
+	line-height: 1.25;
+}
+
+.card--numbered .card__body {
+	gap: var(--sp-2);
+}
+
+/* Tool: logo tile + facts ----------------------------------------------- */
+.card--tool {
+	display: grid;
+	grid-template-columns: 3.5rem minmax(0, 1fr);
+	align-items: start;
+	gap: var(--sp-4);
+	padding: var(--sp-5);
+	border: 1px solid var(--c-rule);
+	border-radius: var(--r-sm);
+	background: var(--c-paper);
+	transition:
+		border-color var(--dur-2) var(--ease-out),
+		transform var(--dur-3) var(--ease-out);
+}
+
+.card--tool .clip-frame {
+	border-radius: var(--r-sm);
+}
+
+.card--tool .clip-frame::after {
+	--m: 4px;
+	--l: 8px;
+}
+
+.card--tool .card__title {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-md);
+	font-weight: 650;
+	letter-spacing: -0.015em;
+	line-height: 1.2;
+}
+
+.card--tool .card__excerpt {
+	font-size: 0.9375rem;
+	line-height: 1.45;
+}
+
+.card--tool .card__body {
+	gap: var(--sp-2);
+}
+
+.card--tool .card__meta {
+	display: none;
+}
+
+.card__bestfor {
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	color: var(--c-ink-2);
+	line-height: 1.4;
+}
+
+.card__bestfor span {
+	font-weight: 600;
+	color: var(--c-ink);
+}
+
+.card__rating {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sp-1);
+	font-family: var(--ff-sans);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.card__rating .icon {
+	fill: var(--c-accent);
+	stroke: var(--c-accent);
+}
+
+@media (hover: hover) {
+	.card--tool:hover {
+		border-color: var(--c-ink);
+		transform: translateY(-2px);
+	}
+}
+
+/* Hover colour cue on headline -------------------------------------------- */
+@media (hover: hover) {
+	.card:hover .card__title {
+		color: var(--c-ink);
+	}
+}
+
+/* Tool logo tile (when a real logo is set) */
+.tool-logo {
+	display: grid;
+	place-items: center;
+	aspect-ratio: 1;
+	padding: 18%;
+	background: var(--c-surface);
+	border: 1px solid var(--c-rule);
+	border-radius: var(--r-sm);
+	overflow: hidden;
+}
+
+.tool-logo__img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	transition: transform var(--dur-3) var(--ease-out);
+}
+
+@media (hover: hover) {
+	.card:hover .tool-logo__img {
+		transform: scale(1.06);
+	}
+}
