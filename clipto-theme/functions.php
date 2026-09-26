@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CLIPTO_VERSION', '1.2.0' );
+define( 'CLIPTO_VERSION', '1.3.0' );
 
 /**
  * ------------------------------------------------------------------
@@ -68,14 +68,33 @@ add_action( 'after_setup_theme', 'clipto_theme_setup' );
  * ------------------------------------------------------------------
  * 2. ASSETS
  * ------------------------------------------------------------------
- * Everything lives in one stylesheet and one inline footer script by
- * design: for a content site, one consolidated, well-organized CSS file
- * beats several conditionally-loaded ones, and it keeps HTTP requests to
- * an unavoidable minimum. There is no separate JS file to enqueue; the
- * small amount of vanilla JS the theme needs is printed in footer.php.
+ * Two stylesheets: style.css (shared chrome, cards, archives, homepage)
+ * on every view, and assets/css/article.css (article prose, byline,
+ * AI Summary, share, comments, tool detail) only on singular views, so
+ * the homepage and archives don't download render-blocking CSS they never
+ * use. Each is served from its .min.css build when that file exists and
+ * is not older than the source (see tools/build-css.php in the repo), so
+ * editing the readable source can never ship stale minified CSS.
+ * There is no separate JS file to enqueue; the small amount of vanilla JS
+ * the theme needs is printed in footer.php.
  */
+function clipto_asset_uri( $relative ) {
+	$dir = get_template_directory();
+	$min = preg_replace( '/\.css$/', '.min.css', $relative );
+	if ( ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG )
+		&& is_readable( $dir . '/' . $min )
+		&& filemtime( $dir . '/' . $min ) >= filemtime( $dir . '/' . $relative ) ) {
+		$relative = $min;
+	}
+	return get_template_directory_uri() . '/' . $relative;
+}
+
 function clipto_enqueue_assets() {
-	wp_enqueue_style( 'clipto-style', get_stylesheet_uri(), array(), CLIPTO_VERSION );
+	wp_enqueue_style( 'clipto-style', clipto_asset_uri( 'style.css' ), array(), CLIPTO_VERSION );
+
+	if ( is_singular() ) {
+		wp_enqueue_style( 'clipto-article', clipto_asset_uri( 'assets/css/article.css' ), array( 'clipto-style' ), CLIPTO_VERSION );
+	}
 
 	if ( is_singular() && comments_open() ) {
 		wp_enqueue_script( 'comment-reply' );
@@ -108,6 +127,43 @@ function clipto_article_hero_sizes() {
 function clipto_card_image_sizes() {
 	return '(max-width: 640px) calc(100vw - 32px), (max-width: 940px) 50vw, (max-width: 1240px) 33vw, 300px';
 }
+
+/**
+ * The header logo is capped at 40px tall (.site-branding .custom-logo), but
+ * core prints it at full size with sizes="(max-width: Npx) 100vw, Npx", so a
+ * typical 512-1024px upload was fetched at 768-1024px to paint 40px, and
+ * with fetchpriority="high" it competed with the real LCP. Give the browser
+ * the true slot width so it picks the smallest srcset candidate, and drop
+ * the priority hint (the logo is never the LCP element).
+ */
+function clipto_custom_logo_attributes( $attr, $custom_logo_id ) {
+	$meta = wp_get_attachment_metadata( $custom_logo_id );
+	if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+		$slot_width    = (int) ceil( 40 * $meta['width'] / $meta['height'] );
+		$attr['sizes'] = min( $slot_width, (int) $meta['width'] ) . 'px';
+	}
+	$attr['fetchpriority'] = 'auto';
+	return $attr;
+}
+add_filter( 'get_custom_logo_image_attributes', 'clipto_custom_logo_attributes', 10, 2 );
+
+/**
+ * Have WordPress write WebP instead of JPEG for the images it generates on
+ * upload (the full-size copy it serves plus every card, hero and thumbnail
+ * size) — 25-35% smaller at the same quality setting in local tests. The
+ * uploaded JPEG itself is kept on disk as the attachment's original_image.
+ * Only new uploads (or images regenerated with e.g. `wp media regenerate`)
+ * are affected. Skipped when the server's image library cannot write WebP.
+ * Disable with:
+ * add_filter( 'clipto_webp_subsizes', '__return_false' );
+ */
+function clipto_image_output_format( $formats ) {
+	if ( apply_filters( 'clipto_webp_subsizes', true ) && wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+		$formats['image/jpeg'] = 'image/webp';
+	}
+	return $formats;
+}
+add_filter( 'image_editor_output_format', 'clipto_image_output_format' );
 
 /**
  * The card grids show up to four cards in their first row, so let core keep

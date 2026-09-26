@@ -289,3 +289,82 @@ The screenshots I inspected are in `docs/qa-screenshots/single-post/`:
 **Performance cost, stated honestly:** the theme `style.css` grew from 44KB to **65.6KB raw (13.4KB gzipped)**. Theme JavaScript is still the one inline script with no libraries. The new blocks (share, progress, scroll regions) are about 3KB unminified.
 
 **Still not done:** Lighthouse/PageSpeed, non-Chromium browsers, real devices, and a real (non-DejaVu) font rendering.
+
+## 9. Round 3 — Response to the live PageSpeed Insights report (theme v1.3.0)
+
+The input was the user's PageSpeed Insights (Lighthouse 13.5) screenshots of the live homepage:
+
+| | Mobile (Moto G Power, Slow 4G) | Desktop |
+|---|---|---|
+| Performance score | 70 | 87 |
+| Accessibility / Best Practices / SEO | 100 / 100 / 100 | 100 / 100 / 100 |
+| Main flags | render-blocking 2,100 ms, image delivery 87 KiB, unused JS 322 KiB, unused CSS 34 KiB, minify CSS 3 KiB, cache lifetimes 16 KiB | FCP 0.4 s, LCP 1.8 s, Speed Index 2.6 s, TBT 60 ms, CLS 0 |
+
+The live URL was not given, so I did **not** run Lighthouse myself. Everything below was measured on the local WordPress copy.
+
+### 9.1 Which findings are the theme's and which are not
+
+- **Unused JavaScript (322 KiB): not the theme.** On the homepage the theme loads **0 bytes of external JavaScript**. Its only JS is the ~3KB inline footer script, and on the homepage it adds no `comment-reply`. The screenshots show a cookie-consent banner from a plugin ("Powered by …"). That plugin, plus any analytics or tag scripts on the live site, is where these bytes come from. PSI's "Reduce unused JavaScript" row, when expanded, lists the exact URLs.
+- **Cache lifetimes (16 KiB): server or host.** HTTP `Cache-Control` headers for static files are set by the web server or CDN, not by a theme.
+- **Render-blocking, unused CSS and minify CSS: partly the theme.** Every page loaded one unminified 65.8KB `style.css`, but about 40% of it only styles single posts, pages and tool pages.
+- **Image delivery: partly the theme.** See 9.2 (logo) and 9.3 (WebP).
+
+### 9.2 Changes
+
+1. **CSS split.** All singular-only rules move verbatim, in their original order, into `assets/css/article.css`. That covers:
+   - reading progress, article header/byline/actions, prose, share, tags
+   - AI Summary
+   - related / post navigation, tool meta, comments
+   - their ≤600px overrides
+
+   `article.css` is enqueued only when `is_singular()`. `style.css` keeps the tokens, chrome, cards, homepage, archives and the author box/header.
+2. **Minified builds.** `tools/build-css.php` (repo only, not shipped) writes `style.min.css` and `assets/css/article.min.css`. It is string-aware and removes only comments and whitespace around `{ } ; ,`. `clipto_asset_uri()` serves a `.min.css` only while it is at least as new as its source, and never under `SCRIPT_DEBUG`. Editing the readable CSS therefore falls back to it instead of shipping stale minified rules.
+3. **Header logo.** `the_custom_logo()` printed the logo at full size with `sizes="(max-width: 1024px) 100vw, 1024px"` and `fetchpriority="high"`, while CSS caps it at 40px tall. A new `get_custom_logo_image_attributes` filter sets `sizes` to the real slot width (e.g. `40px`) and `fetchpriority="auto"`.
+4. **WebP output for generated images.** An `image_editor_output_format` filter maps JPEG to WebP, only when the server's image library can write WebP. It can be turned off with `add_filter( 'clipto_webp_subsizes', '__return_false' )`. WordPress keeps the uploaded JPEG as `original_image` and serves a WebP full-size copy and WebP sub-sizes. This affects **new uploads only**. Existing images need `wp media regenerate` (or the Regenerate Thumbnails plugin).
+
+### 9.3 Measured results (local, Chromium)
+
+| Measurement | Before (v1.2.0) | After (v1.3.0) |
+|---|---|---|
+| CSS on homepage / archives | 64.2KB raw, 13.4KB gzip, 1 blocking file | **28.9KB raw, 5.8KB gzip**, 1 blocking file |
+| CSS on single post / page / tool | 64.2KB raw, 1 file | 51.5KB raw (5.8 + 4.4KB gzip), 2 files |
+| Header logo, 1024px test upload, Moto G viewport (412px @1.75x) | 768px PNG, **120.7KB**, `fetchpriority=high` | 150px PNG, **14.9KB**, `fetchpriority=auto` |
+| Same logo, desktop 1350px | 1024px PNG, 62.2KB | 150px PNG, 14.9KB |
+| WebP vs JPEG for the same resize (q82, GD) | 640×400: 44KB · 768×432: 51KB · 320×200: 17KB | 28KB · 33KB · 13KB (**25–35% smaller**) |
+| Homepage FCP/LCP, median of 5 cold loads, Slow-4G-like (150ms RTT, 1.6Mbps) + 4x CPU | 1,100 ms | **984 ms** |
+| Article FCP/LCP, same conditions | 1,044 ms | 980 ms |
+
+The throttled numbers come from Chrome DevTools-protocol emulation against a local server. They are **not** Lighthouse scores and they don't include the live site's plugins, host or network. The theme's share of the live report's 2,100 ms render-blocking estimate will shrink. The plugin scripts and styles, which are also render-blocking, have to be addressed on the site itself.
+
+### 9.4 Regression tests run after the last change
+
+| Check | Result |
+|---|---|
+| Pixel diff: 14 templates × 375/768/1366px × light/dark = **84 full-page screenshots**, before vs after | **84/84 byte-identical**. A negative control (article CSS removed) did produce a different screenshot, so the diff can catch regressions. |
+| Visual + axe matrix, 72 renders | 0 overflow, CLS 0, 0 console errors except the 404 page's own "404 (Not Found)". One `color-contrast` hit on article/mobile/dark did **not** reproduce in 3 full re-runs (0 violations each). It is a timing artifact of the entrance animation, not a CSS change (the pixels are identical). |
+| Responsive sweep, 108 combinations (320–1440px × 6 types × 2 schemes) | 0 with horizontal overflow |
+| Interaction suite | **50/50 pass** |
+| `php -l` on all theme, plugin and tool PHP | Clean |
+| WPCS (WordPress-Extra) on `functions.php` | No new findings compared with v1.2.0 |
+
+Test uploads (the logo and WebP samples) were deleted afterwards, and `custom_logo` was reset.
+
+### 9.5 Recommended next steps on the live site (outside the theme)
+
+1. Expand "Reduce unused JavaScript" and "Render-blocking requests" in PSI to see the exact third-party URLs. The cookie-consent plugin is the obvious candidate: load its script `defer`/async if the plugin allows it, or pick a lighter consent tool.
+2. Set long `Cache-Control` for `/wp-content/` static files (host panel, `.htaccess` or CDN). The versioned `?ver=` query strings on theme assets make a 1-year cache safe.
+3. After deploying v1.3.0, run `wp media regenerate --yes` (or Regenerate Thumbnails) so existing images get WebP and the `clipto-card-sm` size.
+4. Re-run PageSpeed Insights a few times. Mobile scores vary by ±5–10 between runs.
+
+### 9.6 Files changed in this round
+
+| File | Change |
+|---|---|
+| `clipto-theme/style.css` | Singular-only rules moved out, not edited. Version 1.3.0. |
+| `clipto-theme/assets/css/article.css` | **New.** The moved rules, verbatim and in the same order. |
+| `clipto-theme/style.min.css`, `clipto-theme/assets/css/article.min.css` | **New**, generated by `tools/build-css.php`. |
+| `clipto-theme/functions.php` | `clipto_asset_uri()`, conditional `clipto-article` enqueue, custom-logo `sizes`/`fetchpriority`, WebP output format, `CLIPTO_VERSION` 1.3.0. |
+| `tools/build-css.php` | **New** (repo only). CSS minifier/build step. |
+| `dist/clipto-ai-pro-final.zip` | Rebuilt with the above. The plugin ZIP is unchanged. |
+
+This round adds files to the theme (`assets/css/`, the two `.min.css`). That departs from the earlier "same file set" constraint on purpose, because the alternative is shipping unused, unminified CSS on every page.
