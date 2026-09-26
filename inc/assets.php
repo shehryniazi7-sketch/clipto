@@ -36,16 +36,35 @@ function clipto_css_bundle() {
 }
 
 /**
+ * Enqueue a theme stylesheet. By default the CSS (~11–22 KB gzipped per page) is printed inline in
+ * <head>: no render-blocking request, which is worth ~0.3–0.5 s of LCP on mobile. Sites behind a
+ * CDN that prefer cacheable files can opt out: add_filter( 'clipto_inline_css', '__return_false' ).
+ * Either way the handle is registered, so plugins can depend on it.
+ *
+ * @param string   $handle Style handle.
+ * @param string   $rel    Path relative to the theme root.
+ * @param string[] $deps   Dependencies.
+ */
+function clipto_enqueue_css( $handle, $rel, $deps = array() ) {
+	$path = CLIPTO_DIR . '/' . $rel;
+	if ( apply_filters( 'clipto_inline_css', true, $handle ) && is_readable( $path ) ) {
+		wp_register_style( $handle, false, $deps, clipto_asset_version( $rel ) );
+		wp_enqueue_style( $handle );
+		wp_add_inline_style( $handle, (string) file_get_contents( $path ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local theme file.
+		return;
+	}
+	wp_enqueue_style( $handle, CLIPTO_URI . '/' . $rel, $deps, clipto_asset_version( $rel ) );
+}
+
+/**
  * Enqueue styles and scripts.
  */
 function clipto_enqueue_assets() {
-	wp_enqueue_style( 'clipto', CLIPTO_URI . '/assets/css/main.css', array(), clipto_asset_version( 'assets/css/main.css' ) );
-
-	// One template bundle per page type keeps each page's CSS small.
+	// main.css + one template bundle per page type keeps each page's CSS small.
 	$bundle = clipto_css_bundle();
+	clipto_enqueue_css( 'clipto', 'assets/css/main.css' );
 	if ( $bundle ) {
-		$rel = 'assets/css/' . $bundle . '.css';
-		wp_enqueue_style( 'clipto-' . $bundle, CLIPTO_URI . '/' . $rel, array( 'clipto' ), clipto_asset_version( $rel ) );
+		clipto_enqueue_css( 'clipto-' . $bundle, 'assets/css/' . $bundle . '.css', array( 'clipto' ) );
 	}
 
 	wp_enqueue_script(
