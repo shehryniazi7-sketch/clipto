@@ -4,7 +4,7 @@
  * reader is typing in a field. Esc, the close button or a backdrop click closes it and
  * focus returns to where it was. Without JS the header shows a plain search link.
  */
-import { setupDialog, openDialog } from './header.js';
+import { setupDialog, openDialog, closeDialog } from './header.js';
 
 const isTyping = (el) => {
 	if (!el || el === document.body) return false;
@@ -58,8 +58,15 @@ export function initSearch() {
 		open(null);
 	});
 
-	// An empty search would only list everything: keep the reader in the field instead.
 	if (form && input) {
+		// Esc closes the overlay in one press (a search field would first clear itself).
+		input.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape' || event.isComposing) return;
+			event.preventDefault();
+			closeDialog(dialog);
+		});
+
+		// An empty search would only list everything: keep the reader in the field instead.
 		form.addEventListener('submit', (event) => {
 			if (!input.value.trim()) {
 				event.preventDefault();

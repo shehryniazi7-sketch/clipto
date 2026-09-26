@@ -11,19 +11,18 @@
  * focuses it for screen readers and removes the flag from the address bar.
  */
 
+import { prefersReducedMotion } from './reveal.js';
+
 // Deliberately permissive: one @, something before it, a dotted domain after it.
 const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
 
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 function enhanceForm(form) {
-	if (!form || form.dataset.enhanced) return;
+	if (!form) return;
 	const input = form.querySelector('input[type="email"]');
 	const button = form.querySelector('[type="submit"]');
 	const msg = form.querySelector('[data-newsletter-msg]');
 	if (!input || !button || !msg) return;
 
-	form.dataset.enhanced = '1';
 	// Native validation still guards the no-JS path; with JS we give better feedback.
 	form.noValidate = true;
 
@@ -108,8 +107,7 @@ function enhanceForm(form) {
 }
 
 function confirmSubscription(el) {
-	if (!el || el.dataset.enhanced) return;
-	el.dataset.enhanced = '1';
+	if (!el) return;
 
 	try {
 		const url = new URL(window.location.href);
@@ -130,7 +128,7 @@ function confirmSubscription(el) {
 			const root = document.documentElement;
 			const previous = root.style.scrollBehavior;
 			root.style.scrollBehavior = 'auto';
-			el.scrollIntoView({ block: reducedMotion() ? 'start' : 'center' });
+			el.scrollIntoView({ block: prefersReducedMotion() ? 'start' : 'center' });
 			root.style.scrollBehavior = previous;
 		}
 		el.focus({ preventScroll: true });
@@ -146,26 +144,22 @@ function confirmSubscription(el) {
 	}
 }
 
-export function initNewsletter(root = document) {
-	const band = root.querySelector('[data-newsletter]');
-	if (band) {
-		enhanceForm(band.querySelector('form[data-newsletter-form]'));
-		confirmSubscription(band.querySelector('[data-newsletter-success]'));
-	}
+function enhance() {
+	const band = document.querySelector('[data-newsletter]');
+	if (!band) return;
+	enhanceForm(band.querySelector('form[data-newsletter-form]'));
+	confirmSubscription(band.querySelector('[data-newsletter-success]'));
+}
 
-	// Customizer preview: after selective refresh re-renders the band or the footer, show
-	// their scroll-reveal elements (the reveal observer only runs on page load) and
-	// re-enhance the form.
+export function initNewsletter() {
+	enhance();
+	// Customizer preview: selective refresh re-renders the band (without scroll reveals —
+	// see newsletter.php), so enhance the new form.
 	const wp = window.wp;
-	if (root === document && wp && wp.customize && wp.customize.selectiveRefresh && !initNewsletter.bound) {
-		initNewsletter.bound = true;
-		wp.customize.selectiveRefresh.bind('partial-content-rendered', (placement) => {
-			const id = placement && placement.partial ? placement.partial.id : '';
-			if (id !== 'clipto_newsletter' && id !== 'clipto_footer') return;
-			document
-				.querySelectorAll('[data-clipto-newsletter] [data-reveal], .site-footer [data-reveal]')
-				.forEach((el) => el.classList.add('is-revealed'));
-			if (id === 'clipto_newsletter') initNewsletter();
+	const refresh = wp && wp.customize && wp.customize.selectiveRefresh;
+	if (refresh) {
+		refresh.bind('partial-content-rendered', (placement) => {
+			if (placement && placement.partial && placement.partial.id === 'clipto_newsletter') enhance();
 		});
 	}
 }

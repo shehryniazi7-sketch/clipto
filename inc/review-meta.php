@@ -203,15 +203,17 @@ add_action( 'init', 'clipto_register_tool_meta' );
 
 if ( ! function_exists( 'clipto_add_tool_facts_box' ) ) {
 	/**
-	 * Add the meta box on posts (shown below the block editor canvas too).
+	 * Add the meta box on posts (a sidebar panel in the block editor).
 	 */
 	function clipto_add_tool_facts_box() {
+		// Side context: in the block editor it becomes a sidebar panel instead of splitting
+		// the writing canvas; the fields stack to one column there.
 		add_meta_box(
 			'clipto-tool-facts',
 			__( 'Tool facts (optional)', 'clipto' ),
 			'clipto_render_tool_facts_box',
 			'post',
-			'normal',
+			'side',
 			'default'
 		);
 	}
@@ -236,7 +238,7 @@ if ( ! function_exists( 'clipto_render_tool_facts_box' ) ) {
 		$rating   = '' === $v['_clipto_rating'] ? '' : clipto_sanitize_rating( $v['_clipto_rating'] );
 		?>
 		<style>
-			.clipto-facts { display: grid; gap: 14px 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin: 6px 0 4px; }
+			.clipto-facts { display: grid; gap: 14px 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); margin: 6px 0 4px; }
 			.clipto-facts__field label { display: block; font-weight: 600; margin-bottom: 4px; }
 			.clipto-facts__field input[type="text"], .clipto-facts__field input[type="url"], .clipto-facts__field input[type="number"], .clipto-facts__field select, .clipto-facts__field textarea { width: 100%; max-width: none; }
 			.clipto-facts__field--wide { grid-column: 1 / -1; }

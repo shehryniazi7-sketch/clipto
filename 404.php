@@ -26,8 +26,9 @@ get_header();
 				<?php
 				clipto_search_form(
 					array(
-						'id'    => 'search-404-field',
-						'class' => 'error-404__search',
+						'id'          => 'search-404-field',
+						'class'       => 'error-404__search',
+						'placeholder' => __( 'Search Clipto', 'clipto' ),
 					)
 				);
 				?>

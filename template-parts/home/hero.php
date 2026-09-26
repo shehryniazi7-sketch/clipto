@@ -110,7 +110,7 @@ if ( count( $clipto_top ) < 4 ) {
 						array(
 							'id'          => 'home-hero-search',
 							'class'       => 'search-form--hero',
-							'placeholder' => __( 'Search tools, guides and news', 'clipto' ),
+							'placeholder' => __( 'Search tools, guides, news', 'clipto' ),
 						)
 					);
 					?>

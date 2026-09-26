@@ -13,7 +13,7 @@ $a = wp_parse_args(
 	isset( $args ) && is_array( $args ) ? $args : array(),
 	array(
 		'title'   => __( 'Latest stories', 'clipto' ),
-		'kicker'  => __( 'Latest', 'clipto' ),
+		'kicker'  => __( 'Keep reading', 'clipto' ),
 		'count'   => 4,
 		'exclude' => array(),
 		'index'   => '',

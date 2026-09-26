@@ -15,7 +15,7 @@
  *   note        Extra plain-text line under the description.
  *   badge       Badge HTML (built from constants; kses'd here).
  *   stats       Array of { value, label, html?: bool }.
- *   chips       Array of { label, url, count, current, active } (tools nav).
+ *   chips       Array of { label, sr?, url, count, current, active } (tools nav).
  *   chips_label Accessible name of the chip nav.
  *   media       Leading media HTML (author portrait; kses'd here).
  *   after       Callback printed at the end of the main column.
@@ -160,7 +160,7 @@ $media_tags = array(
 					<?php foreach ( $a['chips'] as $chip ) : ?>
 						<li>
 							<a class="chip<?php echo ! empty( $chip['active'] ) ? ' is-active' : ''; ?>" href="<?php echo esc_url( $chip['url'] ); ?>"<?php echo ! empty( $chip['current'] ) ? ' aria-current="page"' : ''; ?>>
-								<?php echo esc_html( $chip['label'] ); ?>
+								<span><?php echo esc_html( $chip['label'] ); ?><?php if ( ! empty( $chip['sr'] ) ) : ?><span class="screen-reader-text"> <?php echo esc_html( $chip['sr'] ); ?></span><?php endif; ?></span>
 								<?php if ( isset( $chip['count'] ) && null !== $chip['count'] ) : ?>
 									<span class="chip__count"><span class="screen-reader-text">(</span><?php echo esc_html( number_format_i18n( (int) $chip['count'] ) ); ?><span class="screen-reader-text"> <?php echo esc_html( _n( 'article', 'articles', (int) $chip['count'], 'clipto' ) ); ?>)</span></span>
 								<?php endif; ?>

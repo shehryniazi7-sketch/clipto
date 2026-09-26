@@ -7,6 +7,7 @@
  * Also exports the small modal-dialog helpers shared with search.js: scroll lock,
  * animated close (CSS keyframes on .is-closing), backdrop click, Esc, focus return.
  */
+import { prefersReducedMotion } from './reveal.js';
 
 const DESKTOP = '(min-width: 64em)';
 const FINE_HOVER = '(hover: hover) and (pointer: fine)';
@@ -15,7 +16,6 @@ const CLOSE_DELAY = 250;
 const SCROLL_OFFSET = 8;
 
 const media = (query) => window.matchMedia(query);
-export const reducedMotion = () => media('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------------------------------------------------------------------------
  * Modal dialog helpers
@@ -48,9 +48,6 @@ function unlockScroll() {
  * @param {{ onClose?: () => void }} [options]
  */
 export function setupDialog(dialog, { onClose } = {}) {
-	if (!dialog || dialog.dataset.dialogReady) return;
-	dialog.dataset.dialogReady = '1';
-
 	dialog.addEventListener('cancel', (event) => {
 		// Play the exit animation; if the browser refuses the cancel it simply closes.
 		if (!event.cancelable) return;
@@ -127,7 +124,7 @@ export function closeDialog(dialog, { instant = false } = {}) {
 		if (dialog.open) dialog.close();
 	};
 
-	if (instant || reducedMotion()) {
+	if (instant || prefersReducedMotion()) {
 		finish();
 		return;
 	}
@@ -184,8 +181,7 @@ function initScrollState(header) {
 function initMega(button) {
 	const panel = document.getElementById(button.getAttribute('aria-controls') || '');
 	const item = button.closest('li');
-	if (!panel || !item || button.dataset.megaReady) return;
-	button.dataset.megaReady = '1';
+	if (!panel || !item) return;
 
 	const desktop = media(DESKTOP);
 	const fineHover = media(FINE_HOVER);
@@ -286,29 +282,24 @@ function initMobileMenu() {
 	const openers = Array.from(document.querySelectorAll('[data-menu-open]'));
 	if (!dialog || !openers.length) return;
 
-	const i18n = window.cliptoI18n || {};
 	const setExpanded = (expanded) => {
-		openers.forEach((btn) => btn.setAttribute('aria-expanded', expanded ? 'true' : 'false'));
+		openers.forEach((btn) => btn.setAttribute('aria-expanded', String(expanded)));
 	};
 
 	setupDialog(dialog, { onClose: () => setExpanded(false) });
 
 	openers.forEach((btn) => {
-		if (i18n.openMenu && !btn.hasAttribute('aria-label') && !btn.textContent.trim()) {
-			btn.setAttribute('aria-label', i18n.openMenu);
-		}
 		btn.addEventListener('click', () => {
 			openDialog(dialog, btn);
 			setExpanded(true);
 		});
 	});
 
-	// Following an in-page link from the sheet should reveal the page, not the sheet.
+	// Following an in-page link from the sheet (e.g. a #newsletter menu item) should
+	// reveal the page, not the sheet.
 	dialog.addEventListener('click', (event) => {
-		const link = event.target.closest('a[href]');
-		if (!link) return;
-		const url = new URL(link.href, window.location.href);
-		if (url.hash && url.pathname === window.location.pathname && url.search === window.location.search) {
+		const link = event.target.closest('a[href*="#"]');
+		if (link && link.pathname === location.pathname && link.search === location.search) {
 			closeDialog(dialog, { instant: true });
 		}
 	});

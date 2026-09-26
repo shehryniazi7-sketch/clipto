@@ -4,8 +4,9 @@
  * page 1 opens with a feature, then a row list beside an index of the site's
  * destinations. Main query throughout.
  *
- * Args: list_label (string), lead (bool, default true on page 1), heading (h2|h3 for
- * list cards), highlight (string[] search terms), aside (bool, default true).
+ * Args: list_label (string), list_count (string, shown at the label's right), lead
+ * (bool, default true on page 1), highlight (string[] search terms), aside (bool,
+ * default true), excerpt (int words).
  *
  * @package Clipto
  */
@@ -17,6 +18,7 @@ $a = wp_parse_args(
 	isset( $args ) && is_array( $args ) ? $args : array(),
 	array(
 		'list_label' => '',
+		'list_count' => '',
 		'lead'       => ! is_paged(),
 		'highlight'  => array(),
 		'aside'      => true,
@@ -58,6 +60,9 @@ if ( ! have_posts() ) {
 			<?php if ( $a['list_label'] ) : ?>
 				<h2 class="archive-label" id="archive-list-label">
 					<span class="archive-label__text"><?php echo esc_html( $a['list_label'] ); ?></span>
+					<?php if ( $a['list_count'] ) : ?>
+						<span class="archive-label__count"><?php echo esc_html( $a['list_count'] ); ?></span>
+					<?php endif; ?>
 				</h2>
 			<?php endif; ?>
 			<div class="archive-list">

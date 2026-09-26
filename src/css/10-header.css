@@ -12,14 +12,6 @@
      top: calc(var(--wp-admin--admin-bar--height, 0px) + var(--header-h))
    ========================================================================== */
 
-/* Links in the masthead and its dialogs are components, never underlined text
-   (guards against the global-styles link rule, which prints after main.css). */
-.site-header a,
-.search-dialog a,
-.menu-sheet a {
-	text-decoration: none;
-}
-
 /* Brand ------------------------------------------------------------------ */
 .brand {
 	display: inline-flex;
@@ -79,11 +71,13 @@
 		border-color var(--dur-3) var(--ease-out);
 }
 
+/* Scrolled: a hairline appears and the paper turns very slightly translucent — enough to
+   feel the page moving underneath, never enough to ghost text behind the masthead. */
 .site-header.is-scrolled {
-	background-color: var(--c-header);
+	background-color: color-mix(in srgb, var(--c-paper) 94%, transparent);
 	border-bottom-color: var(--c-rule);
-	-webkit-backdrop-filter: blur(8px);
-	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
 }
 
 /* The admin bar stops being fixed below 600px, so the header sticks to the very top. */
@@ -311,19 +305,30 @@ html:not(.js) [data-theme-toggle] {
 	outline-offset: 2px;
 }
 
-/* Mega-menu disclosure button (sits next to the real "AI Tools" link) */
+/* Mega-menu disclosure button (sits next to the real "AI Tools" link). Its hit area
+   reaches into the gap before the next item, so touch targets stay 44px wide. */
 .site-nav__toggle {
+	position: relative;
 	display: none;
 	place-items: center;
-	width: 1.75rem;
+	width: 2rem;
 	height: 2.75rem;
-	margin-left: 0.125rem;
 	margin-right: -0.5rem;
 	border-radius: var(--r-sm);
 	color: var(--c-ink-3);
 	transition:
 		color var(--dur-1) var(--ease-out),
 		background-color var(--dur-1) var(--ease-out);
+}
+
+.site-nav__toggle::before {
+	content: "";
+	position: absolute;
+	inset: 0 -0.75rem 0 0;
+}
+
+.site-nav__toggle:focus-visible {
+	outline-offset: -2px;
 }
 
 .site-nav__toggle .icon {
@@ -467,6 +472,8 @@ html:not(.js) [data-theme-toggle] {
 		overflow-x: auto;
 		scrollbar-width: none;
 		border-top: 1px solid var(--c-rule);
+		-webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--gutter)), transparent);
+		mask-image: linear-gradient(90deg, #000 calc(100% - var(--gutter)), transparent);
 	}
 
 	html:not(.js) .site-nav__list {
@@ -554,6 +561,10 @@ html:not(.js) .site-nav__item--has-mega:is(:hover, :focus-within) > .mega {
 	letter-spacing: -0.01em;
 	color: var(--c-ink);
 	text-wrap: balance;
+}
+
+.mega__nowrap {
+	white-space: nowrap;
 }
 
 .mega__stats {
@@ -1018,11 +1029,6 @@ html.has-modal {
 	color: var(--c-ink-3);
 }
 
-.search-dialog__chips {
-	margin: 0;
-	list-style: none;
-}
-
 @media (prefers-reduced-motion: no-preference) {
 	.search-dialog[open] .search-dialog__browse {
 		animation: clipto-rise-in var(--dur-4) var(--ease-out) 80ms both;
@@ -1179,6 +1185,11 @@ html.has-modal {
 
 .menu-sheet__link[aria-current] .menu-sheet__label {
 	text-decoration-color: var(--c-accent);
+}
+
+/* Inside a section (as on the desktop bar): present but quieter. */
+.menu-sheet__link[aria-current="true"] .menu-sheet__label {
+	text-decoration-color: var(--c-ink);
 }
 
 @media (hover: hover) {

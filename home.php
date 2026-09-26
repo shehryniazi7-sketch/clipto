@@ -72,7 +72,7 @@ $clipto_rail       = array_filter(
 									'standard',
 									array(
 										'heading' => 'h2',
-										'excerpt' => 24,
+										'excerpt' => 26,
 										'eager'   => 0 === $clipto_n,
 										'index'   => $clipto_n,
 										'sizes'   => '(min-width: 64em) 30vw, (min-width: 40em) 50vw, 100vw',
@@ -94,7 +94,7 @@ $clipto_rail       = array_filter(
 									'row',
 									array(
 										'heading' => 'h2',
-										'excerpt' => 22,
+										'excerpt' => 26,
 										'index'   => $clipto_n % 3,
 									)
 								);

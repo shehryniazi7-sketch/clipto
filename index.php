@@ -16,7 +16,8 @@ if ( is_singular() ) :
 	while ( have_posts() ) :
 		the_post();
 		?>
-		<article id="post-<?php the_ID(); ?>" <?php post_class( 'fallback-entry container container--read' ); ?>>
+		<?php // Singular views load the article bundle (inc/assets.php), so this uses only shared and .entry-content styles. ?>
+		<article id="post-<?php the_ID(); ?>" <?php post_class( 'fallback-entry section container container--read stack' ); ?>>
 			<header class="fallback-entry__head">
 				<?php the_title( '<h1 class="fallback-entry__title">', '</h1>' ); ?>
 				<?php clipto_meta( get_post(), array( 'author' => true ) ); ?>

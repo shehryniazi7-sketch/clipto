@@ -70,7 +70,9 @@ if ( ! have_comments() && ! comments_open() ) {
 			'class_container'      => 'comment-respond comments__respond',
 			'class_form'           => 'comment-form comments__form',
 			'title_reply'          => $clipto_count ? __( 'Leave a reply', 'clipto' ) : __( 'Share your thoughts', 'clipto' ),
-			'title_reply_before'   => '<h3 id="reply-title" class="comment-reply-title">',
+			// With no comments yet, "Join the discussion" already heads the form: keep the
+			// form's own title for screen readers only.
+			'title_reply_before'   => $clipto_count ? '<h3 id="reply-title" class="comment-reply-title">' : '<h3 id="reply-title" class="comment-reply-title screen-reader-text">',
 			'title_reply_after'    => '</h3>',
 			'class_submit'         => 'btn submit',
 			'submit_button'        => '<button name="%1$s" type="submit" id="%2$s" class="%3$s">%4$s</button>',

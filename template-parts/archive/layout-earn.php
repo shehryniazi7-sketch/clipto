@@ -1,8 +1,9 @@
 <?php
 /**
  * Earn With AI archive: the header is a contrast band (see 40-archive.css); page 1
- * opens with a large 4:3 feature that overlaps the band, then an editorial grid —
- * one row of two, then rows of three. Later pages: rows of three. Main query.
+ * opens with a large 4:3 feature that overlaps the band, then an editorial grid of
+ * pairs (with excerpts) and triples, planned so every row is full
+ * (clipto_archive_row_pattern()). Main query.
  *
  * @package Clipto
  */
@@ -56,16 +57,18 @@ if ( ! have_posts() ) {
 			</h2>
 			<div class="earn-grid">
 				<?php
-				$i = 0;
+				$plan = clipto_archive_row_pattern( $wp_query->post_count - ( $wp_query->current_post + 1 ), ! $paged );
+				$i    = 0;
 				while ( have_posts() ) :
 					the_post();
-					$wide = ! $paged && $i < 2;
+					$cell = isset( $plan[ $i ] ) ? $plan[ $i ] : array( 'span' => 'triple', 'pos' => 1 );
+					$wide = 'pair' === $cell['span'];
 					clipto_card(
 						get_post(),
 						'standard',
 						array(
 							'heading' => 'h3',
-							'index'   => $wide ? $i + 1 : ( ( $i - ( $paged ? 0 : 2 ) ) % 3 ) + 1,
+							'index'   => $cell['pos'],
 							'excerpt' => $wide ? 22 : false,
 							'size'    => $wide ? 'clipto-feature' : 'clipto-card',
 							'sizes'   => $wide ? '(min-width: 64em) 45vw, (min-width: 40em) 50vw, 100vw' : '(min-width: 64em) 30vw, (min-width: 40em) 50vw, 100vw',

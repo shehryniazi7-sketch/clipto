@@ -34,12 +34,16 @@ $clipto_label  = 'rail' === $clipto_variant ? __( 'Share this article', 'clipto'
 		<p class="share__heading" aria-hidden="true"><?php esc_html_e( 'Share', 'clipto' ); ?></p>
 	<?php endif; ?>
 	<div class="share__actions">
-		<button type="button" class="share__btn share__copy" data-share-copy data-label-copy="<?php esc_attr_e( 'Copy link', 'clipto' ); ?>" data-label-copied="<?php esc_attr_e( 'Link copied', 'clipto' ); ?>" data-label-failed="<?php esc_attr_e( 'Could not copy the link', 'clipto' ); ?>">
+		<button type="button" class="share__btn share__copy" data-share-copy data-label-copied="<?php esc_attr_e( 'Link copied', 'clipto' ); ?>" data-label-failed="<?php esc_attr_e( 'Could not copy the link', 'clipto' ); ?>">
 			<span class="share__icon" aria-hidden="true">
 				<?php clipto_the_icon( 'link', array( 'class' => 'share__glyph share__glyph--link' ) ); ?>
 				<?php clipto_the_icon( 'check', array( 'class' => 'share__glyph share__glyph--check' ) ); ?>
 			</span>
-			<span class="share__label" data-share-label><?php esc_html_e( 'Copy link', 'clipto' ); ?></span>
+			<?php // Both labels share one grid cell, so the button keeps its width when they swap. ?>
+			<span class="share__label">
+				<span class="share__label-text share__label-text--idle"><?php esc_html_e( 'Copy link', 'clipto' ); ?></span>
+				<span class="share__label-text share__label-text--done"><?php echo esc_html_x( 'Copied', 'share button state', 'clipto' ); ?></span>
+			</span>
 		</button>
 		<a class="share__btn share__btn--icon" href="<?php echo esc_url( $clipto_x_url ); ?>" target="_blank" rel="noopener noreferrer">
 			<?php clipto_the_icon( 'x' ); ?>

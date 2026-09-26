@@ -11,6 +11,15 @@ defined( 'ABSPATH' ) || exit;
 
 $clipto_items   = clipto_primary_nav_items();
 $clipto_subcats = clipto_tool_subcategories();
+
+// On a subcategory page the category list starts open, showing where the reader is.
+$clipto_sub_open = false;
+foreach ( $clipto_subcats as $clipto_term ) {
+	if ( is_category( $clipto_term->term_id ) ) {
+		$clipto_sub_open = true;
+		break;
+	}
+}
 ?>
 <dialog class="menu-sheet" id="mobile-menu" aria-label="<?php esc_attr_e( 'Menu', 'clipto' ); ?>">
 	<div class="menu-sheet__panel">
@@ -40,7 +49,7 @@ $clipto_subcats = clipto_tool_subcategories();
 							</a>
 
 							<?php if ( $clipto_item['mega'] && $clipto_subcats ) : ?>
-								<details class="menu-sheet__sub">
+								<details class="menu-sheet__sub"<?php echo $clipto_sub_open ? ' open' : ''; ?>>
 									<summary class="menu-sheet__sub-toggle">
 										<span>
 											<?php

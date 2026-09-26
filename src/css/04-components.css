@@ -583,6 +583,7 @@ figcaption {
 .search-form .field {
 	padding-left: 2.85rem;
 	min-height: 3.25rem;
+	text-overflow: ellipsis;
 }
 
 .search-form .btn {

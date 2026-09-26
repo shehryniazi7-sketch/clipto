@@ -5,7 +5,8 @@
  *   compact — numbered list, smaller (archive aside)
  *   chips   — pill links (search empty state)
  *
- * Args: style, title, title_id, heading (h2|h3), exclude (destination key), kicker.
+ * Args: style, title, title_id, heading (h2|h3), exclude (destination key), kicker,
+ * class (extra class on the wrapper).
  *
  * @package Clipto
  */
@@ -21,6 +22,7 @@ $a = wp_parse_args(
 		'heading'  => 'h2',
 		'exclude'  => '',
 		'kicker'   => '',
+		'class'    => '',
 	)
 );
 
@@ -36,7 +38,7 @@ $style   = in_array( $a['style'], array( 'index', 'compact', 'chips' ), true ) ?
 $heading = in_array( $a['heading'], array( 'h2', 'h3' ), true ) ? $a['heading'] : 'h2';
 $all     = array_keys( clipto_destinations() );
 ?>
-<div class="dest dest--<?php echo esc_attr( $style ); ?>">
+<div class="dest dest--<?php echo esc_attr( $style . ( $a['class'] ? ' ' . $a['class'] : '' ) ); ?>">
 	<?php if ( $a['title'] ) : ?>
 		<<?php echo esc_html( $heading ); ?> class="dest__title"<?php echo $a['title_id'] ? ' id="' . esc_attr( $a['title_id'] ) . '"' : ''; ?>>
 			<?php echo esc_html( $a['title'] ); ?>

@@ -1,7 +1,11 @@
 <?php
 /**
- * AI News: a lead story beside an ordered list of the next five, with "Latest" markers
- * for stories under 24 hours old. Skipped when AI News does not exist or is empty.
+ * AI News: a lead story beside an ordered list of the next stories, with "Latest" markers
+ * for stories under 24 hours old, closed by a row that leads to the full archive.
+ * Skipped when AI News does not exist or is empty.
+ *
+ * Up to six stories are listed: the list shows five beside the lead on desktop and all six
+ * as a 2 × 3 grid on tablets (see 20-home.css), so no layout ends on a lone item.
  *
  * @package Clipto
  */
@@ -16,7 +20,7 @@ if ( ! $clipto_news ) {
 $clipto_posts = clipto_posts(
 	array(
 		'cat'            => (int) $clipto_news['object']->term_id,
-		'posts_per_page' => 6,
+		'posts_per_page' => 7,
 	)
 );
 if ( ! $clipto_posts ) {
@@ -75,6 +79,24 @@ $clipto_lead = array_shift( $clipto_posts );
 							</li>
 						<?php endforeach; ?>
 					</ol>
+					<p class="home-news__more">
+						<span class="home-news__count">
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: number of stories, e.g. "12 stories", 2: section name. */
+									__( '%1$s in %2$s', 'clipto' ),
+									clipto_home_count_label( (int) $clipto_news['count'] ),
+									$clipto_news['label']
+								)
+							);
+							?>
+						</span>
+						<a class="link-arrow home-news__all" href="<?php echo esc_url( $clipto_news['url'] ); ?>">
+							<?php esc_html_e( 'Browse the archive', 'clipto' ); ?>
+							<?php clipto_the_icon( 'arrow-right' ); ?>
+						</a>
+					</p>
 				</div>
 			<?php endif; ?>
 		</div>

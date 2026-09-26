@@ -110,6 +110,10 @@
 	color: var(--c-ink-2);
 }
 
+.archive-head__desc p {
+	text-wrap: balance;
+}
+
 .archive-head__desc > * + * {
 	margin-top: var(--sp-3);
 }
@@ -155,7 +159,7 @@
 	font-weight: 500;
 	line-height: 1.2;
 	letter-spacing: -0.01em;
-	font-variant-numeric: tabular-nums lining-nums;
+	font-variant-numeric: lining-nums;
 	color: var(--c-ink);
 	white-space: nowrap;
 }
@@ -171,18 +175,8 @@
 	display: flex;
 }
 
-.archive-head__chips {
-	scroll-padding-inline: var(--gutter); /* snap the first chip to the gutter, not the edge */
-}
-
 .archive-head__chips .chip {
-	position: relative; /* contains the visually hidden count labels inside the scroller */
 	padding-inline: 0.85rem;
-}
-
-/* Chip links in these templates meet the 44px touch-target minimum. */
-:is(.archive-head__chips, .dest__chips, .author-extra) .chip {
-	min-height: 2.75rem;
 }
 
 /* Where supported, a subcategory page opens with its own chip scrolled into view. */
@@ -190,9 +184,29 @@
 	scroll-initial-target: nearest;
 }
 
+@media (min-width: 64em) {
+	/* Slightly tighter on desktop so a typical set of subcategories sits on one line. */
+	.archive-head__chips {
+		gap: 0.375rem;
+	}
+
+	.archive-head__chips .chip {
+		gap: 0.375rem;
+		padding-inline: 0.75rem;
+	}
+}
+
 .archive-head__search {
 	margin-top: var(--sp-6);
 	max-width: 40rem;
+}
+
+/* Search: below desktop the result count lives in the list label, so the lone stat
+   would only add a rule and a row. */
+@media (max-width: 63.99em) {
+	.archive-head--search .archive-head__stats {
+		display: none;
+	}
 }
 
 @media (min-width: 64em) {
@@ -311,7 +325,19 @@
 	}
 }
 
-@media (min-width: 64em) {
+/* Small desktops: the stats stay under the bio so the bio keeps a readable measure. */
+@media (min-width: 64em) and (max-width: 79.99em) {
+	.archive-head--author .archive-head__stats {
+		justify-content: flex-start;
+	}
+
+	.archive-head--author .archive-head__stat:first-child {
+		padding-left: 0;
+		border-left: 0;
+	}
+}
+
+@media (min-width: 80em) {
 	.archive-head--author .archive-head__grid.has-media {
 		grid-template-columns: auto minmax(0, 1fr) auto;
 	}
@@ -378,7 +404,9 @@
 	color: var(--c-ink-3);
 }
 
-/* AI Tools: featured tool + directory grid ---------------------------------- */
+/* AI Tools: featured tool + directory grid ----------------------------------
+   Phones: image, text, then the facts as rows. From tablet up: image beside the
+   text, and the facts become a spec strip across the full width underneath. */
 .tools-feature {
 	margin-bottom: clamp(var(--sp-9), 6vw, var(--sp-11));
 }
@@ -407,6 +435,7 @@
 .tools-feature__glance-title {
 	font-size: var(--fs-2xs);
 	font-weight: 600;
+	line-height: 1.2;
 	letter-spacing: var(--tracking-label);
 	text-transform: uppercase;
 	color: var(--c-ink-3);
@@ -418,7 +447,7 @@
 
 .glance__row {
 	display: grid;
-	grid-template-columns: 6.5rem minmax(0, 1fr);
+	grid-template-columns: 6rem minmax(0, 1fr);
 	gap: var(--sp-4);
 	padding-block: var(--sp-3);
 	border-top: 1px solid var(--c-rule);
@@ -443,14 +472,12 @@
 .glance__price {
 	color: var(--c-ink-2);
 	font-weight: 400;
-	font-variant-numeric: tabular-nums;
 }
 
 .glance__rating {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
 	gap: var(--sp-1);
-	font-variant-numeric: tabular-nums;
 }
 
 .glance__rating .icon {
@@ -464,6 +491,7 @@
 }
 
 .glance__verdict {
+	max-width: 46ch;
 	margin-top: var(--sp-4);
 	padding-left: var(--sp-4);
 	border-left: 2px solid var(--c-accent);
@@ -474,58 +502,101 @@
 	color: var(--c-ink-2);
 }
 
-@media (min-width: 64em) {
+@media (min-width: 48em) {
 	.tools-feature__grid {
-		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-		grid-template-rows: auto 1fr;
-		column-gap: var(--sp-9);
-		row-gap: var(--sp-7);
+		row-gap: var(--sp-8);
 	}
 
 	.tools-feature__card {
-		grid-column: 1 / -1;
-		grid-row: 1 / span 2;
 		display: grid;
-		grid-template-columns: subgrid;
-		grid-template-rows: subgrid;
-		gap: normal;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: var(--sp-8);
+		align-items: center;
 	}
 
-	.tools-feature__card > .card__media {
-		grid-column: 1;
-		grid-row: 1 / span 2;
+	/* The spec strip: one column per fact, sized to its content, hairlines between. */
+	.glance {
+		display: flex;
+		margin-top: var(--sp-4);
 	}
 
-	.tools-feature__card > .card__body {
-		grid-column: 2;
-		grid-row: 1;
-		align-self: start;
+	.glance__row,
+	.glance__row:first-child {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		gap: var(--sp-1);
+		padding: 0 var(--sp-5);
+		border-top: 0;
+		border-left: 1px solid var(--c-rule);
 	}
 
-	.tools-feature__glance {
-		grid-column: 2;
-		grid-row: 2;
-		align-self: end;
+	.glance__row:last-child {
+		padding-right: 0;
 	}
 
-	.tools-feature__grid:not(.has-glance) .tools-feature__card > .card__body {
-		grid-row: 1 / span 2;
-		align-self: center;
+	.glance__row:first-child {
+		padding-left: 0;
+		border-left: 0;
+	}
+
+	.glance dt {
+		font-size: var(--fs-2xs);
+		font-weight: 600;
+		line-height: 1.2;
+		letter-spacing: var(--tracking-label);
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.glance dd {
+		font-size: 0.9375rem;
+	}
+
+	/* Pricing model over the price, rather than a dot that can end a line. */
+	.glance__sep {
+		display: none;
+	}
+
+	.glance__price {
+		display: block;
+	}
+
+	.glance__verdict {
+		margin-top: var(--sp-6);
 	}
 }
 
-@supports not (grid-template-rows: subgrid) {
-	@media (min-width: 64em) {
-		.tools-feature__card {
-			grid-row: 1;
-			grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-			grid-template-rows: auto;
-			gap: var(--sp-9);
-		}
+@media (min-width: 48em) and (max-width: 63.99em) {
+	.tools-feature__card .card__title {
+		font-size: var(--fs-xl);
+		line-height: 1.12;
+	}
+}
 
-		.tools-feature__card > .card__media {
-			grid-row: 1;
-		}
+@media (min-width: 64em) {
+	.tools-feature__card {
+		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+		column-gap: var(--sp-9);
+	}
+
+	/* Same columns as the card above: facts under the image, verdict under the text. */
+	.tools-feature__glance {
+		display: grid;
+		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+		column-gap: var(--sp-9);
+		align-items: start;
+	}
+
+	.tools-feature__glance-title,
+	.tools-feature__glance > .glance:last-child {
+		grid-column: 1 / -1;
+	}
+
+	.glance__verdict {
+		grid-column: 2;
+		grid-row: 2;
+		margin-top: var(--sp-4);
 	}
 }
 
@@ -535,9 +606,54 @@
 	gap: var(--grid-gap);
 }
 
+/* Small phones: the logo tile sits beside the kicker and the text takes the card's
+   full width, instead of a narrow column beside the logo. */
+@media (max-width: 29.99em) {
+	.tools-grid .card--tool {
+		grid-template-columns: 2.75rem minmax(0, 1fr);
+		column-gap: var(--sp-3);
+		row-gap: var(--sp-2);
+		padding: var(--sp-4) var(--sp-4) var(--sp-5);
+	}
+
+	.tools-grid .card--tool > .card__body {
+		display: contents;
+	}
+
+	.tools-grid .card--tool > .card__media {
+		grid-row: 1;
+	}
+
+	.tools-grid .card--tool > .card__body > * {
+		grid-column: 1 / -1;
+	}
+
+	.tools-grid .card--tool > .card__body > .card__top,
+	.tools-grid .card--tool > .card__body > .card__title:first-child {
+		grid-column: 2;
+		grid-row: 1;
+		align-self: center;
+	}
+
+	.tools-grid .card--tool > .card__body > .card__top + .card__title {
+		margin-top: var(--sp-1);
+	}
+}
+
 @media (min-width: 40em) {
 	.tools-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 40em) and (max-width: 63.99em) {
+	/* Odd count in two columns: the last tool card closes the grid across both. */
+	.tools-grid > .card:last-child:nth-child(odd) {
+		grid-column: 1 / -1;
+	}
+
+	.tools-grid > .card:last-child:nth-child(odd) .card__excerpt {
+		max-width: 60ch;
 	}
 }
 
@@ -556,6 +672,13 @@
 	max-width: 46ch;
 }
 
+/* Tablets: the full-width lead image goes wide (16:9) so the headline stays in view. */
+@media (min-width: 40em) and (max-width: 63.99em) {
+	.news-lead .clip-frame {
+		--ratio: 16 / 9;
+	}
+}
+
 @media (min-width: 64em) {
 	.news-lead .card--lead {
 		display: grid;
@@ -571,7 +694,11 @@
 
 .news-day {
 	display: grid;
-	border-top: 2px solid var(--c-rule-strong);
+	border-top: 1px solid var(--c-rule-strong);
+}
+
+.news-day:first-child {
+	border-top-width: 2px;
 }
 
 .news-day + .news-day {
@@ -679,6 +806,13 @@
 	max-width: 44ch;
 }
 
+/* Tablets: 3:2 keeps the full-width feature from filling the whole screen. */
+@media (min-width: 48em) and (max-width: 63.99em) {
+	.earn-lead__card .clip-frame {
+		--ratio: 3 / 2;
+	}
+}
+
 @media (min-width: 64em) {
 	/* A paper sheet over the band: text never sits on the band's colours. */
 	.earn-lead__card {
@@ -715,6 +849,18 @@
 @media (min-width: 40em) {
 	.earn-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Two columns and an odd number of stories: the first one runs across both, image
+   beside text, so no row is left half empty. */
+@media (min-width: 40em) and (max-width: 63.99em) {
+	.earn-grid > .card:first-child:nth-last-child(odd) {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: var(--grid-gap);
+		align-items: center;
 	}
 }
 
@@ -801,7 +947,6 @@
 }
 
 .free-item__price {
-	font-variant-numeric: tabular-nums;
 	color: var(--c-ink-3);
 }
 
@@ -842,12 +987,26 @@
 	max-width: 48ch;
 }
 
-@media (min-width: 64em) {
+@media (min-width: 48em) {
 	.archive-lead__card {
 		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: var(--sp-8);
+		align-items: center;
+	}
+}
+
+@media (min-width: 48em) and (max-width: 63.99em) {
+	.archive-lead__card .card__title {
+		font-size: var(--fs-xl);
+		line-height: 1.12;
+	}
+}
+
+@media (min-width: 64em) {
+	.archive-lead__card {
 		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
 		column-gap: var(--sp-9);
-		align-items: center;
 	}
 }
 
@@ -873,6 +1032,11 @@
 }
 
 @media (min-width: 48em) {
+	.archive-list .card__title {
+		font-size: var(--fs-lg);
+		line-height: 1.2;
+	}
+
 	.archive-list .card__excerpt {
 		display: block;
 		max-width: 62ch;
@@ -888,16 +1052,26 @@
 	}
 
 	.archive-layout.has-aside > .archive-layout__main {
-		grid-column: 1 / span 8;
+		grid-column: 1 / span 7;
 	}
 
 	.archive-layout.has-aside > .archive-layout__aside {
-		grid-column: 10 / -1;
+		grid-column: 9 / -1;
 	}
 
 	.archive-layout__aside-inner {
 		position: sticky;
 		top: calc(var(--header-h) + var(--wp-admin--admin-bar--height, 0px) + var(--sp-6));
+	}
+}
+
+@media (min-width: 80em) {
+	.archive-layout.has-aside > .archive-layout__main {
+		grid-column: 1 / span 8;
+	}
+
+	.archive-layout.has-aside > .archive-layout__aside {
+		grid-column: 10 / -1;
 	}
 }
 
@@ -1052,6 +1226,24 @@
 
 .dest__chips {
 	--cluster: var(--sp-2);
+}
+
+/* Empty search: one quiet row of ways onward under the header's advice. */
+.archive-empty__browse {
+	display: grid;
+	gap: var(--sp-3);
+}
+
+.archive-empty__browse .dest__title {
+	margin: 0;
+}
+
+@media (min-width: 48em) {
+	.archive-empty__browse {
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: center;
+		column-gap: var(--sp-6);
+	}
 }
 
 /* Latest stories strip ----------------------------------------------------- */
@@ -1217,28 +1409,4 @@
 
 .error-404__dest .section-head {
 	margin-bottom: var(--sp-5);
-}
-
-/* Fallback singular (index.php when no singular template exists) ------------ */
-.fallback-entry {
-	padding-block: var(--sp-9) var(--section-gap);
-}
-
-.fallback-entry__title {
-	font-size: var(--fs-3xl);
-	font-weight: 500;
-	line-height: var(--lh-tight);
-	letter-spacing: var(--tracking-display);
-	margin-bottom: var(--sp-4);
-}
-
-.fallback-entry__content {
-	margin-top: var(--sp-8);
-	font-family: var(--ff-serif);
-	font-size: var(--fs-read);
-	line-height: var(--lh-read);
-}
-
-.fallback-entry__content > * + * {
-	margin-top: 1.1em;
 }

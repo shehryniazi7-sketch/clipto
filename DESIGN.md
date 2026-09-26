@@ -108,8 +108,9 @@ Rules:
 
 ## 6. Imagery
 
-- Ratios: **16:9** wide/hero features, **3:2** lead stories & cards, **4:3** Earn With AI feature,
-  **1:1** compact list thumbnails. Always set via `aspect-ratio` + `object-fit: cover` → zero CLS.
+- Ratios: **16:9** wide/hero features and the AI News lead, **3:2** stories & cards, **4:3** Earn With AI
+  feature (and the AI Tools feature where columns must level), **1:1** compact list thumbnails. A composition may
+  switch ratio at a breakpoint to keep its columns level — never free-form crops. Always set via `aspect-ratio` + `object-fit: cover` → zero CLS.
 - Registered sizes: `clipto-wide` 1600×900, `clipto-feature` 1200×800, `clipto-card` 720×480,
   `clipto-thumb` 240×240.
 - Hover: image scales to 1.035 over 600ms inside an overflow-hidden frame; crop marks fade in at the

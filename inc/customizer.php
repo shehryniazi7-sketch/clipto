@@ -42,7 +42,7 @@ if ( ! function_exists( 'clipto_newsletter_defaults' ) ) {
 			'clipto_nl_trust'       => __( 'One email a week. No spam. Unsubscribe anytime.', 'clipto' ),
 			'clipto_nl_privacy'     => true,
 			'clipto_footer_about'   => __( 'Clipto is a field guide to artificial intelligence: the tools worth trying, the news worth knowing and practical guides for doing better work with AI.', 'clipto' ),
-			'clipto_footer_mark'    => true,
+			'clipto_footer_mark'    => false,
 		);
 	}
 }
@@ -368,7 +368,7 @@ if ( ! function_exists( 'clipto_footer_link' ) ) {
 }
 
 /**
- * Footer menu links share the footer index link class (depth 1 only).
+ * Footer menu links (colophon bar, depth 1) share the legal-link class.
  *
  * @param array    $atts Link attributes.
  * @param WP_Post  $item Menu item.
@@ -377,7 +377,7 @@ if ( ! function_exists( 'clipto_footer_link' ) ) {
  */
 function clipto_footer_menu_link_atts( $atts, $item, $args ) {
 	if ( isset( $args->theme_location ) && 'footer' === $args->theme_location ) {
-		$atts['class'] = trim( ( isset( $atts['class'] ) ? $atts['class'] . ' ' : '' ) . 'site-footer__link' );
+		$atts['class'] = trim( ( isset( $atts['class'] ) ? $atts['class'] . ' ' : '' ) . 'site-footer__legal-link' );
 	}
 	return $atts;
 }
@@ -586,7 +586,7 @@ function clipto_customize_register( $wp_customize ) {
 			'section'     => 'clipto_footer',
 			'type'        => 'checkbox',
 			'label'       => __( 'Show the large wordmark', 'clipto' ),
-			'description' => __( 'A faint, oversized site name at the foot of every page.', 'clipto' ),
+			'description' => __( 'A faint, oversized site name above the copyright line. Off by default.', 'clipto' ),
 		)
 	);
 

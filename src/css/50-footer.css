@@ -5,25 +5,6 @@
    tinted index of the site's real destinations.
    ========================================================================== */
 
-/* Both parts own their surface, face and link treatment, so core's global styles
-   (body font, underlined links, printed after main.css) never leak in. */
-.newsletter,
-.newsletter-setup,
-.site-footer {
-	font-family: var(--ff-sans);
-	line-height: var(--lh-ui);
-}
-
-.newsletter,
-.newsletter-setup {
-	background: var(--c-paper);
-	color: var(--c-ink);
-}
-
-:is(.newsletter, .newsletter-setup, .site-footer) a {
-	text-decoration: none;
-}
-
 /* --------------------------------------------------------------------------
    Newsletter band
    -------------------------------------------------------------------------- */
@@ -504,6 +485,12 @@
 		grid-column: 1 / span 4;
 	}
 
+	/* Centre the lock-up on the index headings' line rather than letting its 44px hit
+	   area push it below them. */
+	.site-footer__brand {
+		margin-top: calc(var(--fs-xs) * 0.6 - 1.375rem);
+	}
+
 	.site-footer__nav {
 		grid-column: 6 / -1;
 	}
@@ -520,20 +507,12 @@
 
 /* The shared .brand (10-header.css) sets the lock-up; the footer only scales it. */
 .site-footer__brand {
-	display: inline-flex;
-	align-items: center;
 	gap: 0.55rem;
-	min-height: 2.75rem;
-	color: var(--c-ink);
 }
 
-.site-footer__brand .logo-mark {
+.site-footer__brand .brand__mark {
 	width: 1.5rem;
 	height: 1.5rem;
-}
-
-.site-footer__brand .logo-mark__dot {
-	fill: var(--c-accent);
 }
 
 .site-footer__brand .brand__word {
@@ -541,8 +520,6 @@
 }
 
 .site-footer__brand .brand__logo {
-	width: auto;
-	max-width: 12rem;
 	max-height: 2.5rem;
 }
 
@@ -564,26 +541,45 @@
 	color: var(--c-ink-2);
 }
 
-/* Footer index: numbered columns of real links ---------------------------------- */
+/* Footer index: numbered columns of real links ----------------------------------
+   Phones: each column is a full-width block whose list is set in two columns.
+   48em+: one grid track per column; a split column (AI Tools with more than five
+   categories) spans two tracks and its list columns line up with them. */
 .site-footer__nav {
-	--cols: 2;
+	--cols: 1;
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: var(--sp-8) var(--grid-gap);
 	align-items: start;
 }
 
-.site-footer__nav--1 {
-	--cols: 1;
+.site-footer__nav--2 {
+	--cols: 2;
 }
 
 .site-footer__nav--3 {
 	--cols: 3;
 }
 
-/* Two columns on phones; an odd last column takes the full row. */
-.site-footer__col:last-child:nth-child(odd) {
-	grid-column: 1 / -1;
+.site-footer__col {
+	min-width: 0;
+}
+
+.site-footer__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	column-gap: var(--grid-gap);
+}
+
+.site-footer__list > li {
+	break-inside: avoid;
+	border-bottom: 1px solid var(--c-rule);
+}
+
+@media (max-width: 47.99em) {
+	.site-footer__list:has(> li:nth-child(4)) {
+		columns: 2;
+	}
 }
 
 @media (min-width: 48em) {
@@ -591,13 +587,13 @@
 		grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
 	}
 
-	.site-footer__col:last-child:nth-child(odd) {
-		grid-column: auto;
+	.site-footer__col--split {
+		grid-column: span 2;
 	}
-}
 
-.site-footer__col {
-	min-width: 0;
+	.site-footer__col--split .site-footer__list {
+		columns: 2;
+	}
 }
 
 .site-footer__heading {
@@ -617,16 +613,6 @@
 
 .site-footer__heading .index-num {
 	letter-spacing: 0.04em;
-}
-
-.site-footer__list {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-
-.site-footer__list > li {
-	border-bottom: 1px solid var(--c-rule);
 }
 
 .site-footer__link {
@@ -672,7 +658,7 @@
 	}
 
 	.site-footer__link:hover .site-footer__label {
-		transform: translateX(4px);
+		transform: translateX(3px);
 	}
 
 	.site-footer__link:hover .site-footer__count {
@@ -681,7 +667,7 @@
 }
 
 .site-footer__link:focus-visible {
-	outline-offset: 2px;
+	outline-offset: 0;
 }
 
 /* You are here: the vermilion square from the logo mark. */
@@ -700,7 +686,8 @@
 	margin-top: var(--sp-1);
 }
 
-/* Oversized wordmark — set on the colophon rule, descenders cropped like a proof. */
+/* Oversized wordmark (optional, Customizer) — set on the colophon rule, descenders cropped
+   like a proof. */
 .site-footer__mark {
 	margin-top: clamp(var(--sp-9), 1.5rem + 5vw, var(--sp-11));
 	color: color-mix(in srgb, var(--c-ink) 9%, var(--c-tint));
@@ -709,7 +696,6 @@
 }
 
 .site-footer__mark svg {
-	display: block;
 	width: 100%;
 	height: auto;
 	overflow: hidden;
@@ -726,28 +712,48 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
-	gap: 0 var(--sp-5);
-	margin-top: var(--sp-10);
-	padding-block: var(--sp-2);
-	border-top: 1px solid var(--c-rule);
+	gap: 0 var(--sp-6);
+	margin-top: clamp(var(--sp-9), 1rem + 4vw, var(--sp-10));
+	padding-block: var(--sp-2) var(--sp-3);
+	border-top: 1px solid var(--c-rule-strong);
 	font-size: var(--fs-xs);
 	color: var(--c-ink-3);
 }
 
 .site-footer__bar.has-mark {
 	margin-top: 0;
-	border-top-color: var(--c-rule-strong);
 }
 
 .site-footer__copy {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0 0.4em;
-	font-variant-numeric: tabular-nums;
+}
+
+.site-footer__legal {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 var(--sp-5);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.site-footer__legal-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.75rem;
+	color: var(--c-ink-2);
+	transition: color var(--dur-1) var(--ease-out);
+}
+
+.site-footer__legal-link:hover,
+.site-footer__legal-link[aria-current="page"] {
+	color: var(--c-ink);
 }
 
 .site-footer__totop {
+	margin-left: auto;
 	margin-right: -0.25rem;
 	padding-inline: 0.25rem;
 	font-size: var(--fs-xs);

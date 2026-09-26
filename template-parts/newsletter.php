@@ -65,8 +65,9 @@ if ( ! $clipto_nl['ready'] ) {
 $clipto_nl_subscribed = clipto_newsletter_subscribed();
 $clipto_nl_trust_id   = 'newsletter-trust';
 $clipto_nl_has_trust  = '' !== $clipto_nl['trust'] || '' !== $clipto_nl['privacy_url'];
-// The confirmation animates on its own; scroll reveals would fight it.
-$clipto_nl_reveal = $clipto_nl_subscribed ? '' : ' data-reveal';
+// The confirmation animates on its own; scroll reveals would fight it. The Customizer
+// preview re-renders the band after the reveal observer has run, so it skips them too.
+$clipto_nl_reveal = ( $clipto_nl_subscribed || is_customize_preview() ) ? '' : ' data-reveal';
 ?>
 <section class="newsletter<?php echo $clipto_nl_subscribed ? ' is-subscribed' : ''; ?>" id="newsletter" aria-labelledby="newsletter-title" data-clipto-newsletter data-newsletter>
 	<div class="container">

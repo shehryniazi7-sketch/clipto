@@ -28,6 +28,9 @@
 .card__kicker {
 	position: relative;
 	z-index: 2;
+	/* 24px minimum target without shifting the layout */
+	padding-block: 5px;
+	margin-block: -5px;
 }
 
 .card__title {
@@ -178,7 +181,7 @@
 }
 
 .card--numbered:hover .card__num {
-	color: var(--c-accent);
+	color: var(--c-accent-text);
 }
 
 .card--numbered .card__title {

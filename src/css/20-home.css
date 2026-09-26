@@ -4,26 +4,6 @@
    heads, chips and crop frames come from 04/05 and are only arranged here.
    ========================================================================== */
 
-/* Links inside homepage compositions carry their own hover cues (underline
-   sweeps, bars, arrows), so the global link underline/colour is reset here. */
-:is(.home-hero, .home-guide, .home-tools, .home-news, .home-earn, .home-free, .home-latest, .home-stream) a {
-	text-decoration: none;
-}
-
-/* UI text is always set in the sans face, whatever the body default is. */
-.home-hero__date,
-.home-dest,
-.hero-index__cols,
-.hero-index__num,
-.hero-index__count,
-.hero-index__total,
-.home-guide__start,
-.home-tools__facts,
-.home-stream__page,
-.home-stream__section-count {
-	font-family: var(--ff-sans);
-}
-
 /* --------------------------------------------------------------------------
    1. Hero
    -------------------------------------------------------------------------- */
@@ -58,7 +38,6 @@
 	gap: var(--sp-3);
 	font-size: var(--fs-xs);
 	font-weight: 500;
-	font-variant-numeric: normal;
 	letter-spacing: 0.02em;
 	color: var(--c-ink-3);
 }
@@ -111,8 +90,9 @@
 	max-width: 34rem;
 }
 
+/* The narrowest phones clip the placeholder: end it cleanly instead. */
 .home-hero__search .field {
-	background: var(--c-surface);
+	text-overflow: ellipsis;
 }
 
 /* Destination quick links: index numeral, label, real count */
@@ -212,7 +192,9 @@
 
 /* The Index: AI Tools use cases with proportional bars (real counts) */
 .hero-index__eyebrow {
+	display: flex; /* same line box as the hero kicker, so both eyebrows share a top edge */
 	margin-bottom: var(--sp-2);
+	line-height: 1.2;
 }
 
 .hero-index__title {
@@ -389,15 +371,82 @@
 	}
 }
 
+/* Tablet: the Index reads as a small spread — its title and total on the left,
+   the ruled list on the right — instead of a full-width stacked table. */
+@media (min-width: 48em) and (max-width: 63.99em) {
+	.hero-index {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+		grid-template-rows: auto 1fr auto;
+		column-gap: var(--grid-gap);
+	}
+
+	.hero-index__head {
+		grid-column: 1;
+		grid-row: 1 / span 2;
+	}
+
+	.hero-index__cols {
+		grid-column: 2;
+		grid-row: 1;
+		margin-top: 0;
+	}
+
+	.hero-index__list {
+		grid-column: 2;
+		grid-row: 2 / span 2;
+	}
+
+	.hero-index__foot {
+		grid-column: 1;
+		grid-row: 3;
+		align-self: end;
+		flex-direction: column;
+		align-items: flex-start;
+		margin-top: 0;
+	}
+}
+
 @media (min-width: 64em) {
+	/* Both columns end on one line: the destinations settle to the bottom of the
+	   left column and the Index rows share out any spare height on the right. */
+	.home-hero__grid {
+		align-items: stretch;
+	}
+
 	.home-hero__main {
 		grid-column: 1 / span 7;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.home-hero__dest {
+		margin-top: auto;
+		padding-top: clamp(var(--sp-7), 3.5vw, var(--sp-9));
 	}
 
 	.home-hero__index {
 		grid-column: 8 / span 5;
+		display: flex;
+		flex-direction: column;
 		padding-left: var(--grid-gap);
 		border-left: 1px solid var(--c-rule);
+	}
+
+	/* Rows share any spare height — only in a full index, so a short one never
+	   turns into a few very tall rows. */
+	.hero-index__list {
+		flex: 1 0 auto;
+		display: grid;
+		align-content: start;
+	}
+
+	.hero-index__list:has(> :nth-child(5)) {
+		align-content: stretch;
+	}
+
+	.hero-index__item {
+		display: grid;
 	}
 
 	.home-hero__title {
@@ -421,7 +470,8 @@
 		border-left: 0;
 	}
 
-	/* Four columns only when each headline gets a comfortable measure. */
+	/* Four columns; the numeral moves above the headline so each gets the
+	   column's full measure. */
 	.hero-top__list {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		column-gap: 0;
@@ -429,10 +479,17 @@
 
 	.hero-top .card--numbered,
 	.hero-top__item:nth-child(2) .card--numbered {
+		grid-template-columns: minmax(0, 1fr);
+		align-content: start;
+		gap: var(--sp-2);
 		height: 100%;
 		padding: 0 var(--sp-5);
 		border-top: 0;
 		border-left: 1px solid var(--c-rule);
+	}
+
+	.hero-top .card__num {
+		padding-top: 0;
 	}
 
 	.hero-top__item:first-child .card--numbered {
@@ -467,23 +524,23 @@
 	.hero-index__item,
 	.hero-index__foot,
 	.hero-top {
-		animation: clipto-home-rise 720ms var(--ease-out) both;
+		animation: clipto-home-rise 640ms var(--ease-out) both;
 		animation-delay: var(--enter, 0ms);
 	}
 
-	.home-hero__title { --enter: 70ms; }
-	.home-hero__lede { --enter: 170ms; }
-	.home-hero__search { --enter: 250ms; }
-	.home-hero__dest { --enter: 330ms; }
-	.hero-index__head { --enter: 260ms; }
-	.hero-index__cols { --enter: 320ms; }
-	.hero-index__item { --enter: calc(360ms + var(--i, 0) * 55ms); }
-	.hero-index__foot { --enter: 760ms; }
-	.hero-top { --enter: 480ms; }
+	.home-hero__title { --enter: 60ms; }
+	.home-hero__lede { --enter: 150ms; }
+	.home-hero__search { --enter: 230ms; }
+	.home-hero__dest { --enter: 300ms; }
+	.hero-index__head { --enter: 220ms; }
+	.hero-index__cols { --enter: 280ms; }
+	.hero-index__item { --enter: calc(320ms + var(--i, 0) * 45ms); }
+	.hero-index__foot { --enter: 640ms; }
+	.hero-top { --enter: 420ms; }
 
 	.hero-index__bar {
-		animation: clipto-home-bar 900ms var(--ease-out) both;
-		animation-delay: calc(520ms + var(--i, 0) * 70ms);
+		animation: clipto-home-bar 760ms var(--ease-out) both;
+		animation-delay: calc(460ms + var(--i, 0) * 55ms);
 	}
 }
 
@@ -513,10 +570,6 @@
 	color: var(--c-ink);
 }
 
-.home-guide__mark .logo-mark__dot {
-	fill: var(--c-accent);
-}
-
 .home-guide__start {
 	margin-left: auto;
 	font-size: var(--fs-xs);
@@ -524,6 +577,14 @@
 	letter-spacing: var(--tracking-label);
 	text-transform: uppercase;
 	color: var(--c-ink-3);
+}
+
+/* The narrowest phones cannot hold both labels on one line; the kicker alone
+   says it, so the secondary label steps aside rather than wrapping. */
+@media (max-width: 23.99em) {
+	.home-guide__start {
+		display: none;
+	}
 }
 
 .home-guide__grid {
@@ -546,10 +607,6 @@
 	align-items: flex-start;
 	gap: var(--sp-4);
 	min-width: 0;
-}
-
-.home-guide__link {
-	color: inherit;
 }
 
 .home-guide__title {
@@ -608,6 +665,7 @@
 	font-size: 1.0625rem;
 	font-weight: 500;
 	line-height: 1.3;
+	text-wrap: balance;
 	color: var(--c-ink);
 	transition: color var(--dur-1) var(--ease-out);
 }
@@ -701,7 +759,7 @@
 
 .home-tools__facts {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
 	gap: 0 var(--sp-5);
 	margin-top: var(--sp-5);
 	border-top: 1px solid var(--c-rule);
@@ -798,13 +856,37 @@
 }
 
 @media (min-width: 80em) {
+	/* The "at a glance" facts settle to the foot of the feature column, so it
+	   ends on the same line as the tool cards beside it. */
 	.home-tools__grid {
 		grid-template-columns: repeat(12, minmax(0, 1fr));
-		align-items: start;
+		align-items: stretch;
 	}
 
 	.home-tools__feature {
 		grid-column: 1 / span 6;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.home-tools__facts {
+		margin-top: auto;
+	}
+
+	.home-tools__feature > .card {
+		margin-bottom: var(--sp-5);
+	}
+
+	.home-tools__list {
+		align-self: start;
+	}
+
+	/* Up to ~1400px the tool cards run tall in their narrow columns; a squarer
+	   crop lets the feature meet them without a gap above the facts. */
+	@media (max-width: 87.49em) {
+		.home-tools__feature .clip-frame {
+			--ratio: 4 / 3;
+		}
 	}
 
 	.home-tools__list {
@@ -845,6 +927,14 @@
 	min-width: 0;
 }
 
+/* The rail is a column: title, list, closing row. On desktop it is stretched to
+   the lead's height and the list shares out the spare room between its rows. */
+.home-news__rail {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
 .home-news__rail-title {
 	padding-bottom: var(--sp-3);
 	font-family: var(--ff-sans);
@@ -857,9 +947,15 @@
 }
 
 .home-news__list {
+	flex: 1 0 auto;
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	column-gap: var(--grid-gap);
+}
+
+/* Six stories are fetched for the tablet's 2 × 3 grid; one column shows five. */
+.home-news__list > li:nth-child(n + 6) {
+	display: none;
 }
 
 .home-news__list > li:first-child .card--numbered {
@@ -874,9 +970,36 @@
 	order: -1;
 }
 
+.home-news__more {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0 var(--sp-4);
+	border-top: 1px solid var(--c-rule);
+}
+
+.home-news__count {
+	font-size: var(--fs-xs);
+	color: var(--c-ink-3);
+}
+
 @media (min-width: 48em) {
+	.home-news__lead .clip-frame {
+		--ratio: 16 / 9;
+	}
+
 	.home-news__list {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.home-news__list > li:nth-child(n + 6) {
+		display: block;
+	}
+
+	/* A short list (fewer than six stories) never ends on a lone half row. */
+	.home-news__list > li:nth-child(odd):last-child {
+		grid-column: 1 / -1;
 	}
 
 	.home-news__list > li:nth-child(2) .card--numbered {
@@ -894,15 +1017,43 @@
 		grid-column: 1 / span 7;
 	}
 
-	.home-news__rail {
-		grid-column: 8 / -1;
-		padding-left: var(--grid-gap);
-		border-left: 1px solid var(--c-rule);
-		align-self: stretch;
+	/* 3:2 while the lead column is narrow, so lead and rail stay level. */
+	.home-news__lead .clip-frame {
+		--ratio: 3 / 2;
 	}
 
+	.home-news__rail {
+		grid-column: 8 / -1;
+		align-self: stretch;
+		padding-left: var(--grid-gap);
+		border-left: 1px solid var(--c-rule);
+	}
+
+	/* Rows share the spare height (in a full list only); each story sits
+	   centred in its row so the space falls evenly above and below it. */
 	.home-news__list {
 		grid-template-columns: minmax(0, 1fr);
+		align-content: start;
+	}
+
+	.home-news__list:has(> :nth-child(4)) {
+		align-content: stretch;
+	}
+
+	.home-news__list > li {
+		display: grid;
+	}
+
+	.home-news__list > li:nth-child(odd):last-child {
+		grid-column: auto;
+	}
+
+	.home-news__list .card--numbered {
+		align-content: center;
+	}
+
+	.home-news__list > li:nth-child(n + 6) {
+		display: none;
 	}
 
 	.home-news__list > li:nth-child(2) .card--numbered {
@@ -911,6 +1062,16 @@
 
 	.home-news__grid--solo .home-news__lead {
 		grid-column: 1 / span 8;
+	}
+}
+
+@media (min-width: 80em) {
+	.home-news__lead .clip-frame {
+		--ratio: 16 / 9;
+	}
+
+	.home-news__list .card__title {
+		font-size: 1.1875rem;
 	}
 }
 
@@ -974,7 +1135,15 @@
 	letter-spacing: var(--tracking-display);
 }
 
+.home-earn__feature .card__excerpt {
+	max-width: 46ch;
+}
+
+/* Practical stories: italic index numeral, headline, reading-time label. */
 .home-earn__list {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	column-gap: var(--grid-gap);
 	border-bottom: 1px solid var(--c-rule);
 }
 
@@ -997,6 +1166,7 @@
 }
 
 .home-earn__item .card--compact {
+	gap: var(--sp-3);
 	padding-top: 0;
 	border-top: 0;
 }
@@ -1006,8 +1176,8 @@
 	line-height: 1.18;
 }
 
-.home-earn__item .card__excerpt {
-	font-size: 1rem;
+.home-earn__item .card__meta {
+	margin-top: 0;
 }
 
 /* Reading time as a practical label */
@@ -1024,8 +1194,33 @@
 	border-radius: var(--r-sm);
 }
 
-/* Desktop: a magazine spread — section head and practical list in the left
-   column, the large 4:3 feature spanning the right. */
+/* Tablet: the feature reads across (image beside text) and the practical
+   stories settle into a 2 × 2 grid beneath it. */
+@media (min-width: 48em) and (max-width: 63.99em) {
+	.home-earn__feature .card--feature {
+		display: grid;
+		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+		align-items: center;
+		gap: var(--grid-gap);
+	}
+
+	.home-earn__feature .card__title {
+		font-size: var(--fs-xl);
+		line-height: 1.1;
+		letter-spacing: var(--tracking-tight);
+	}
+
+	.home-earn__list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.home-earn__item:nth-child(odd):last-child {
+		grid-column: 1 / -1;
+	}
+}
+
+/* Desktop: a magazine spread — section head top left, the practical list
+   anchored to the foot of the large 4:3 feature on the right. */
 @media (min-width: 64em) {
 	.home-earn__grid {
 		grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -1048,14 +1243,15 @@
 	}
 
 	.home-earn__feature {
-		grid-column: 7 / -1;
+		grid-column: 6 / -1;
 		grid-row: 1 / span 2;
+		padding-left: var(--sp-7);
 	}
 
 	.home-earn__list {
 		grid-column: 1 / span 5;
 		grid-row: 2;
-		align-self: start;
+		align-self: end;
 	}
 
 	.home-earn__grid--solo .home-earn__feature {
@@ -1063,10 +1259,15 @@
 	}
 }
 
-@media (min-width: 80em) {
-	.home-earn__feature {
-		grid-column: 6 / -1;
-		padding-left: var(--sp-7);
+/* Small desktop: the narrow left column keeps headlines to two lines. */
+@media (min-width: 64em) and (max-width: 79.99em) {
+	.home-earn__item {
+		padding-block: var(--sp-4);
+	}
+
+	.home-earn__item .card__title {
+		font-size: var(--fs-md);
+		line-height: 1.22;
 	}
 }
 
@@ -1240,6 +1441,14 @@
 
 .home-stream__list {
 	border-bottom: 1px solid var(--c-rule);
+}
+
+/* The list's own rule closes it, so the pagination drops its rule (no doubled
+   hairline) and sits closer to the stories it pages through. */
+.home-stream__main .pagination {
+	margin-top: var(--sp-7);
+	padding-top: 0;
+	border-top: 0;
 }
 
 .home-stream__list .card--row {

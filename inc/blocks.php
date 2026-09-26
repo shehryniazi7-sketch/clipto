@@ -227,3 +227,46 @@ function clipto_compare_table_marks( $block_content, $block ) {
 	return implode( '', $parts );
 }
 add_filter( 'render_block_core/table', 'clipto_compare_table_marks', 10, 2 );
+
+/* -------------------------------------------------------------------------
+ * Tables: numeric cells get tabular figures
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Tag table cells whose whole text is a number ("81%", "$12", "1,200", "4.4", "−3 pp")
+ * with the class "is-numeric", so only they use tabular figures (31-content.css); prose
+ * cells keep proportional figures and punctuation. Tags and attributes are otherwise
+ * left exactly as core rendered them.
+ *
+ * @param string $block_content Rendered block.
+ * @return string
+ */
+function clipto_table_numeric_cells( $block_content ) {
+	if ( false === stripos( $block_content, '<td' ) ) {
+		return $block_content;
+	}
+
+	$number = '/^[~≈<>≤≥±+\-−–]?\s?[$€£¥]?\s?\d[\d.,\x{00A0}\x{202F} ]*\s?(?:%|‰|x|×|k|K|M|B|bn|pp|pts?|ms|s|h|min|GB|MB|TB)?(?:\s?\/\s?(?:mo|month|yr|year|user|seat))?$/u';
+
+	$result = preg_replace_callback(
+		'#<(td|th)(\s[^>]*)?>(.*?)</\1\s*>#is',
+		static function ( $m ) use ( $number ) {
+			$text = html_entity_decode( wp_strip_all_tags( $m[3] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			$text = trim( (string) preg_replace( '/\s+/u', ' ', $text ) );
+			if ( '' === $text || strlen( $text ) > 24 || ! preg_match( $number, $text ) ) {
+				return $m[0];
+			}
+			$attrs = isset( $m[2] ) ? $m[2] : '';
+			if ( preg_match( '/\sclass\s*=\s*"/i', $attrs ) ) {
+				$attrs = (string) preg_replace( '/(\sclass\s*=\s*")([^"]*)"/i', '$1$2 is-numeric"', $attrs, 1 );
+			} else {
+				$attrs .= ' class="is-numeric"';
+			}
+			return '<' . $m[1] . $attrs . '>' . $m[3] . '</' . $m[1] . '>';
+		},
+		$block_content
+	);
+
+	return null === $result ? $block_content : $result;
+}
+add_filter( 'render_block_core/table', 'clipto_table_numeric_cells', 20 );

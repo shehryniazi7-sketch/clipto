@@ -171,6 +171,40 @@ if ( ! function_exists( 'clipto_archive_page_stat' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'clipto_archive_range_label' ) ) :
+	/**
+	 * Where the current page sits in the whole list: "11–20 of 31" when the list runs to
+	 * more than one page, otherwise the plain count ("16 results").
+	 *
+	 * @param string $noun 'result' or 'article'.
+	 * @return string Plain text.
+	 */
+	function clipto_archive_range_label( $noun = 'article' ) {
+		global $wp_query;
+		$found = (int) $wp_query->found_posts;
+		$shown = (int) $wp_query->post_count;
+		if ( ! $found || ! $shown ) {
+			return '';
+		}
+		if ( (int) $wp_query->max_num_pages < 2 ) {
+			return 'result' === $noun
+				/* translators: %s: number of search results. */
+				? sprintf( _n( '%s result', '%s results', $found, 'clipto' ), number_format_i18n( $found ) )
+				/* translators: %s: number of articles. */
+				: sprintf( _n( '%s article', '%s articles', $found, 'clipto' ), number_format_i18n( $found ) );
+		}
+		$per   = max( 1, (int) $wp_query->get( 'posts_per_page' ) );
+		$first = ( max( 1, (int) get_query_var( 'paged' ) ) - 1 ) * $per + 1;
+		return sprintf(
+			/* translators: 1: first item on this page, 2: last item on this page, 3: total. */
+			__( '%1$s–%2$s of %3$s', 'clipto' ),
+			number_format_i18n( $first ),
+			number_format_i18n( $first + $shown - 1 ),
+			number_format_i18n( $found )
+		);
+	}
+endif;
+
 if ( ! function_exists( 'clipto_archive_updated_stat' ) ) :
 	/**
 	 * "Updated" stat from the latest post date, or null.
@@ -264,7 +298,7 @@ if ( ! function_exists( 'clipto_archive_day_label' ) ) :
 	 * Day heading for the news stream: "Today", "Yesterday" or a date (site timezone).
 	 *
 	 * @param WP_Post $post Post.
-	 * @return array { key: Y-m-d, label: string, date: string (long date), datetime: string }
+	 * @return array { key: Y-m-d, label: string, date: string (long date), datetime: string, relative: bool (Today/Yesterday) }
 	 */
 	function clipto_archive_day_label( $post ) {
 		$key       = get_the_date( 'Y-m-d', $post );
@@ -287,6 +321,7 @@ if ( ! function_exists( 'clipto_archive_day_label' ) ) :
 			'label'    => $label,
 			'date'     => $long,
 			'datetime' => $key,
+			'relative' => $key === $today || $key === $yesterday,
 		);
 	}
 endif;
@@ -505,7 +540,7 @@ if ( ! function_exists( 'clipto_archive_tool_chips' ) ) :
 	 * The current page gets aria-current; an ancestor of the current term is marked active.
 	 *
 	 * @param WP_Term $current Current term.
-	 * @return array[] { label, url, count, current: bool, active: bool }
+	 * @return array[] { label, sr (screen-reader suffix), url, count, current: bool, active: bool }
 	 */
 	function clipto_archive_tool_chips( $current ) {
 		$tools = clipto_destination( 'ai-tools' );
@@ -519,7 +554,9 @@ if ( ! function_exists( 'clipto_archive_tool_chips' ) ) :
 		$current_id = $current instanceof WP_Term ? (int) $current->term_id : 0;
 		$chips      = array(
 			array(
-				'label'   => __( 'All tools', 'clipto' ),
+				/* translators: Chip for every AI tool, shown before the subcategory chips. */
+				'label'   => _x( 'All', 'all AI tools chip', 'clipto' ),
+				'sr'      => __( 'AI tools', 'clipto' ),
 				'url'     => $tools['url'],
 				'count'   => (int) $tools['count'],
 				'current' => (int) $tools['object']->term_id === $current_id,
@@ -598,8 +635,9 @@ if ( ! function_exists( 'clipto_archive_term_head_args' ) ) :
 			$args['note']  = __( 'Each entry shows its pricing: Free means no paid plan is needed, Freemium means a free tier with paid upgrades.', 'clipto' );
 		}
 
+		// An empty archive says so in its body; a "0 articles" stat would only repeat it.
 		$args['stats'] = array(
-			clipto_archive_count_label( $wp_query->found_posts ),
+			$wp_query->found_posts ? clipto_archive_count_label( $wp_query->found_posts ) : null,
 		);
 		if ( 'tools' === $variant && ! $term->parent ) {
 			$subs = clipto_tool_subcategories();
@@ -608,7 +646,10 @@ if ( ! function_exists( 'clipto_archive_term_head_args' ) ) :
 			}
 		}
 		$args['stats'][] = clipto_archive_updated_stat( clipto_archive_latest_post( array( 'term' => $term ) ) );
-		$args['stats'][] = clipto_archive_page_stat();
+		// The tool directory's label already says "11–20 of 31" on later pages.
+		if ( 'tools' !== $variant ) {
+			$args['stats'][] = clipto_archive_page_stat();
+		}
 
 		if ( 'earn' === $variant && ! is_paged() && have_posts() ) {
 			$args['class'] = 'has-overlap';
@@ -665,6 +706,51 @@ if ( ! function_exists( 'clipto_archive_promote_tool_feature' ) ) :
 		array_unshift( $posts, $lead );
 		$query->posts = array_values( $posts );
 		$query->post  = $query->posts[0];
+	}
+endif;
+
+if ( ! function_exists( 'clipto_archive_row_pattern' ) ) :
+	/**
+	 * Row plan for an editorial grid of pairs (half width) and triples (third width)
+	 * that always fills its rows: no lone card at the end of a page.
+	 *
+	 *   remainder 0 → triples only
+	 *   remainder 2 → one pair (first, or last on later pages) + triples
+	 *   remainder 1 → two pairs (first and last, or both last on later pages) + triples
+	 *
+	 * @param int  $count     Number of cards.
+	 * @param bool $lead_pair Open with a pair (page 1, under the feature).
+	 * @return array[] One { span: 'pair'|'triple', pos: 1-based position in its row } per card.
+	 */
+	function clipto_archive_row_pattern( $count, $lead_pair = true ) {
+		$count = max( 0, (int) $count );
+		if ( $count < 3 ) {
+			$rows = $count ? array( $count ) : array();
+		} else {
+			$pairs = array( 0, 2, 1 ); // Pairs needed for a remainder of 0, 1 or 2.
+			$pair  = $pairs[ $count % 3 ];
+			$rows = array_fill( 0, (int) ( ( $count - 2 * $pair ) / 3 ), 3 );
+			if ( $pair ) {
+				if ( $lead_pair ) {
+					array_unshift( $rows, 2 );
+					if ( 2 === $pair ) {
+						$rows[] = 2;
+					}
+				} else {
+					$rows = array_merge( $rows, array_fill( 0, $pair, 2 ) );
+				}
+			}
+		}
+		$plan = array();
+		foreach ( $rows as $size ) {
+			for ( $pos = 1; $pos <= $size; $pos++ ) {
+				$plan[] = array(
+					'span' => 3 === $size ? 'triple' : 'pair',
+					'pos'  => $pos,
+				);
+			}
+		}
+		return $plan;
 	}
 endif;
 

@@ -204,7 +204,19 @@ if ( ! empty( $clipto_facts['rating'] ) ) {
 			<?php if ( $clipto_picks ) : ?>
 				<ul class="home-tools__list" role="list">
 					<?php foreach ( $clipto_picks as $clipto_i => $clipto_p ) : ?>
-						<li><?php clipto_card( $clipto_p, 'tool', array( 'index' => $clipto_i + 1 ) ); ?></li>
+						<li>
+							<?php
+							/* 26 words: long enough that an editor's excerpt is never cut mid-phrase. */
+							clipto_card(
+								$clipto_p,
+								'tool',
+								array(
+									'index'   => $clipto_i + 1,
+									'excerpt' => 26,
+								)
+							);
+							?>
+						</li>
 					<?php endforeach; ?>
 				</ul>
 			<?php endif; ?>

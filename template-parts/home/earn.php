@@ -1,9 +1,10 @@
 <?php
 /**
- * Earn With AI: the homepage's contrast band. A large 4:3 feature and three practical
- * stories labelled with their reading time. Colour tokens are re-pointed to the invert
- * palette inside the band (see 20-home.css), so shared card styles apply unchanged.
- * Skipped when Earn With AI does not exist or is empty.
+ * Earn With AI: the homepage's contrast band. A large 4:3 feature and up to four practical
+ * stories labelled with their reading time — headlines only, so no dek is ever cut off
+ * mid-phrase. Colour tokens are re-pointed to the invert palette inside the band (see
+ * 20-home.css), so shared card styles apply unchanged. Skipped when Earn With AI does not
+ * exist or is empty.
  *
  * @package Clipto
  */
@@ -18,7 +19,7 @@ if ( ! $clipto_earn ) {
 $clipto_posts = clipto_posts(
 	array(
 		'cat'            => (int) $clipto_earn['object']->term_id,
-		'posts_per_page' => 4,
+		'posts_per_page' => 5,
 	)
 );
 if ( ! $clipto_posts ) {
@@ -69,7 +70,7 @@ $clipto_lead = array_shift( $clipto_posts );
 								array(
 									'index'   => $clipto_i + 1,
 									'kicker'  => false,
-									'excerpt' => 18,
+									'excerpt' => false,
 									'meta'    => array( 'date' => false ),
 								)
 							);

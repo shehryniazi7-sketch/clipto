@@ -33,6 +33,7 @@ if ( ! have_posts() ) {
 					'latest'  => true,
 					'sizes'   => '(min-width: 64em) 58vw, 100vw',
 					'meta'    => array( 'author' => true ),
+					'kicker'  => clipto_archive_kicker( get_post() ),
 				)
 			);
 			?>
@@ -78,6 +79,9 @@ if ( ! have_posts() ) {
 						'index'   => min( $i, 4 ),
 						'class'   => 'news-row',
 						'kicker'  => clipto_archive_kicker( get_post() ),
+						// Older days already carry the date in the day heading; the relative
+						// time ("3 hours ago") still adds something under Today / Yesterday.
+						'meta'    => array( 'date' => $d['relative'] ),
 					)
 				);
 			endwhile;

@@ -1,8 +1,9 @@
 /**
- * Share actions. Copy link (Clipboard API with a legacy fallback) swaps the link icon
- * for a check, changes the label to "Link copied" and announces it through a polite
- * live region; it resets after a moment. On touch devices that support the Web Share
- * API an extra button opens the native share sheet. X / LinkedIn are plain links.
+ * Share actions. Copy link (Clipboard API with a legacy fallback) toggles .is-copied —
+ * the CSS swaps the link icon for a check and "Copy link" for "Copied" inside a fixed-width
+ * cell, so nothing around the button moves — and announces "Link copied" through a polite
+ * live region; it resets after a moment. On touch devices that support the Web Share API an
+ * extra button opens the native share sheet. X / LinkedIn are plain links.
  */
 const RESET_AFTER = 2400;
 
@@ -65,7 +66,6 @@ export function initShare() {
 
 		const copy = group.querySelector('[data-share-copy]');
 		if (!copy) return;
-		const label = copy.querySelector('[data-share-label]');
 		let timer = 0;
 
 		copy.addEventListener('click', async () => {
@@ -73,11 +73,9 @@ export function initShare() {
 			const message = ok ? copy.dataset.labelCopied : copy.dataset.labelFailed;
 			window.clearTimeout(timer);
 			copy.classList.toggle('is-copied', ok);
-			if (label && ok) label.textContent = copy.dataset.labelCopied;
 			announce(status, message || '');
 			timer = window.setTimeout(() => {
 				copy.classList.remove('is-copied');
-				if (label) label.textContent = copy.dataset.labelCopy;
 				if (status) status.textContent = '';
 			}, RESET_AFTER);
 		});

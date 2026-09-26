@@ -16,12 +16,6 @@
      [data-share] [data-share-copy] [data-share-native] [data-share-status]  share.js
    ========================================================================== */
 
-/* Links here are components: guard against the global-styles link underline,
-   which prints after main.css. */
-:is(.article-header, .reading__rail, .reading__main > :not(.entry-content), .related, .post-nav, .comments) a {
-	text-decoration: none;
-}
-
 /* Reading progress ------------------------------------------------------------ */
 .reading-progress {
 	position: fixed;
@@ -144,6 +138,12 @@
 		grid-row: 1;
 		max-width: 60rem;
 		margin: 0;
+	}
+
+	/* No featured image: nothing below the byline reaches the wide edge, so the
+	   header (and its share actions) stays on the text column. */
+	.reading:not(.reading--simple):not(:has(> .article-hero)) > .article-header {
+		max-width: var(--measure);
 	}
 
 	.reading:not(.reading--simple) > .article-hero {
@@ -269,6 +269,28 @@
 	color: var(--c-accent);
 }
 
+/* Small inline links get a 44px-tall hit area without changing the layout or the
+   focus ring (the ring follows the link box; the hit area is an invisible ::after). */
+.article-header__kicker,
+.byline__author,
+.tool-facts__site,
+.author-box__name a,
+.comments .comment-metadata a,
+.comments .comment-reply-title small a {
+	position: relative;
+}
+
+.article-header__kicker::after,
+.byline__author::after,
+.tool-facts__site::after,
+.author-box__name a::after,
+.comments .comment-metadata a::after,
+.comments .comment-reply-title small a::after {
+	content: "";
+	position: absolute;
+	inset: calc((2.75rem - 100%) / -2) -0.25rem;
+}
+
 .article-header__title {
 	max-width: 21ch;
 	font-size: var(--fs-3xl);
@@ -366,17 +388,24 @@
 	background-size: 100% 1px;
 }
 
+/* When the meta row wraps, the item that starts a new line never leads with a
+   separator dot: dots hang in the gap to the left of their item, and the row
+   clips whatever falls outside its left edge. */
 .byline__meta {
 	margin-top: 0.15rem;
+	column-gap: 1.1875rem;
+	overflow: hidden;
 }
 
-/* Proportional figures in running dates ("Sep 25, 2026" — tabular commas gape). */
-.byline__meta,
-.byline__meta time,
-.comments .comment-metadata,
-.comments .comment-metadata time,
-.stars__value {
-	font-variant-numeric: proportional-nums;
+.byline__meta > * {
+	position: relative;
+}
+
+.byline__meta > * + *::before {
+	position: absolute;
+	top: 50%;
+	left: -0.6875rem;
+	margin: -1.5px 0 0;
 }
 
 .byline__label {
@@ -419,9 +448,12 @@
 	border-top: 1px solid var(--c-rule);
 }
 
-@media (max-width: 47.99em) {
-	/* Phones: the picture runs edge to edge; the caption keeps the gutter. */
+@media (max-width: 63.99em) {
+	/* Phones and tablets: the picture runs edge to edge (a container-width image a
+	   few pixels wider than the text column reads as a mistake); the caption
+	   returns to the text column. */
 	.article-hero {
+		max-width: none;
 		margin-inline: calc(var(--gutter) * -1);
 	}
 
@@ -430,7 +462,9 @@
 	}
 
 	.article-hero__caption {
-		margin-inline: var(--gutter);
+		width: min(100% - 2 * var(--gutter), var(--measure));
+		max-width: none;
+		margin-inline: auto;
 	}
 }
 
@@ -576,6 +610,15 @@
 	padding-block: 0.28rem;
 }
 
+/* Long (condensed) rails sit a little tighter so more of the list fits a laptop screen. */
+.toc--rail.is-condensed .toc__link {
+	padding-block: 0.32rem;
+}
+
+.toc--rail.is-condensed .toc__link--sub {
+	padding-block: 0.22rem;
+}
+
 /* Mobile / tablet: "In this article" disclosure before the content. */
 .toc-disclosure {
 	margin-bottom: var(--sp-8);
@@ -651,7 +694,7 @@
 }
 
 .toc--inline .toc__link--sub {
-	min-height: 2.5rem;
+	min-height: 2.75rem;
 	padding-block: 0.35rem;
 	font-size: var(--fs-sm);
 }
@@ -741,6 +784,27 @@
 	transform: scale(0.4) rotate(-20deg);
 }
 
+/* "Copy link" / "Copied": one grid cell, sized by the longer label. The hidden one
+   uses visibility, so the accessible name is always the visible text. */
+.share__label {
+	display: grid;
+}
+
+.share__label-text {
+	grid-area: 1 / 1;
+	transition:
+		opacity var(--dur-2) var(--ease-out),
+		transform var(--dur-3) var(--ease-out),
+		visibility 0s linear;
+}
+
+.share__label-text--done {
+	opacity: 0;
+	visibility: hidden;
+	transform: translate3d(0, 3px, 0);
+	transition-delay: 0s, 0s, var(--dur-2);
+}
+
 .share__copy.is-copied {
 	color: var(--c-ink);
 	border-color: var(--c-ink);
@@ -755,6 +819,20 @@
 .share__copy.is-copied .share__glyph--check {
 	opacity: 1;
 	transform: none;
+}
+
+.share__copy.is-copied .share__label-text--idle {
+	opacity: 0;
+	visibility: hidden;
+	transform: translate3d(0, -3px, 0);
+	transition-delay: 0s, 0s, var(--dur-2);
+}
+
+.share__copy.is-copied .share__label-text--done {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+	transition-delay: 0s;
 }
 
 /* Copy needs JavaScript: without it, only the real share links remain. */
@@ -1386,32 +1464,50 @@ html:not(.js) .share__copy {
 	padding-top: var(--sp-2);
 }
 
+/* Avatar beside a two-line stack: name, then date. */
 .comments .comment-meta {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: 2.5rem minmax(0, 1fr);
 	align-items: center;
-	gap: var(--sp-1) var(--sp-3);
+	column-gap: var(--sp-3);
+	row-gap: 0.125rem;
 }
 
 .comments .comment-author {
-	display: flex;
-	align-items: center;
-	gap: var(--sp-3);
+	display: contents;
 	font-size: var(--fs-sm);
 	font-weight: 650;
+	line-height: 1.3;
 	color: var(--c-ink);
 }
 
 .comments .comment-author .avatar {
+	grid-row: 1 / span 2;
+	grid-column: 1;
 	width: 2.5rem;
 	height: 2.5rem;
 	border-radius: 50%;
 	background: var(--c-tint);
 }
 
+.comments .comment-author .fn {
+	grid-column: 2;
+	align-self: end;
+	min-width: 0;
+}
+
+.comments .comment-meta > :not(.comment-author) {
+	grid-column: 2;
+}
+
+.comments .comment-metadata {
+	align-self: start;
+}
+
 .comments .comment-author .fn,
 .comments .comment-author .fn a {
 	font-style: normal;
+	font-weight: inherit; /* core prints <b class="fn">; "bolder" would jump to 900 */
 	color: var(--c-ink);
 }
 
@@ -1427,9 +1523,9 @@ html:not(.js) .share__copy {
 .comments .comment-metadata {
 	display: flex;
 	flex-wrap: wrap;
-	gap: var(--sp-3);
+	gap: 0 var(--sp-3);
 	font-size: var(--fs-xs);
-	font-variant-numeric: tabular-nums;
+	line-height: 1.4;
 	color: var(--c-ink-3);
 }
 
@@ -1442,7 +1538,7 @@ html:not(.js) .share__copy {
 }
 
 .comments .comment-awaiting-moderation {
-	margin-top: var(--sp-2);
+	margin-top: var(--sp-1);
 	font-size: var(--fs-xs);
 	color: var(--c-accent-text);
 }
@@ -1471,6 +1567,19 @@ html:not(.js) .share__copy {
 .comments .reply {
 	margin-top: var(--sp-2);
 	padding-left: calc(2.5rem + var(--sp-3));
+}
+
+@media (max-width: 29.99em) {
+	/* Narrow phones: replies read at full width; threads indent by a hairline step. */
+	.comments .comment-content,
+	.comments .reply {
+		padding-left: 0;
+	}
+
+	.comments__list .children {
+		margin-left: 0;
+		padding-left: var(--sp-4);
+	}
 }
 
 .comments .comment-reply-link {
@@ -1525,6 +1634,13 @@ html:not(.js) .share__copy {
 	border-top: 1px solid var(--c-rule);
 }
 
+/* No comments yet: the form follows the section title directly. */
+.comments__head + .comment-respond {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
 .comments__list .comment-respond {
 	margin-block: var(--sp-4) var(--sp-6);
 }
@@ -1558,6 +1674,7 @@ html:not(.js) .share__copy {
 }
 
 .comments .comment-form > p {
+	min-width: 0;
 	margin: 0;
 }
 
@@ -1589,7 +1706,10 @@ html:not(.js) .share__copy {
 
 .comments .comment-form :is(input[type="text"], input[type="email"], input[type="url"], textarea) {
 	display: block;
+	box-sizing: border-box;
 	width: 100%;
+	min-width: 0;
+	max-width: 100%; /* the textarea's cols="45" must never set the page width */
 	min-height: 3rem;
 	padding: 0.75rem 1rem;
 	font-family: var(--ff-sans);

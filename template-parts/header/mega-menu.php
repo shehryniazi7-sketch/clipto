@@ -30,7 +30,12 @@ $clipto_list = 'mega-list-' . sanitize_html_class( $clipto_panel_id );
 
 		<div class="mega__intro">
 			<p class="kicker"><?php echo esc_html( $clipto_tools['label'] ); ?></p>
-			<p class="mega__lede"><?php echo esc_html( $clipto_desc ); ?></p>
+			<p class="mega__lede">
+				<?php
+				// Keep hyphenated compounds ("hands-on") whole: the balanced rag must not split them.
+				echo preg_replace( '/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)+/u', '<span class="mega__nowrap">$0</span>', esc_html( $clipto_desc ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped before wrapping.
+				?>
+			</p>
 			<p class="meta mega__stats">
 				<?php if ( $clipto_tools['count'] ) : ?>
 					<span>

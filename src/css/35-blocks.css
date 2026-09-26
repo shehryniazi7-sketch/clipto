@@ -645,9 +645,10 @@
 	background: none;
 }
 
-/* Tabular figures where numbers line up: cells the author aligned right or centre.
-   (Schibsted's tnum also widens punctuation, so prose cells keep proportional.) */
-.entry-content .wp-block-table.is-style-clipto-compare :is(.has-text-align-right, .has-text-align-center, [data-align="right"], [data-align="center"]) {
+/* Tabular figures where numbers line up: cells the author aligned right or centre,
+   and cells holding a number (.is-numeric, inc/blocks.php). Schibsted's tnum also
+   widens punctuation, so prose cells keep proportional figures. */
+.entry-content .wp-block-table.is-style-clipto-compare :is(.has-text-align-right, .has-text-align-center, [data-align="right"], [data-align="center"], .is-numeric) {
 	font-variant-numeric: tabular-nums lining-nums;
 }
 
@@ -722,8 +723,18 @@
 }
 
 @media (max-width: 47.99em) {
+	/* Phones: the scroller runs to the screen edges (at rest the table still lines
+	   up with the text); the sticky column's shadow paints over the gutter, so
+	   nothing scrolls into view beside it. */
+	.entry-content > .wp-block-table.is-style-clipto-compare {
+		margin-inline: calc(var(--gutter) * -1);
+		padding-inline: var(--gutter);
+	}
+
 	.entry-content .wp-block-table.is-style-clipto-compare :is(th, td):first-child {
-		box-shadow: inset -1px 0 0 var(--c-rule);
+		box-shadow:
+			inset -1px 0 0 var(--c-rule),
+			calc(var(--gutter) * -1) 0 0 var(--cmp-bg);
 	}
 }
 

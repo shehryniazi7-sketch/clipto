@@ -13,7 +13,9 @@
  *   clipto_toc_min_headings()           Minimum number of headings before a TOC is shown (3).
  *   clipto_toc_process( $html )         [ 'html' => string, 'toc' => array ] — the shared routine.
  *
- * A heading can opt out of the TOC (it still gets an id) with the class "no-toc".
+ * A heading can opt out of the TOC (it still gets an id) with the class "no-toc". Headings
+ * that directly label a Pros / Cons list (35-blocks.css draws them as small-caps list
+ * labels, not section headings) are left out automatically.
  *
  * @package Clipto
  */
@@ -159,8 +161,9 @@ if ( ! function_exists( 'clipto_toc_process' ) ) {
 			}
 		}
 
+		// Group 4 (a zero-width lookahead) is set when a Pros / Cons list follows the heading.
 		$processed = preg_replace_callback(
-			'#<h([23])(\s[^>]*)?>(.*?)</h\1\s*>#is',
+			'#<h([23])(\s[^>]*)?>(.*?)</h\1\s*>(?=(\s*<(?:ul|ol)\s[^>]*\bis-style-clipto-(?:pros|cons)\b)?)#is',
 			static function ( $m ) use ( &$used, &$toc ) {
 				$level = (int) $m[1];
 				$attrs = isset( $m[2] ) ? $m[2] : '';
@@ -185,7 +188,7 @@ if ( ! function_exists( 'clipto_toc_process' ) ) {
 					$attrs      .= ' id="' . esc_attr( $id ) . '"';
 				}
 
-				$skip = preg_match( '/\sclass\s*=\s*(["\'])[^"\']*\bno-toc\b/i', ' ' . $attrs );
+				$skip = ! empty( $m[4] ) || preg_match( '/\sclass\s*=\s*(["\'])[^"\']*\bno-toc\b/i', ' ' . $attrs );
 				if ( ! $skip ) {
 					$toc[] = array(
 						'id'    => $id,

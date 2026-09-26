@@ -1,8 +1,10 @@
 <?php
 /**
  * AI Tools archive (the category and its descendants): "tool discovery".
- * Page 1: featured tool with an "At a glance" facts panel, then the directory grid of
- * tool cards. Later pages: grid only. Main query throughout.
+ * Page 1: featured tool (the newest reviewed tool on the page, see
+ * clipto_archive_promote_tool_feature()) with its "At a glance" facts, then the
+ * directory grid of the page's other posts. Later pages: grid only. Main query
+ * throughout, so pagination is untouched.
  *
  * @package Clipto
  */
@@ -32,7 +34,7 @@ if ( ! have_posts() ) {
 			<h2 class="archive-label" id="tools-feature-label">
 				<span class="archive-label__text"><?php esc_html_e( 'Featured tool', 'clipto' ); ?></span>
 			</h2>
-			<div class="tools-feature__grid<?php echo $facts ? ' has-glance' : ''; ?>">
+			<div class="tools-feature__grid">
 				<?php
 				clipto_card(
 					$feature,
@@ -113,12 +115,7 @@ if ( ! have_posts() ) {
 					?>
 				</span>
 				<?php if ( is_paged() ) : ?>
-					<span class="archive-label__count">
-						<?php
-						/* translators: 1: current page, 2: total pages. */
-						echo esc_html( sprintf( __( 'Page %1$s of %2$s', 'clipto' ), number_format_i18n( max( 1, (int) get_query_var( 'paged' ) ) ), number_format_i18n( (int) $wp_query->max_num_pages ) ) );
-						?>
-					</span>
+					<span class="archive-label__count"><?php echo esc_html( clipto_archive_range_label() ); ?></span>
 				<?php endif; ?>
 			</h2>
 			<div class="tools-grid">
