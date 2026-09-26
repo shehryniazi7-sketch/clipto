@@ -623,6 +623,51 @@ if ( ! function_exists( 'clipto_archive_term_head_args' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'clipto_archive_promote_tool_feature' ) ) :
+	/**
+	 * Pick the AI Tools featured slot from the main query's own first page: the newest
+	 * post with tool facts (pricing) and a featured image, else one with facts and a
+	 * logo, else the newest post. The pick is moved to the front of the page's posts,
+	 * so the loop renders it once (as the feature) and the grid gets the rest — page
+	 * sizes, found_posts and pagination are untouched.
+	 *
+	 * @param WP_Query $query Main query (page 1, before the loop starts).
+	 * @return void
+	 */
+	function clipto_archive_promote_tool_feature( $query ) {
+		if ( ! $query instanceof WP_Query || $query->current_post > -1 || count( $query->posts ) < 2 ) {
+			return;
+		}
+		$with_logo = null;
+		$pick      = null;
+		foreach ( $query->posts as $i => $item ) {
+			$item = get_post( $item );
+			if ( ! $item || '' === (string) get_post_meta( $item->ID, '_clipto_pricing', true ) ) {
+				continue;
+			}
+			if ( has_post_thumbnail( $item ) ) {
+				$pick = $i;
+				break;
+			}
+			if ( null === $with_logo && (int) get_post_meta( $item->ID, '_clipto_logo_id', true ) ) {
+				$with_logo = $i;
+			}
+		}
+		if ( null === $pick ) {
+			$pick = $with_logo;
+		}
+		if ( ! $pick ) {
+			return; // Nothing better than the newest post, or it already leads.
+		}
+		$posts = $query->posts;
+		$lead  = $posts[ $pick ];
+		unset( $posts[ $pick ] );
+		array_unshift( $posts, $lead );
+		$query->posts = array_values( $posts );
+		$query->post  = $query->posts[0];
+	}
+endif;
+
 if ( ! function_exists( 'clipto_archive_kicker' ) ) :
 	/**
 	 * Whether a card in the current archive should show its category kicker. It is

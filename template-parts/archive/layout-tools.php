@@ -23,6 +23,7 @@ if ( ! have_posts() ) {
 
 	<?php
 	if ( ! is_paged() ) :
+		clipto_archive_promote_tool_feature( $wp_query );
 		the_post();
 		$feature = get_post();
 		$facts   = clipto_tool_facts( $feature );

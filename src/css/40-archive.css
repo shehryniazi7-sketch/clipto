@@ -5,20 +5,6 @@
    editorial grid), free (compact discovery list), standard (feature + rows).
    ========================================================================== */
 
-/* Links in these compositions carry their own hover cues (underline sweeps,
-   arrows, chips), so the global-styles link underline is reset here. */
-:is(.archive-head, .archive-body, .error-404) a {
-	text-decoration: none;
-}
-
-/* Surfaces carry the page tokens themselves: WordPress global styles print the
-   body colours from theme.json (fixed preset values) after main.css, which would
-   otherwise leave light paper under dark-mode ink. */
-.site-main:has(> :is(.archive-head, .archive-body, .error-404, .fallback-entry)) {
-	background: var(--c-paper);
-	color: var(--c-ink);
-}
-
 /* Archive header ------------------------------------------------------------ */
 .archive-head {
 	padding-block: var(--sp-4) clamp(var(--sp-8), 4.5vw, var(--sp-10));
@@ -34,7 +20,6 @@
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 0 var(--sp-2);
-	font-family: var(--ff-sans);
 	font-size: var(--fs-xs);
 	line-height: 1.3;
 	color: var(--c-ink-3);
@@ -80,7 +65,6 @@
 }
 
 .archive-head__eyebrow {
-	font-family: var(--ff-sans);
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -138,7 +122,6 @@
 }
 
 .archive-head__note {
-	font-family: var(--ff-sans);
 	max-width: 60ch;
 	margin-top: var(--sp-3);
 	font-size: var(--fs-sm);
@@ -157,7 +140,6 @@
 }
 
 .archive-head__stat dt {
-	font-family: var(--ff-sans);
 	font-size: var(--fs-2xs);
 	font-weight: 600;
 	line-height: 1.2;
@@ -292,7 +274,6 @@
 }
 
 .author-extra {
-	font-family: var(--ff-sans);
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -312,7 +293,6 @@
 }
 
 .author-extra__label {
-	font-family: var(--ff-sans);
 	font-size: var(--fs-2xs);
 	font-weight: 600;
 	letter-spacing: var(--tracking-label);
@@ -425,7 +405,6 @@
 }
 
 .tools-feature__glance-title {
-	font-family: var(--ff-sans);
 	font-size: var(--fs-2xs);
 	font-weight: 600;
 	letter-spacing: var(--tracking-label);
@@ -443,7 +422,6 @@
 	gap: var(--sp-4);
 	padding-block: var(--sp-3);
 	border-top: 1px solid var(--c-rule);
-	font-family: var(--ff-sans);
 	font-size: var(--fs-sm);
 	line-height: 1.4;
 }
@@ -810,7 +788,6 @@
 	align-items: center;
 	gap: var(--sp-2) var(--sp-3);
 	margin-top: var(--sp-3);
-	font-family: var(--ff-sans);
 	font-size: var(--fs-xs);
 	line-height: 1.4;
 	color: var(--c-ink-2);
@@ -954,7 +931,6 @@
 }
 
 .dest__link {
-	font-family: var(--ff-sans);
 	display: grid;
 	grid-template-columns: 2rem minmax(0, 1fr) auto;
 	align-items: baseline;
@@ -965,7 +941,6 @@
 }
 
 .dest__num {
-	font-family: var(--ff-sans);
 	font-size: var(--fs-xs);
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
@@ -1127,7 +1102,6 @@
 }
 
 .archive-empty__hint {
-	font-family: var(--ff-sans);
 	margin-top: var(--sp-3);
 	font-size: var(--fs-sm);
 	color: var(--c-ink-3);
