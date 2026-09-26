@@ -90,7 +90,12 @@
 	--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 	--stagger: 60ms;
 
-	/* WordPress preset colours follow the tokens (so editor content adapts in dark mode). */
+}
+
+/* WordPress preset colours follow the tokens, so editor content that uses the palette adapts
+   in dark mode. Doubled :root outranks the static preset values WordPress prints later in
+   its global-styles block. */
+:root:root {
 	--wp--preset--color--paper: var(--c-paper);
 	--wp--preset--color--surface: var(--c-surface);
 	--wp--preset--color--tint: var(--c-tint);

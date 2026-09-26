@@ -18,8 +18,8 @@ defined( 'ABSPATH' ) || exit;
 
 <!-- wp:columns -->
 <div class="wp-block-columns"><!-- wp:column -->
-<div class="wp-block-column"><!-- wp:heading {"level":3} -->
-<h3 class="wp-block-heading"><?php esc_html_e( 'Pros', 'clipto' ); ?></h3>
+<div class="wp-block-column"><!-- wp:heading {"level":3,"className":"no-toc"} -->
+<h3 class="wp-block-heading no-toc"><?php esc_html_e( 'Pros', 'clipto' ); ?></h3>
 <!-- /wp:heading -->
 
 <!-- wp:list {"className":"is-style-clipto-pros"} -->
@@ -38,8 +38,8 @@ defined( 'ABSPATH' ) || exit;
 <!-- /wp:column -->
 
 <!-- wp:column -->
-<div class="wp-block-column"><!-- wp:heading {"level":3} -->
-<h3 class="wp-block-heading"><?php esc_html_e( 'Cons', 'clipto' ); ?></h3>
+<div class="wp-block-column"><!-- wp:heading {"level":3,"className":"no-toc"} -->
+<h3 class="wp-block-heading no-toc"><?php esc_html_e( 'Cons', 'clipto' ); ?></h3>
 <!-- /wp:heading -->
 
 <!-- wp:list {"className":"is-style-clipto-cons"} -->

@@ -441,7 +441,7 @@ add_filter( 'nav_menu_link_attributes', 'clipto_nav_menu_link_attributes', 10, 4
  */
 function clipto_nav_menu_item_attributes( $atts, $item, $args, $depth = 0 ) {
 	if ( clipto_is_desktop_nav_args( $args ) && ! $depth && 'ai-tools' === clipto_nav_item_destination_key( $item ) && clipto_tool_subcategories() ) {
-		$atts['data-mega'] = '';
+		$atts['data-mega'] = 'true'; // Empty values are dropped by the walker.
 	}
 	return $atts;
 }

@@ -375,7 +375,8 @@
 	content: none;
 }
 
-.entry-content :is(ul, ol).is-style-clipto-glance > li > strong:first-child {
+.entry-content :is(ul, ol).is-style-clipto-glance > li > strong:first-child,
+.entry-content :is(ul, ol).is-style-clipto-glance > li > .block-editor-rich-text__editable > strong:first-child {
 	display: block;
 	margin-bottom: 0.125rem;
 	font-size: var(--fs-xs);
@@ -390,7 +391,8 @@
 		padding-left: var(--gl-key);
 	}
 
-	.entry-content :is(ul, ol).is-style-clipto-glance > li > strong:first-child {
+	.entry-content :is(ul, ol).is-style-clipto-glance > li > strong:first-child,
+	.entry-content :is(ul, ol).is-style-clipto-glance > li > .block-editor-rich-text__editable > strong:first-child {
 		display: inline-block;
 		width: var(--gl-key);
 		margin: 0 0 0 calc(var(--gl-key) * -1);
@@ -457,7 +459,8 @@
 
 /* The name reads as a sans title on its own line; the numeral keeps its baseline. */
 .entry-content :is(ul, ol).is-style-clipto-index > li > strong:first-child,
-.entry-content :is(ul, ol).is-style-clipto-index > li > a:first-child > strong:only-child {
+.entry-content :is(ul, ol).is-style-clipto-index > li > a:first-child > strong:only-child,
+.entry-content :is(ul, ol).is-style-clipto-index > li > .block-editor-rich-text__editable > strong:first-child {
 	font-family: var(--ff-sans);
 	font-size: var(--fs-base);
 	font-weight: 650;
@@ -466,7 +469,8 @@
 }
 
 .entry-content :is(ul, ol).is-style-clipto-index > li > strong:first-child::after,
-.entry-content :is(ul, ol).is-style-clipto-index > li > a:first-child:has(> strong:only-child)::after {
+.entry-content :is(ul, ol).is-style-clipto-index > li > a:first-child:has(> strong:only-child)::after,
+.entry-content :is(ul, ol).is-style-clipto-index > li > .block-editor-rich-text__editable > strong:first-child::after {
 	content: "\A";
 	white-space: pre;
 }
@@ -612,6 +616,13 @@
 .entry-content .wp-block-table.is-style-clipto-compare {
 	--cmp-bg: var(--c-paper);
 	--cmp-hi: var(--c-tint);
+	/* Always a full-width scroller. inline-size containment stops the wide table's
+	   min-width leaking into ancestors' min-content (e.g. a `1fr` grid track), so the
+	   page itself never scrolls sideways. */
+	display: block;
+	float: none;
+	width: auto;
+	contain: inline-size;
 	margin-block: var(--sp-7) var(--sp-8);
 	margin-inline: 0;
 	overflow-x: auto;
@@ -736,6 +747,9 @@
 
 /* ✓ / ✗ marks (server-rendered from the characters, see inc/blocks.php). */
 .entry-content .clipto-compare__mark {
+	/* relative: keeps the visually-hidden "Yes"/"No" inside the scroller, so it can
+	   never widen the page. */
+	position: relative;
 	display: inline-flex;
 	vertical-align: -0.3em;
 }
@@ -919,4 +933,14 @@
 	font-family: var(--ff-sans);
 	font-size: 0.9375rem;
 	color: var(--c-ink-2);
+}
+
+/* --------------------------------------------------------------------------
+   10. Editor parity — in the block editor a list item's text sits in a
+       rich-text <div> inside the <li>. Letting it flow inline keeps numerals,
+       markers and "at a glance" keys on the first line, as on the front end.
+       (This class never appears in front-end markup.)
+   -------------------------------------------------------------------------- */
+.entry-content :is(.is-style-clipto-takeaways, .is-style-clipto-pros, .is-style-clipto-cons, .is-style-clipto-glance, .is-style-clipto-index) li > .block-editor-rich-text__editable {
+	display: inline;
 }

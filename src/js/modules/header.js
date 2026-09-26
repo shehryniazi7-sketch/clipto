@@ -15,10 +15,6 @@ const CLOSE_DELAY = 250;
 const SCROLL_OFFSET = 8;
 
 const media = (query) => window.matchMedia(query);
-const onMediaChange = (list, fn) => {
-	if (list.addEventListener) list.addEventListener('change', fn);
-	else if (list.addListener) list.addListener(fn);
-};
 export const reducedMotion = () => media('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------------------------------------------------------------------------
@@ -114,11 +110,7 @@ export function openDialog(dialog, opener) {
 		dialog._locked = true;
 		lockScroll();
 	}
-	if (typeof dialog.showModal === 'function') {
-		dialog.showModal();
-	} else {
-		dialog.setAttribute('open', '');
-	}
+	dialog.showModal();
 }
 
 /**
@@ -132,13 +124,7 @@ export function closeDialog(dialog, { instant = false } = {}) {
 
 	const finish = () => {
 		clearTimeout(dialog._closeTimer);
-		if (!dialog.open) return;
-		if (typeof dialog.close === 'function') {
-			dialog.close();
-		} else {
-			dialog.removeAttribute('open');
-			dialog.dispatchEvent(new Event('close'));
-		}
+		if (dialog.open) dialog.close();
 	};
 
 	if (instant || reducedMotion()) {
@@ -288,7 +274,7 @@ function initMega(button) {
 		if (isOpen() && openedBy !== 'keyboard') closeTimer = setTimeout(close, CLOSE_DELAY);
 	});
 
-	onMediaChange(desktop, () => close());
+	desktop.addEventListener('change', () => close());
 }
 
 /* ---------------------------------------------------------------------------
@@ -328,7 +314,7 @@ function initMobileMenu() {
 	});
 
 	// Growing past the breakpoint (rotation, resize) leaves no visible way to close it.
-	onMediaChange(media(DESKTOP), (event) => {
+	media(DESKTOP).addEventListener('change', (event) => {
 		if (event.matches && dialog.open) closeDialog(dialog, { instant: true });
 	});
 }

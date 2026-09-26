@@ -43,6 +43,12 @@ body {
 	flex: 1 0 auto;
 }
 
+/* main receives programmatic focus (skip link, back-to-top); no ring needed there. */
+.site-main:focus,
+.site-main:focus-visible {
+	outline: none;
+}
+
 img,
 svg,
 video,

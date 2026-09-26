@@ -13,8 +13,8 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 <!-- wp:group {"className":"is-style-clipto-takeaways"} -->
-<div class="wp-block-group is-style-clipto-takeaways"><!-- wp:heading -->
-<h2 class="wp-block-heading"><?php esc_html_e( 'Key takeaways', 'clipto' ); ?></h2>
+<div class="wp-block-group is-style-clipto-takeaways"><!-- wp:heading {"className":"no-toc"} -->
+<h2 class="wp-block-heading no-toc"><?php esc_html_e( 'Key takeaways', 'clipto' ); ?></h2>
 <!-- /wp:heading -->
 
 <!-- wp:list -->

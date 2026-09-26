@@ -11,6 +11,14 @@
 	text-decoration: none;
 }
 
+/* Surfaces carry the page tokens themselves: WordPress global styles print the
+   body colours from theme.json (fixed preset values) after main.css, which would
+   otherwise leave light paper under dark-mode ink. */
+.site-main:has(> :is(.archive-head, .archive-body, .error-404, .fallback-entry)) {
+	background: var(--c-paper);
+	color: var(--c-ink);
+}
+
 /* Archive header ------------------------------------------------------------ */
 .archive-head {
 	padding-block: var(--sp-4) clamp(var(--sp-8), 4.5vw, var(--sp-10));
@@ -72,6 +80,7 @@
 }
 
 .archive-head__eyebrow {
+	font-family: var(--ff-sans);
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -129,6 +138,7 @@
 }
 
 .archive-head__note {
+	font-family: var(--ff-sans);
 	max-width: 60ch;
 	margin-top: var(--sp-3);
 	font-size: var(--fs-sm);
@@ -179,8 +189,23 @@
 	display: flex;
 }
 
+.archive-head__chips {
+	scroll-padding-inline: var(--gutter); /* snap the first chip to the gutter, not the edge */
+}
+
 .archive-head__chips .chip {
+	position: relative; /* contains the visually hidden count labels inside the scroller */
 	padding-inline: 0.85rem;
+}
+
+/* Chip links in these templates meet the 44px touch-target minimum. */
+:is(.archive-head__chips, .dest__chips, .author-extra) .chip {
+	min-height: 2.75rem;
+}
+
+/* Where supported, a subcategory page opens with its own chip scrolled into view. */
+.archive-head__chips .chip[aria-current="page"] {
+	scroll-initial-target: nearest;
 }
 
 .archive-head__search {
@@ -267,6 +292,7 @@
 }
 
 .author-extra {
+	font-family: var(--ff-sans);
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -928,6 +954,7 @@
 }
 
 .dest__link {
+	font-family: var(--ff-sans);
 	display: grid;
 	grid-template-columns: 2rem minmax(0, 1fr) auto;
 	align-items: baseline;
@@ -956,6 +983,7 @@
 }
 
 .dest__desc {
+	font-family: var(--ff-serif);
 	display: block;
 	margin-top: var(--sp-1);
 	font-size: var(--fs-sm);
@@ -1014,7 +1042,7 @@
 
 @media (min-width: 48em) {
 	.dest--index .dest__link {
-		grid-template-columns: 3.5rem minmax(0, 4fr) minmax(0, 6fr) auto 1.5rem;
+		grid-template-columns: 3.5rem minmax(0, 4fr) minmax(0, 6fr) 6.5rem 1.25rem;
 		align-items: center;
 		gap: var(--sp-6);
 		padding-block: var(--sp-6);
@@ -1031,13 +1059,14 @@
 	}
 
 	.dest--index .dest__count {
-		grid-column: auto;
+		grid-column: 4;
+		justify-self: end;
 		white-space: nowrap;
 	}
 
 	.dest--index .dest__arrow {
-		grid-column: auto;
-		grid-row: auto;
+		grid-column: 5;
+		grid-row: 1;
 	}
 }
 
@@ -1098,6 +1127,7 @@
 }
 
 .archive-empty__hint {
+	font-family: var(--ff-sans);
 	margin-top: var(--sp-3);
 	font-size: var(--fs-sm);
 	color: var(--c-ink-3);

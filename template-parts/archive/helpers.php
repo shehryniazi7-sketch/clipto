@@ -336,7 +336,16 @@ if ( ! function_exists( 'clipto_highlight' ) ) :
 		if ( ! $terms ) {
 			return esc_html( $text );
 		}
-		$pattern = '/(' . implode( '|', array_map( static function ( $t ) { return preg_quote( $t, '/' ); }, $terms ) ) . ')/iu';
+		// Short words (≤ 3 characters, e.g. "AI") only match at the start of a word, so
+		// "AI" never lights up the middle of "maintain".
+		$alts    = array_map(
+			static function ( $t ) {
+				$len = function_exists( 'mb_strlen' ) ? mb_strlen( $t ) : strlen( $t );
+				return ( $len <= 3 ? '(?<![\\p{L}\\p{N}])' : '' ) . preg_quote( $t, '/' );
+			},
+			$terms
+		);
+		$pattern = '/(' . implode( '|', $alts ) . ')/iu';
 		$parts   = preg_split( $pattern, $text, -1, PREG_SPLIT_DELIM_CAPTURE );
 		if ( false === $parts ) {
 			return esc_html( $text );

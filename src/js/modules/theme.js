@@ -119,8 +119,7 @@ export function initTheme() {
 			syncThemeColor();
 		}
 	};
-	if (darkQuery.addEventListener) darkQuery.addEventListener('change', onSchemeChange);
-	else if (darkQuery.addListener) darkQuery.addListener(onSchemeChange);
+	darkQuery.addEventListener('change', onSchemeChange);
 
 	// Another tab changed the theme.
 	window.addEventListener('storage', (event) => {

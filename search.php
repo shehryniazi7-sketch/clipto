@@ -37,7 +37,7 @@ get_template_part(
 		'crumb'      => __( 'Search', 'clipto' ),
 		'kicker'     => __( 'Search', 'clipto' ),
 		'title_html' => $clipto_title_html,
-		'stats'      => $clipto_has_q ? array(
+		'stats'      => $clipto_has_q && $clipto_found ? array(
 			clipto_archive_count_label( $clipto_found, 'result' ),
 			clipto_archive_page_stat(),
 		) : array(),

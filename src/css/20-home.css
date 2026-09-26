@@ -45,10 +45,11 @@
 
 .home-hero__kicker {
 	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--sp-2) var(--sp-3);
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--sp-2);
 	margin-bottom: clamp(var(--sp-5), 2.5vw, var(--sp-7));
+	line-height: 1.2;
 }
 
 .home-hero__date {
@@ -57,16 +58,25 @@
 	gap: var(--sp-3);
 	font-size: var(--fs-xs);
 	font-weight: 500;
+	font-variant-numeric: normal;
 	letter-spacing: 0.02em;
 	color: var(--c-ink-3);
 }
 
-.home-hero__date::before {
-	content: "";
-	width: 1.5rem;
-	height: 1px;
-	background: var(--c-rule-strong);
-	opacity: 0.4;
+@media (min-width: 30em) {
+	.home-hero__kicker {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2) var(--sp-3);
+	}
+
+	.home-hero__date::before {
+		content: "";
+		width: 1.5rem;
+		height: 1px;
+		background: var(--c-rule);
+	}
 }
 
 .home-hero__title {
@@ -398,7 +408,16 @@
 		grid-template-columns: 9rem minmax(0, 1fr);
 		padding-top: var(--sp-5);
 	}
+}
 
+@media (min-width: 80em) {
+	.home-hero__index {
+		grid-column: 9 / span 4;
+		padding-left: 0;
+		border-left: 0;
+	}
+
+	/* Four columns only when each headline gets a comfortable measure. */
 	.hero-top__list {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		column-gap: 0;
@@ -413,14 +432,6 @@
 	}
 
 	.hero-top__item:first-child .card--numbered {
-		padding-left: 0;
-		border-left: 0;
-	}
-}
-
-@media (min-width: 80em) {
-	.home-hero__index {
-		grid-column: 9 / span 4;
 		padding-left: 0;
 		border-left: 0;
 	}
@@ -669,6 +680,11 @@
 	margin-bottom: clamp(var(--sp-6), 3vw, var(--sp-8));
 }
 
+/* Contain the chips' visually-hidden text inside the scroller. */
+.home-tools__chips {
+	position: relative;
+}
+
 .home-tools__grid {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
@@ -709,26 +725,63 @@
 	font-variant-numeric: tabular-nums;
 }
 
+/* Phones: supporting tools form a swipeable shelf (the next card peeks in).
+   From 48em they settle into a 2×2 grid. */
 .home-tools__list {
+	position: relative;
 	display: grid;
-	grid-template-columns: minmax(0, 1fr);
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(16rem, 84%);
 	gap: var(--sp-3);
-	align-content: start;
+	margin-inline: calc(var(--gutter) * -1);
+	padding: var(--sp-1) var(--gutter) var(--sp-2);
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	scroll-padding-inline: var(--gutter);
+	scrollbar-width: none;
+}
+
+.home-tools__list::-webkit-scrollbar {
+	display: none;
 }
 
 .home-tools__list > li {
 	display: flex;
 	min-width: 0;
+	scroll-snap-align: start;
 }
 
+/* Stacked tool card (logo above text) wherever a card is narrow. */
 .home-tools__list .card--tool {
 	flex: 1;
+	grid-template-columns: minmax(0, 1fr);
+	align-content: start;
+	gap: var(--sp-4);
+}
+
+.home-tools__list .card--tool .card__media {
+	width: 3.25rem;
 }
 
 @media (min-width: 48em) {
 	.home-tools__list {
+		grid-auto-flow: row;
+		grid-auto-columns: auto;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-content: start;
 		gap: var(--grid-gap);
+		margin-inline: 0;
+		padding: 0;
+		overflow: visible;
+	}
+
+	.home-tools__list .card--tool {
+		grid-template-columns: 3.5rem minmax(0, 1fr);
+	}
+
+	.home-tools__list .card--tool .card__media {
+		width: auto;
 	}
 
 	/* Tablet → small desktop: the feature reads across, image beside text. */
@@ -764,11 +817,8 @@
 		gap: var(--sp-5);
 	}
 
-	/* Stacked tool cards: logo above text so each card gets a readable measure. */
 	.home-tools__list .card--tool {
 		grid-template-columns: minmax(0, 1fr);
-		align-content: start;
-		gap: var(--sp-4);
 		padding: var(--sp-6);
 	}
 
@@ -820,7 +870,7 @@
 	order: -1;
 }
 
-@media (min-width: 48em) and (max-width: 63.99em) {
+@media (min-width: 48em) {
 	.home-news__list {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
@@ -845,6 +895,14 @@
 		padding-left: var(--grid-gap);
 		border-left: 1px solid var(--c-rule);
 		align-self: stretch;
+	}
+
+	.home-news__list {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.home-news__list > li:nth-child(2) .card--numbered {
+		border-top: 1px solid var(--c-rule);
 	}
 
 	.home-news__grid--solo .home-news__lead {
@@ -1031,6 +1089,12 @@
 
 .home-free__list .card__top {
 	gap: var(--sp-2);
+}
+
+/* A directory, not a feed: small square thumbs, tight rows. */
+.home-free__list .card--row {
+	grid-template-columns: 4rem minmax(0, 1fr);
+	gap: var(--sp-4);
 }
 
 @media (min-width: 48em) {

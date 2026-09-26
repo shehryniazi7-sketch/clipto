@@ -108,8 +108,9 @@ if ( count( $clipto_top ) < 4 ) {
 					<?php
 					clipto_search_form(
 						array(
-							'id'    => 'home-hero-search',
-							'class' => 'search-form--hero',
+							'id'          => 'home-hero-search',
+							'class'       => 'search-form--hero',
+							'placeholder' => __( 'Search tools, guides and news', 'clipto' ),
 						)
 					);
 					?>

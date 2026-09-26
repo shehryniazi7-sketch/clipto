@@ -15,7 +15,23 @@ if ( ! $clipto_tools ) {
 }
 $clipto_cat = (int) $clipto_tools['object']->term_id;
 
-/* Featured tool: a sticky AI Tools post if there is one, otherwise the latest. */
+/*
+ * Reviews carry tool facts (pricing, rating…), so they are preferred for this section;
+ * other AI Tools stories (guides, news filed under a use case) only fill gaps.
+ */
+$clipto_has_facts = array(
+	'relation' => 'OR',
+	array(
+		'key'     => '_clipto_pricing',
+		'compare' => 'EXISTS',
+	),
+	array(
+		'key'     => '_clipto_rating',
+		'compare' => 'EXISTS',
+	),
+);
+
+/* Featured tool: a sticky AI Tools post if there is one, otherwise the latest review. */
 $clipto_feature = array();
 $clipto_sticky  = array_filter( array_map( 'intval', (array) get_option( 'sticky_posts', array() ) ) );
 if ( $clipto_sticky ) {
@@ -32,6 +48,15 @@ if ( ! $clipto_feature ) {
 		array(
 			'cat'            => $clipto_cat,
 			'posts_per_page' => 1,
+			'meta_query'     => $clipto_has_facts, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		)
+	);
+}
+if ( ! $clipto_feature ) {
+	$clipto_feature = clipto_posts(
+		array(
+			'cat'            => $clipto_cat,
+			'posts_per_page' => 1,
 		)
 	);
 }
@@ -40,15 +65,29 @@ if ( ! $clipto_feature ) {
 }
 $clipto_feature = $clipto_feature[0];
 
-/* Supporting tools: newest first, one per use case before repeating a use case. */
-$clipto_pool  = clipto_posts(
+/* Supporting tools: newest reviews first, one per use case before repeating a use case. */
+$clipto_pool = clipto_posts(
 	array(
 		'cat'            => $clipto_cat,
 		'posts_per_page' => 16,
 		'post__not_in'   => clipto_shown(),
+		'meta_query'     => $clipto_has_facts, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 	),
 	false
 );
+if ( count( $clipto_pool ) < 4 ) {
+	$clipto_pool = array_merge(
+		$clipto_pool,
+		clipto_posts(
+			array(
+				'cat'            => $clipto_cat,
+				'posts_per_page' => 8,
+				'post__not_in'   => array_merge( clipto_shown(), wp_list_pluck( $clipto_pool, 'ID' ) ),
+			),
+			false
+		)
+	);
+}
 $clipto_picks = array();
 $clipto_seen  = array();
 $clipto_fcat  = clipto_primary_category( $clipto_feature );
