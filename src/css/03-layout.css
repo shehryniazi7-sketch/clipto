@@ -53,6 +53,7 @@
 	overflow-x: auto;
 	overscroll-behavior-x: contain;
 	scroll-snap-type: x proximity;
+	scroll-padding-inline: var(--gutter);
 	scrollbar-width: none;
 	margin-inline: calc(var(--gutter) * -1);
 	padding-inline: var(--gutter);
@@ -66,6 +67,7 @@
 }
 
 .scroller > * {
+	position: relative; /* contains screen-reader-only children so they can't widen the page */
 	scroll-snap-align: start;
 	flex-shrink: 0;
 }

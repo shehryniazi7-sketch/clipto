@@ -575,8 +575,8 @@
 	margin-block: 0;
 	max-width: none;
 	font-family: var(--ff-serif);
-	font-size: 1.0625rem;
-	line-height: 1.6;
+	font-size: clamp(1.0625rem, 1.02rem + 0.25vw, 1.1875rem);
+	line-height: 1.62;
 	color: var(--c-ink-2);
 }
 
