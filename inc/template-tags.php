@@ -104,7 +104,9 @@ function clipto_term_post_count( $term ) {
 	if ( 'category' !== $term->taxonomy ) {
 		return (int) $term->count;
 	}
-	$key   = 'clipto_count_' . $term->term_id;
+	// Versioned by core's last-changed stamps, so a publish, trash or re-categorisation
+	// makes the next read miss instead of serving a stale total from a persistent cache.
+	$key   = 'clipto_count_' . $term->term_id . ':' . wp_cache_get_last_changed( 'posts' ) . ':' . wp_cache_get_last_changed( 'terms' );
 	$count = wp_cache_get( $key, 'clipto' );
 	if ( false === $count ) {
 		$children = get_term_children( $term->term_id, 'category' );
@@ -216,18 +218,32 @@ function clipto_primary_category( $post = null ) {
 }
 
 /**
- * Estimated reading time in minutes (230 wpm, minimum 1).
+ * Estimated reading time in minutes (230 words or 500 characters a minute, minimum 1).
+ * Password-protected posts report the minimum so the length of hidden text is not revealed.
  *
  * @param int|WP_Post|null $post Post.
  * @return int
  */
 function clipto_reading_time( $post = null ) {
 	$post = get_post( $post );
-	if ( ! $post ) {
+	if ( ! $post || post_password_required( $post ) ) {
 		return 1;
 	}
-	$words = str_word_count( wp_strip_all_tags( strip_shortcodes( $post->post_content ) ) );
-	return max( 1, (int) round( $words / 230 ) );
+	$text = wp_strip_all_tags( strip_shortcodes( $post->post_content ) );
+	// Same switch core's word counter uses: languages without spaces (Chinese, Japanese…)
+	// are counted in characters.
+	$type = _x( 'words', 'Word count type. Do not translate!' ); // phpcs:ignore WordPress.WP.I18n.MissingArgDomain -- core string, read for its locale setting.
+	if ( 0 === strpos( $type, 'characters' ) ) {
+		$minutes = (int) preg_match_all( '/\S/u', $text ) / 500;
+	} else {
+		// Unicode-aware: str_word_count() only sees ASCII letters.
+		$words = preg_match_all( "/[\\p{L}\\p{M}\\p{N}'’-]+/u", $text );
+		if ( false === $words ) {
+			$words = str_word_count( $text ); // Not valid UTF-8.
+		}
+		$minutes = $words / 230;
+	}
+	return max( 1, (int) round( $minutes ) );
 }
 
 /**
@@ -239,7 +255,8 @@ function clipto_reading_time( $post = null ) {
  */
 function clipto_excerpt( $post = null, $words = 28 ) {
 	$post = get_post( $post );
-	if ( ! $post ) {
+	// Password-protected: neither the manual excerpt nor the body may show before the password.
+	if ( ! $post || post_password_required( $post ) ) {
 		return '';
 	}
 	$text = has_excerpt( $post ) ? $post->post_excerpt : $post->post_content;
@@ -292,7 +309,8 @@ function clipto_time( $post = null ) {
  */
 function clipto_tool_facts( $post = null ) {
 	$post = get_post( $post );
-	if ( ! $post ) {
+	// Facts of a password-protected review stay hidden until the password is entered.
+	if ( ! $post || post_password_required( $post ) ) {
 		return array();
 	}
 	$facts = array();
@@ -405,9 +423,10 @@ function clipto_meta( $post = null, $args = array() ) {
 	if ( $args['date'] ) {
 		$parts[] = clipto_time( $post );
 	}
-	if ( $args['reading'] ) {
+	if ( $args['reading'] && ! post_password_required( $post ) ) {
+		$minutes = clipto_reading_time( $post );
 		/* translators: %d: minutes. */
-		$parts[] = '<span class="meta__reading">' . esc_html( sprintf( _n( '%d min read', '%d min read', clipto_reading_time( $post ), 'clipto' ), clipto_reading_time( $post ) ) ) . '</span>';
+		$parts[] = '<span class="meta__reading">' . esc_html( sprintf( _n( '%d min read', '%d min read', $minutes, 'clipto' ), $minutes ) ) . '</span>';
 	}
 	printf(
 		'<div class="meta %1$s">%2$s</div>',
@@ -580,10 +599,20 @@ function clipto_card( $post = null, $variant = 'standard', $args = array() ) {
 	}
 
 	set_query_var( 'clipto_card', array_merge( $args, array( 'variant' => $variant, 'heading' => $heading, 'classes' => $classes ) ) );
+	$prev            = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
 	$GLOBALS['post'] = $post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- restored below.
 	setup_postdata( $post );
 	get_template_part( 'template-parts/cards/card', $variant );
-	wp_reset_postdata();
+	if ( ! empty( $GLOBALS['wp_query']->post ) ) {
+		wp_reset_postdata();
+	} else {
+		// Empty main query (404, no search results, empty archive): wp_reset_postdata() has
+		// nothing to restore, so put back whatever was there before this card.
+		$GLOBALS['post'] = $prev; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- restoring the previous value.
+		if ( $prev instanceof WP_Post ) {
+			setup_postdata( $prev );
+		}
+	}
 }
 
 /**
@@ -692,13 +721,53 @@ function clipto_posts( $args = array(), $dedupe = true ) {
 		)
 	);
 	if ( $dedupe && clipto_shown() ) {
-		$args['post__not_in'] = array_merge( isset( $args['post__not_in'] ) ? (array) $args['post__not_in'] : array(), clipto_shown() );
+		if ( ! empty( $args['post__in'] ) ) {
+			// WP_Query ignores post__not_in whenever post__in is set: filter the list itself.
+			$args['post__in'] = array_values( array_diff( array_map( 'intval', (array) $args['post__in'] ), clipto_shown() ) );
+			if ( ! $args['post__in'] ) {
+				return array();
+			}
+		} else {
+			$args['post__not_in'] = array_merge( isset( $args['post__not_in'] ) ? (array) $args['post__not_in'] : array(), clipto_shown() );
+		}
 	}
 	$q = new WP_Query( $args );
-	if ( $dedupe && $q->posts ) {
-		clipto_shown( wp_list_pluck( $q->posts, 'ID' ) );
+	if ( $q->posts ) {
+		clipto_prime_card_caches( $q->posts );
+		if ( $dedupe ) {
+			clipto_shown( wp_list_pluck( $q->posts, 'ID' ) );
+		}
 	}
 	return $q->posts;
+}
+
+/**
+ * Prime the caches cards read for a list of posts in a few queries instead of a few per
+ * card: featured-image attachments (and their meta), authors, and tool-logo attachments.
+ * Post meta is already primed by WP_Query.
+ *
+ * @param WP_Post[] $posts Posts.
+ */
+function clipto_prime_card_caches( $posts ) {
+	$posts = array_filter(
+		(array) $posts,
+		static function ( $p ) {
+			return $p instanceof WP_Post;
+		}
+	);
+	if ( ! $posts ) {
+		return;
+	}
+	$attachment_ids = array();
+	foreach ( $posts as $p ) {
+		$attachment_ids[] = (int) get_post_meta( $p->ID, '_thumbnail_id', true );
+		$attachment_ids[] = (int) get_post_meta( $p->ID, '_clipto_logo_id', true );
+	}
+	$attachment_ids = array_unique( array_filter( $attachment_ids ) );
+	if ( $attachment_ids ) {
+		_prime_post_caches( $attachment_ids, false, true );
+	}
+	update_post_author_caches( $posts );
 }
 
 /* -------------------------------------------------------------------------
@@ -772,6 +841,10 @@ function clipto_breadcrumbs( $post = null ) {
 		$page      = get_post( $post );
 		$ancestors = $page ? array_reverse( get_post_ancestors( $page ) ) : array();
 		foreach ( $ancestors as $ancestor_id ) {
+			// Skip private/draft ancestors the visitor may not read (their titles are not public).
+			if ( ! is_post_publicly_viewable( $ancestor_id ) && ! current_user_can( 'read_post', $ancestor_id ) ) {
+				continue;
+			}
 			$items[] = array( 'label' => get_the_title( $ancestor_id ), 'url' => get_permalink( $ancestor_id ) );
 		}
 	}

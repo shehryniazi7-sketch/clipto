@@ -31,9 +31,6 @@ add_action(
 	'wp_enqueue_scripts',
 	static function () {
 		wp_dequeue_style( 'classic-theme-styles' );
-		if ( ! is_user_logged_in() ) {
-			wp_deregister_style( 'dashicons' );
-		}
 	},
 	20
 );

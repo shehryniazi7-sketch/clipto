@@ -67,6 +67,7 @@
 		},
 		"typography": {
 			"customFontSize": false,
+			"defaultFontSizes": false,
 			"dropCap": true,
 			"fluid": true,
 			"fontFamilies": [
@@ -160,6 +161,7 @@
 			]
 		},
 		"spacing": {
+			"defaultSpacingSizes": false,
 			"units": [
 				"px",
 				"rem",

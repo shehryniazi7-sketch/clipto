@@ -197,6 +197,35 @@ if ( ! function_exists( 'clipto_register_tool_meta' ) ) {
 }
 add_action( 'init', 'clipto_register_tool_meta' );
 
+if ( ! function_exists( 'clipto_rest_hide_protected_tool_facts' ) ) {
+	/**
+	 * Core blanks the content and excerpt of a password-protected post in REST responses
+	 * but not its meta: drop the tool facts too, unless the request may see protected
+	 * content (an editor in the edit context, or the correct ?password=), as core decides.
+	 *
+	 * @param WP_REST_Response $response Response.
+	 * @param WP_Post          $post     Post.
+	 * @param WP_REST_Request  $request  Request.
+	 * @return WP_REST_Response
+	 */
+	function clipto_rest_hide_protected_tool_facts( $response, $post, $request ) {
+		if ( ! $post instanceof WP_Post || empty( $response->data['meta'] ) || ! is_array( $response->data['meta'] ) || ! post_password_required( $post ) ) {
+			return $response;
+		}
+		if ( 'edit' === $request['context'] && current_user_can( 'edit_post', $post->ID ) ) {
+			return $response;
+		}
+		if ( ! empty( $request['password'] ) && hash_equals( $post->post_password, (string) $request['password'] ) ) {
+			return $response;
+		}
+		foreach ( array_keys( clipto_tool_fact_fields() ) as $key ) {
+			unset( $response->data['meta'][ $key ] );
+		}
+		return $response;
+	}
+}
+add_filter( 'rest_prepare_post', 'clipto_rest_hide_protected_tool_facts', 10, 3 );
+
 /* -------------------------------------------------------------------------
  * Meta box
  * ---------------------------------------------------------------------- */

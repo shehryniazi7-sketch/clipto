@@ -33,7 +33,8 @@ $clipto_author_id = (int) $clipto_post->post_author;
 $clipto_published = (int) get_post_time( 'U', true, $clipto_post );
 $clipto_modified  = (int) get_post_modified_time( 'U', true, $clipto_post );
 $clipto_updated   = $clipto_modified > $clipto_published + DAY_IN_SECONDS;
-$clipto_dek       = has_excerpt( $clipto_post ) ? trim( wp_strip_all_tags( $clipto_post->post_excerpt ) ) : '';
+$clipto_locked    = post_password_required( $clipto_post );
+$clipto_dek       = ( has_excerpt( $clipto_post ) && ! $clipto_locked ) ? trim( wp_strip_all_tags( $clipto_post->post_excerpt ) ) : '';
 $clipto_badges    = $clipto_is_post ? clipto_badges( $clipto_post ) : '';
 $clipto_minutes   = clipto_reading_time( $clipto_post );
 ?>
@@ -50,6 +51,10 @@ $clipto_minutes   = clipto_reading_time( $clipto_post );
 			),
 		);
 		foreach ( array_reverse( get_post_ancestors( $clipto_post ) ) as $clipto_ancestor ) {
+			// Skip private/draft ancestors the visitor may not read (their titles are not public).
+			if ( ! is_post_publicly_viewable( $clipto_ancestor ) && ! current_user_can( 'read_post', $clipto_ancestor ) ) {
+				continue;
+			}
 			$clipto_trail[] = array(
 				'label' => wp_strip_all_tags( get_the_title( $clipto_ancestor ) ),
 				'url'   => get_permalink( $clipto_ancestor ),
@@ -147,7 +152,7 @@ $clipto_minutes   = clipto_reading_time( $clipto_post );
 							<time datetime="<?php echo esc_attr( get_the_modified_date( DATE_W3C, $clipto_post ) ); ?>"><?php echo esc_html( get_the_modified_date( '', $clipto_post ) ); ?></time>
 						</span>
 					<?php endif; ?>
-					<?php if ( $clipto_args['reading'] ) : ?>
+					<?php if ( $clipto_args['reading'] && ! $clipto_locked ) : ?>
 						<span class="byline__reading">
 							<?php
 							/* translators: %d: minutes. */

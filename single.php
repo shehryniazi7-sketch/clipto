@@ -93,7 +93,7 @@ while ( have_posts() ) :
 
 	<?php get_template_part( 'template-parts/article/post-nav' ); ?>
 
-	<?php if ( comments_open() || get_comments_number() ) : ?>
+	<?php if ( ! post_password_required() && ( comments_open() || get_comments_number() ) ) : ?>
 		<div class="reading reading--comments container">
 			<div class="reading__main">
 				<?php comments_template(); ?>

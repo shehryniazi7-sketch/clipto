@@ -17,10 +17,13 @@ if ( ! $clipto_guide || ! $clipto_guide['object'] instanceof WP_Post ) {
 $clipto_page     = $clipto_guide['object'];
 $clipto_url      = $clipto_guide['url'];
 $clipto_title    = get_the_title( $clipto_page );
-$clipto_summary  = has_excerpt( $clipto_page )
-	? wp_trim_words( wp_strip_all_tags( $clipto_page->post_excerpt ), 42, '…' )
-	: clipto_excerpt( $clipto_page, 42 );
-$clipto_minutes  = clipto_reading_time( $clipto_page );
+$clipto_locked   = post_password_required( $clipto_page );
+$clipto_summary  = $clipto_locked ? '' : (
+	has_excerpt( $clipto_page )
+		? wp_trim_words( wp_strip_all_tags( $clipto_page->post_excerpt ), 42, '…' )
+		: clipto_excerpt( $clipto_page, 42 )
+);
+$clipto_minutes  = $clipto_locked ? 0 : clipto_reading_time( $clipto_page );
 $clipto_sections = clipto_home_guide_sections( $clipto_page, 6 );
 $clipto_modified = (int) get_post_modified_time( 'U', true, $clipto_page );
 $clipto_created  = (int) get_post_time( 'U', true, $clipto_page );
@@ -60,12 +63,14 @@ $clipto_updated  = $clipto_modified - $clipto_created > DAY_IN_SECONDS;
 					<?php endif; ?>
 
 					<div class="meta home-guide__meta">
-						<span class="meta__reading">
-							<?php
-							/* translators: %d: minutes. */
-							echo esc_html( sprintf( _n( '%d min read', '%d min read', $clipto_minutes, 'clipto' ), $clipto_minutes ) );
-							?>
-						</span>
+						<?php if ( $clipto_minutes ) : ?>
+							<span class="meta__reading">
+								<?php
+								/* translators: %d: minutes. */
+								echo esc_html( sprintf( _n( '%d min read', '%d min read', $clipto_minutes, 'clipto' ), $clipto_minutes ) );
+								?>
+							</span>
+						<?php endif; ?>
 						<span>
 							<?php
 							if ( $clipto_updated ) {

@@ -20,6 +20,9 @@ if ( ! have_posts() ) {
 	get_template_part( 'template-parts/archive/empty' );
 	return;
 }
+
+// Tool cards read logo attachments core does not prime for the main loop.
+clipto_prime_card_caches( $wp_query->posts );
 ?>
 <div class="archive-body archive-body--tools container">
 

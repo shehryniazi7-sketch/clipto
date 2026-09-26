@@ -339,9 +339,15 @@ if ( ! function_exists( 'clipto_search_terms' ) ) :
 			$raw   = trim( (string) get_search_query( false ) );
 			$terms = '' === $raw ? array() : preg_split( '/\s+/u', $raw );
 		}
-		$terms = array_filter(
+		// Core's exclusion prefix ("-word" means NOT word); false disables exclusions.
+		$prefix = apply_filters( 'wp_query_search_exclusion_prefix', '-' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core filter, read not added.
+		$terms  = array_filter(
 			array_map( 'trim', (array) $terms ),
-			static function ( $t ) {
+			static function ( $t ) use ( $prefix ) {
+				// Excluded words are not hits, and invalid UTF-8 would break the /u pattern.
+				if ( '' === $t || ! preg_match( '//u', $t ) || ( $prefix && 0 === strpos( $t, $prefix ) ) ) {
+					return false;
+				}
 				return function_exists( 'mb_strlen' ) ? mb_strlen( $t ) >= 2 : strlen( $t ) >= 2;
 			}
 		);
@@ -515,6 +521,9 @@ if ( ! function_exists( 'clipto_author_topics' ) ) :
 		if ( ! $ids ) {
 			return array();
 		}
+		// 'fields' => 'ids' skips cache priming: load posts, terms and meta in three queries
+		// rather than three per post inside clipto_primary_category().
+		_prime_post_caches( $ids, true, true );
 		$tally = array();
 		$terms = array();
 		foreach ( $ids as $id ) {

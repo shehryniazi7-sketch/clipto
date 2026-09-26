@@ -68,8 +68,11 @@ $facts   = 'tool' === $variant ? clipto_tool_facts( $post_id ) : array();
 			<a class="card__link" href="<?php echo esc_url( $url ); ?>"><span class="headline-link"><?php echo esc_html( $title ); ?></span></a>
 		</<?php echo esc_html( $heading ); ?>>
 
-		<?php if ( $c['excerpt'] ) : ?>
-			<p class="card__excerpt"><?php echo esc_html( clipto_excerpt( $post_id, (int) $c['excerpt'] ) ); ?></p>
+		<?php
+		$excerpt = $c['excerpt'] ? clipto_excerpt( $post_id, (int) $c['excerpt'] ) : '';
+		if ( '' !== $excerpt ) :
+			?>
+			<p class="card__excerpt"><?php echo esc_html( $excerpt ); ?></p>
 		<?php endif; ?>
 
 		<?php if ( 'tool' === $variant ) : ?>

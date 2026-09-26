@@ -171,12 +171,13 @@ if ( count( $clipto_top ) < 4 ) {
 						<footer class="hero-index__foot">
 							<p class="hero-index__total">
 								<?php
+								$clipto_subcount = count( clipto_tool_subcategories() );
 								echo esc_html(
 									sprintf(
 										/* translators: 1: number of stories, 2: number of categories. */
-										__( '%1$s across %2$s categories', 'clipto' ),
+										_n( '%1$s across %2$s category', '%1$s across %2$s categories', $clipto_subcount, 'clipto' ),
 										clipto_home_count_label( (int) $clipto_tools['count'] ),
-										number_format_i18n( count( clipto_tool_subcategories() ) )
+										number_format_i18n( $clipto_subcount )
 									)
 								);
 								?>
