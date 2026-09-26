@@ -43,6 +43,7 @@ if ( ! have_posts() ) {
 						'excerpt' => 30,
 						'sizes'   => '(min-width: 64em) 55vw, 100vw',
 						'class'   => 'tools-feature__card',
+						'kicker'  => clipto_archive_kicker( $feature ),
 					)
 				);
 
@@ -103,14 +104,21 @@ if ( ! have_posts() ) {
 				<span class="archive-label__text">
 					<?php
 					if ( $is_root ) {
-						esc_html_e( 'All AI tools', 'clipto' );
+						is_paged() ? esc_html_e( 'All AI tools', 'clipto' ) : esc_html_e( 'More AI tools', 'clipto' );
 					} else {
 						/* translators: %s: category name. */
-						printf( esc_html__( 'All tools in %s', 'clipto' ), esc_html( single_term_title( '', false ) ) );
+						printf( is_paged() ? esc_html__( 'All tools in %s', 'clipto' ) : esc_html__( 'More in %s', 'clipto' ), esc_html( single_term_title( '', false ) ) );
 					}
 					?>
 				</span>
-				<span class="archive-label__count"><?php echo esc_html( number_format_i18n( $wp_query->found_posts ) ); ?></span>
+				<?php if ( is_paged() ) : ?>
+					<span class="archive-label__count">
+						<?php
+						/* translators: 1: current page, 2: total pages. */
+						echo esc_html( sprintf( __( 'Page %1$s of %2$s', 'clipto' ), number_format_i18n( max( 1, (int) get_query_var( 'paged' ) ) ), number_format_i18n( (int) $wp_query->max_num_pages ) ) );
+						?>
+					</span>
+				<?php endif; ?>
 			</h2>
 			<div class="tools-grid">
 				<?php
@@ -123,6 +131,7 @@ if ( ! have_posts() ) {
 						array(
 							'heading' => 'h3',
 							'index'   => ( $i % 3 ) + 1,
+							'kicker'  => clipto_archive_kicker( get_post() ),
 						)
 					);
 					++$i;

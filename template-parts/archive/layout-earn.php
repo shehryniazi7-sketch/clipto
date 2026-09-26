@@ -37,6 +37,7 @@ if ( ! have_posts() ) {
 					'sizes'   => '(min-width: 64em) 58vw, 100vw',
 					'excerpt' => 34,
 					'class'   => 'earn-lead__card',
+					'kicker'  => clipto_archive_kicker( get_post() ),
 				)
 			);
 			?>
@@ -69,6 +70,7 @@ if ( ! have_posts() ) {
 							'size'    => $wide ? 'clipto-feature' : 'clipto-card',
 							'sizes'   => $wide ? '(min-width: 64em) 45vw, (min-width: 40em) 50vw, 100vw' : '(min-width: 64em) 30vw, (min-width: 40em) 50vw, 100vw',
 							'class'   => $wide ? 'earn-grid__wide' : '',
+							'kicker'  => clipto_archive_kicker( get_post() ),
 						)
 					);
 					++$i;

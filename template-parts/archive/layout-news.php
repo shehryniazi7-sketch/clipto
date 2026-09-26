@@ -77,6 +77,7 @@ if ( ! have_posts() ) {
 						'excerpt' => 22,
 						'index'   => min( $i, 4 ),
 						'class'   => 'news-row',
+						'kicker'  => clipto_archive_kicker( get_post() ),
 					)
 				);
 			endwhile;

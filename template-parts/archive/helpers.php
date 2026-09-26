@@ -613,3 +613,21 @@ if ( ! function_exists( 'clipto_archive_term_head_args' ) ) :
 		return $args;
 	}
 endif;
+
+if ( ! function_exists( 'clipto_archive_kicker' ) ) :
+	/**
+	 * Whether a card in the current archive should show its category kicker. It is
+	 * redundant (and hidden) when the post's primary category is the archive's own term.
+	 *
+	 * @param int|WP_Post $post Post.
+	 * @return bool
+	 */
+	function clipto_archive_kicker( $post ) {
+		$term = get_queried_object();
+		if ( ! is_category() || ! $term instanceof WP_Term ) {
+			return true;
+		}
+		$cat = clipto_primary_category( $post );
+		return ! $cat || (int) $cat->term_id !== (int) $term->term_id;
+	}
+endif;

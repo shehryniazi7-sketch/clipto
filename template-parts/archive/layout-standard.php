@@ -46,6 +46,7 @@ if ( ! have_posts() ) {
 					'reveal'  => false,
 					'sizes'   => '(min-width: 64em) 55vw, 100vw',
 					'class'   => 'archive-lead__card',
+					'kicker'  => clipto_archive_kicker( get_post() ),
 				)
 			);
 			?>
@@ -69,6 +70,7 @@ if ( ! have_posts() ) {
 						'heading' => $a['list_label'] ? 'h3' : 'h2',
 						'excerpt' => $a['excerpt'],
 						'index'   => min( $i, 4 ),
+						'kicker'  => clipto_archive_kicker( get_post() ),
 					);
 					if ( $a['highlight'] ) {
 						clipto_card_highlighted( get_post(), 'row', $card_args, $a['highlight'] );

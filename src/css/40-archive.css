@@ -179,6 +179,10 @@
 	display: flex;
 }
 
+.archive-head__chips .chip {
+	padding-inline: 0.85rem;
+}
+
 .archive-head__search {
 	margin-top: var(--sp-6);
 	max-width: 40rem;
@@ -567,7 +571,7 @@
 }
 
 .news-day + .news-day {
-	margin-top: clamp(var(--sp-8), 4vw, var(--sp-10));
+	margin-top: clamp(var(--sp-7), 3vw, var(--sp-8));
 }
 
 .news-day__head {
@@ -737,6 +741,10 @@
 }
 
 .free-item {
+	display: grid;
+	grid-template-columns: 5rem minmax(0, 1fr);
+	grid-template-rows: auto 1fr;
+	column-gap: var(--sp-4);
 	padding-block: var(--sp-4);
 	border-top: 1px solid var(--c-rule);
 }
@@ -745,22 +753,48 @@
 	border-top: 0;
 }
 
+/* The row card joins the item's grid (subgrid) so the facts line sits directly
+   under the text, beside the thumbnail, however long the title runs. */
 .free-item .card--row {
+	grid-column: 1 / -1;
+	grid-row: 1 / span 2;
+	grid-template-columns: subgrid;
+	grid-template-rows: subgrid;
+	gap: normal;
 	padding-block: 0;
 	border-top: 0;
 }
 
+.free-item .card--row > .card__media {
+	grid-column: 1;
+	grid-row: 1 / span 2;
+}
+
+.free-item .card--row > .card__body {
+	grid-column: 2;
+	grid-row: 1;
+}
+
 .free-item__facts {
+	grid-column: 2;
+	grid-row: 2;
+	align-self: start;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--sp-2) var(--sp-3);
 	margin-top: var(--sp-3);
-	margin-left: calc(5rem + var(--sp-4));
 	font-family: var(--ff-sans);
 	font-size: var(--fs-xs);
 	line-height: 1.4;
 	color: var(--c-ink-2);
+}
+
+@supports not (grid-template-rows: subgrid) {
+	.free-item .card--row {
+		grid-row: 1;
+		grid-template-columns: inherit;
+	}
 }
 
 .free-item__price {
@@ -774,8 +808,8 @@
 }
 
 @media (min-width: 48em) {
-	.free-item__facts {
-		margin-left: calc(6rem + var(--sp-4));
+	.free-item {
+		grid-template-columns: 6rem minmax(0, 1fr);
 	}
 }
 
