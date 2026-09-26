@@ -6,6 +6,7 @@
  * scrollend/idle pass catches fast jumps that skip past the observation band.
  */
 import { prefersReducedMotion } from './reveal.js';
+import { fragmentId } from './fragment.js';
 
 const BAND_BOTTOM = 0.3; // A heading becomes current once it rises above 30% of the viewport.
 const CONDENSE_AFTER = 16; // Rail entries before sub-sections collapse to the current one.
@@ -26,7 +27,7 @@ export function initToc() {
 	const links = Array.from(document.querySelectorAll('[data-toc-link]'));
 	const byId = new Map();
 	links.forEach((link) => {
-		const id = decodeURIComponent((link.getAttribute('href') || '').slice(1));
+		const id = fragmentId((link.getAttribute('href') || '').slice(1));
 		if (!id) return;
 		if (!byId.has(id)) byId.set(id, []);
 		byId.get(id).push(link);
@@ -175,7 +176,7 @@ export function initToc() {
 	};
 	links.forEach((link) => {
 		link.addEventListener('click', () => {
-			const id = decodeURIComponent((link.getAttribute('href') || '').slice(1));
+			const id = fragmentId((link.getAttribute('href') || '').slice(1));
 			if (!document.getElementById(id)) return;
 			setActive(id);
 			locked = true;

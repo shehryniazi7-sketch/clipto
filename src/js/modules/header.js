@@ -258,6 +258,12 @@ function initMega(button) {
 		if (event.relatedTarget && !item.contains(event.relatedTarget)) close();
 	});
 
+	// Shift+Tab straight back into the panel while it is still fading out: keep it open,
+	// or focus would sit inside a panel that is about to become hidden.
+	panel.addEventListener('focusin', () => {
+		if (!isOpen()) open('keyboard');
+	});
+
 	item.addEventListener('pointerenter', (event) => {
 		if (event.pointerType !== 'mouse' || !fineHover.matches || !desktop.matches) return;
 		clearTimeout(closeTimer);
@@ -300,6 +306,9 @@ function initMobileMenu() {
 	dialog.addEventListener('click', (event) => {
 		const link = event.target.closest('a[href*="#"]');
 		if (link && link.pathname === location.pathname && link.search === location.search) {
+			// Focus follows the fragment (the browser moves the Tab starting point to the
+			// target); returning it to the Menu button would send the next Tab back up the page.
+			dialog._opener = null;
 			closeDialog(dialog, { instant: true });
 		}
 	});

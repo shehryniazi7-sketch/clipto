@@ -8,6 +8,7 @@
  * Also opens a closed <details> when the URL fragment points inside it.
  */
 import { prefersReducedMotion } from './reveal.js';
+import { fragmentId } from './fragment.js';
 
 const SELECTOR = 'details.wp-block-details, .entry-content details, details[data-animate-open]';
 const CSS_ANIMATED = '.is-style-clipto-faq';
@@ -31,7 +32,7 @@ function animateOpen(details) {
 }
 
 function openFromHash() {
-	const id = decodeURIComponent(window.location.hash.slice(1));
+	const id = fragmentId(window.location.hash.slice(1));
 	if (!id) return;
 	const target = document.getElementById(id);
 	if (!target) return;

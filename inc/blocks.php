@@ -270,3 +270,81 @@ function clipto_table_numeric_cells( $block_content ) {
 	return null === $result ? $block_content : $result;
 }
 add_filter( 'render_block_core/table', 'clipto_table_numeric_cells', 20 );
+
+/* -------------------------------------------------------------------------
+ * Horizontal scrollers: reachable and named for keyboard users
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Make a block's scrolling wrapper a focusable, named region (tabindex="0"), so keyboard
+ * users can scroll it in browsers that do not focus scroll containers themselves (Safari).
+ * A figcaption, when present, names the region; otherwise $label does. Markup the author
+ * already made focusable is left alone.
+ *
+ * @param string $html  Rendered block.
+ * @param string $tag   Wrapper tag (figure, pre).
+ * @param string $class Class the wrapper must carry.
+ * @param string $label Fallback accessible name.
+ * @return string
+ */
+function clipto_scroll_region( $html, $tag, $class, $label ) {
+	static $n = 0;
+	$p = new WP_HTML_Tag_Processor( $html );
+	if ( ! $p->next_tag( $tag ) || ! $p->has_class( $class ) || null !== $p->get_attribute( 'tabindex' ) ) {
+		return $html;
+	}
+	$p->set_bookmark( 'clipto-scroller' );
+	$name_attr = 'aria-label';
+	$name      = $label;
+	if ( 'figure' === $tag && $p->next_tag( 'figcaption' ) ) {
+		$caption_id = $p->get_attribute( 'id' );
+		if ( ! is_string( $caption_id ) || '' === $caption_id ) {
+			$caption_id = 'clipto-scroller-caption-' . ( ++$n );
+			$p->set_attribute( 'id', $caption_id );
+		}
+		$name_attr = 'aria-labelledby';
+		$name      = $caption_id;
+	}
+	$p->seek( 'clipto-scroller' );
+	$p->release_bookmark( 'clipto-scroller' );
+	$p->set_attribute( 'tabindex', '0' );
+	$p->set_attribute( 'role', 'region' );
+	$p->set_attribute( $name_attr, $name );
+	return $p->get_updated_html();
+}
+
+/**
+ * Comparison tables always scroll sideways on narrow screens.
+ *
+ * @param string $block_content Rendered block.
+ * @return string
+ */
+function clipto_compare_table_region( $block_content ) {
+	if ( false === strpos( $block_content, 'is-style-clipto-compare' ) ) {
+		return $block_content;
+	}
+	return clipto_scroll_region( $block_content, 'figure', 'is-style-clipto-compare', __( 'Comparison table', 'clipto' ) );
+}
+add_filter( 'render_block_core/table', 'clipto_compare_table_region', 30 );
+
+/**
+ * Code blocks keep their lines unwrapped and scroll sideways.
+ *
+ * @param string $block_content Rendered block.
+ * @return string
+ */
+function clipto_code_region( $block_content ) {
+	return clipto_scroll_region( $block_content, 'pre', 'wp-block-code', __( 'Code example', 'clipto' ) );
+}
+add_filter( 'render_block_core/code', 'clipto_code_region' );
+
+/**
+ * Preformatted blocks share the code scroller (31-content.css).
+ *
+ * @param string $block_content Rendered block.
+ * @return string
+ */
+function clipto_preformatted_region( $block_content ) {
+	return clipto_scroll_region( $block_content, 'pre', 'wp-block-preformatted', __( 'Preformatted text', 'clipto' ) );
+}
+add_filter( 'render_block_core/preformatted', 'clipto_preformatted_region' );

@@ -44,13 +44,17 @@ function enhanceForm(form) {
 
 	const render = (state) => {
 		form.dataset.state = state || '';
+		let next = '';
 		if (state === 'empty' || state === 'invalid') {
 			input.setAttribute('aria-invalid', 'true');
-			msg.textContent = text[state];
+			next = text[state];
 		} else {
 			input.removeAttribute('aria-invalid');
-			msg.textContent = state === 'submitting' ? text.submitting : '';
+			next = state === 'submitting' ? text.submitting : '';
 		}
+		// Only touch the live region when the message changes: replacing its text node with
+		// the same words makes screen readers announce it again on every keystroke.
+		if (msg.textContent !== next) msg.textContent = next;
 	};
 
 	const reset = () => {

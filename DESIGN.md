@@ -155,8 +155,9 @@ animate layout properties; no continuous loops; everything readable with motion 
 | `--ease-in-out` | `cubic-bezier(.65,0,.35,1)` | Toggles |
 
 - Scroll reveals: `[data-reveal]` → opacity 0→1 + translateY 14px→0 once, via IntersectionObserver.
-  Hidden state applies only under `html.js` **and** `prefers-reduced-motion: no-preference`, so content is
-  never trapped invisible.
+  Hidden state applies only under `html.reveal-ready` (set by the reveal module itself once it runs; what is
+  already on screen stays visible), on `screen`, **and** with `prefers-reduced-motion: no-preference`, so
+  content is never trapped invisible (blocked script, print). Keyboard focus reveals a block at once.
 - Stagger via `--i` custom property (`transition-delay: calc(var(--i) * 60ms)`), capped at 6 steps.
 - Hero entrance runs once on load (CSS keyframes).
 - Theme switch: View Transitions cross-fade where supported; otherwise instant.

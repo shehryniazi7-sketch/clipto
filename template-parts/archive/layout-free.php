@@ -16,6 +16,9 @@ if ( ! have_posts() ) {
 	get_template_part( 'template-parts/archive/empty' );
 	return;
 }
+
+// Prime the cards' image attachments up front (core only primes them mid-loop).
+clipto_prime_card_caches( $wp_query->posts );
 ?>
 <div class="archive-body archive-body--free container">
 	<section class="free-list" aria-labelledby="free-list-label">

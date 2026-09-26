@@ -793,7 +793,6 @@
 	font-weight: 500;
 	line-height: 1.35;
 	color: var(--c-ink);
-	font-variant-numeric: tabular-nums;
 }
 
 /* Phones: supporting tools form a swipeable shelf (the next card peeks in).

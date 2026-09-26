@@ -8,12 +8,16 @@ import { initHeader } from './modules/header.js';
 import { initSearch } from './modules/search.js';
 import { initNewsletter } from './modules/newsletter.js';
 
+// Reveal first (it un-hides content), and each module in isolation: one failing must not
+// disable the others.
 const boot = () => {
-	initTheme();
-	initHeader();
-	initSearch();
-	initNewsletter();
-	initReveal();
+	[initReveal, initTheme, initHeader, initSearch, initNewsletter].forEach((init) => {
+		try {
+			init();
+		} catch (error) {
+			console.error(error);
+		}
+	});
 };
 
 if (document.readyState === 'loading') {

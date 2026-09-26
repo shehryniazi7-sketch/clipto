@@ -183,21 +183,28 @@ pre {
 }
 
 /* Scroll reveal system ------------------------------------------------------
-   Hidden state only when JS is running AND motion is welcome, so content is
-   never trapped invisible. JS adds .is-revealed once per element. */
-@media (prefers-reduced-motion: no-preference) {
-	.js [data-reveal] {
+   Hidden state only once reveal.js is running (html.reveal-ready, set by the module
+   itself, not the head bootstrap), on screen, with motion welcome, so content is never
+   trapped invisible (a blocked or failing script, print). JS adds .is-revealed once per
+   element; the hide itself is instant, only the reveal transitions. */
+@media screen and (prefers-reduced-motion: no-preference) {
+	.reveal-ready [data-reveal]:not(.is-revealed) {
 		opacity: 0;
 		transform: translate3d(0, 14px, 0);
+	}
+
+	.reveal-ready [data-reveal].is-revealed {
 		transition:
 			opacity var(--dur-4) var(--ease-out),
 			transform var(--dur-4) var(--ease-out);
 		transition-delay: calc(min(var(--i, 0), 6) * var(--stagger));
 	}
 
-	.js [data-reveal].is-revealed {
+	/* Keyboard focus inside a block the observer has not revealed yet shows it at once. */
+	.reveal-ready [data-reveal]:focus-within {
 		opacity: 1;
 		transform: none;
+		transition: none;
 	}
 }
 
